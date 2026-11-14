@@ -1,5 +1,7 @@
 # Field Shift MVP Implementation Plan
 
+> **Layout note (2026-11-14, decided after this plan was written).** The team adopted the Data Corn skeleton's layout as the trunk: there is no separate `pipeline/` or `web/` directory. Read `pipeline/src/fieldshift/` as `apps/api/src/datacorn/` (`adapters/` = `infrastructure/`, `usecases/` = `application/use_cases/`, the science is in `domain/agronomy/`), `pipeline/tests/` as `apps/api/tests/`, `web/` as `apps/web/`, `uv run pytest` as `cd apps/api && pytest` and `pnpm` as `npm`. Where the skeleton already has a stub for a task, keep the stub's signature and adapt the test and the code below to it. The full map, with the proposed home of each task, is in [docs/planning/README.md](../../planning/README.md) section 6, item 10.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** For one corn field in a US state (recommended: western Kansas), compute a rotation × dry/normal/wet-year matrix from NASA data, plus the corn planting window per year type, and show it on a public Astro site. Each cell holds:
