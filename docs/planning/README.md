@@ -97,6 +97,7 @@ Shown as code, not as links, because the files are not in the repository. Each a
 7. **Honest numbers.** Results are scenarios, not forecasts. Missing data is `NaN`, `null` or `not-available`, never 0.
 8. **Links.** Relative links point only to files that exist in the repository. Planned files are written as code (section 5).
 9. **People, time, units.** These documents name lanes and roles, not people. Times are PET (UTC-5). The pipeline works in metric units and the web shows US units (inches, degrees Fahrenheit, acres).
+10. **Web path.** The web app lives in `apps/web/`, which came with the Data Corn skeleton merged on 2026-11-14. Documents written before that say `web/`. Read `web/` as `apps/web/` everywhere, including planned files such as `web/src/styles/tokens.css` and the ficha folder `web/public/data/fichas/`, and fix the path when a document is next edited.
 
 ## 7. Keeping the documents true
 
