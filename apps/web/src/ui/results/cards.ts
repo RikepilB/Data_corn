@@ -1,5 +1,5 @@
 // Las 6 tarjetas clave (docs/contrato-api.md §6): ícono, título, semáforo, número y frase.
-import { type FormatContext, formatParams, messageText, patternText, shortDate } from '../../domain/format';
+import { type FormatContext, formatParams, messageText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, IndicatorId, RiskLevel } from '../../domain/report';
 import { worstRisk } from '../../domain/season';
 import { depth, format } from '../../domain/units';
@@ -14,6 +14,8 @@ export interface CardModel {
   big: string;
   sentence: string;
   extra?: string;
+  /** Solo rotación: el cultivo de cada año, para dibujarlo como franja. */
+  history?: { year: number; crop: string }[];
 }
 
 const find = (r: FieldReport, id: IndicatorId): Indicator | undefined => r.indicators.find((i) => i.id === id);
@@ -130,14 +132,16 @@ export function buildCards(report: FieldReport, ctx: FormatContext): CardModel[]
   const rot = report.rotation;
   const history = [...(rot.field_history ?? [])].sort((a, b) => a.year - b.year);
   const last = history.at(-1)?.crop;
-  const pattern = String(rot.message.params.pattern ?? '');
+  // Número grande legible: lo que viene sembrado antes de este maíz (no letras sueltas)
+  const crop = (c: string) => t(locale, `crop.${c}`);
   cards.push({
     key: 'rotation',
     icon: 'rotate',
     title: t(locale, 'card.rotation'),
     risk: history.length === 0 ? 'no_data' : rot.recommended && last === rot.recommended ? 'low' : 'medium',
-    big: pattern ? patternText(pattern.split(' ').slice(-5).join(' '), locale) : '—',
+    big: last ? `${crop(last)} → ${crop('maize')}` : '—',
     sentence: messageText(rot.message, ctx),
+    history: history.slice(-8).map((h) => ({ year: h.year, crop: h.crop })),
   });
 
   return cards;

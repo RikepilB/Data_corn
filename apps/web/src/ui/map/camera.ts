@@ -18,7 +18,7 @@ export function fitField(
   map: MapLibreMap,
   bounds: LngLatBoundsLike,
   padding: Partial<PaddingOptions>,
-  maxZoom = 15.5,
+  maxZoom = 14.6,
 ): void {
   map.fitBounds(bounds, {
     padding: { top: 0, bottom: 0, left: 0, right: 0, ...padding },

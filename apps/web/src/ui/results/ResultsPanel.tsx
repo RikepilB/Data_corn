@@ -79,6 +79,26 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
             <p className="kcard__big">{c.big}</p>
             <p className="kcard__text">{c.sentence}</p>
             {c.extra && <p className="kcard__extra">{c.extra}</p>}
+            {c.history && c.history.length > 0 && (
+              <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
+                {c.history.map((h) => (
+                  <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
+                    <i />
+                    <small>{String(h.year).slice(2)}</small>
+                  </span>
+                ))}
+              </div>
+            )}
+            {c.history && c.history.length > 0 && (
+              <p className="kcard__legend" aria-hidden="true">
+                <span>
+                  <i className="is-maize" /> {t(locale, 'crop.maize')}
+                </span>
+                <span>
+                  <i /> {t(locale, 'crop.soybean')}
+                </span>
+              </p>
+            )}
           </article>
         ))}
       </div>

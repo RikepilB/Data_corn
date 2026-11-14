@@ -1,9 +1,14 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Map as MapLibreMap } from 'maplibre-gl';
+import { Map as MapLibreMap, setWorkerUrl } from 'maplibre-gl';
+// MapLibre 6 busca su worker junto a su propio archivo; con Vite (dev y build) esa ruta no existe,
+// así que se le pasa la URL que Vite sirve. Sin esto el mapa no dibuja nada.
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { useEffect, useRef } from 'react';
 import { type Locale, t } from '../../i18n';
 import { GLOBE_VIEW, globeStyle } from '../../infrastructure/mapStyle';
 import { installLayers } from './layers';
+
+setWorkerUrl(workerUrl);
 
 /** El mapa de fondo de toda la app: un solo MapLibre con proyección de globo. */
 export function MapView({ locale, onReady }: { locale: Locale; onReady: (map: MapLibreMap) => void }) {
@@ -24,6 +29,8 @@ export function MapView({ locale, onReady }: { locale: Locale; onReady: (map: Ma
       canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true },
     });
     map.on('load', () => {
+      // Créditos contraídos en el botón «i»: siguen disponibles sin tapar los paneles
+      map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
       installLayers(map);
       ready.current(map);
     });
