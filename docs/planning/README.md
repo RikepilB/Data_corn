@@ -97,7 +97,35 @@ Shown as code, not as links, because the files are not in the repository. Each a
 7. **Honest numbers.** Results are scenarios, not forecasts. Missing data is `NaN`, `null` or `not-available`, never 0.
 8. **Links.** Relative links point only to files that exist in the repository. Planned files are written as code (section 5).
 9. **People, time, units.** These documents name lanes and roles, not people. Times are PET (UTC-5). The pipeline works in metric units and the web shows US units (inches, degrees Fahrenheit, acres).
-10. **Web path.** The web app lives in `apps/web/`, which came with the Data Corn skeleton merged on 2026-11-14. Documents written before that say `web/`. Read `web/` as `apps/web/` everywhere, including planned files such as `web/src/styles/tokens.css` and the ficha folder `web/public/data/fichas/`, and fix the path when a document is next edited.
+10. **Layout map.** On 2026-11-14 the team chose the Data Corn skeleton's layout (`apps/api/`, `apps/web/`) as the trunk. The engine lives in `apps/api/` and there is no separate `pipeline/` directory. Documents written before that (the implementation plan, ARCHITECTURE, parts of these planning documents and the issue bodies) use the first scaffold's paths. Read them with this table, and fix the path when a document is next edited.
+
+    | Where a document says | Read |
+    |---|---|
+    | `web/`, `web/src/styles/tokens.css`, `web/public/data/fichas/` | `apps/web/`, `apps/web/src/styles/tokens.css`, `apps/web/public/data/fichas/` |
+    | `pipeline/src/fieldshift/domain/` | `apps/api/src/datacorn/domain/` (the science is in `domain/agronomy/`) |
+    | `pipeline/src/fieldshift/adapters/` | `apps/api/src/datacorn/infrastructure/` |
+    | `pipeline/src/fieldshift/usecases/` | `apps/api/src/datacorn/application/use_cases/` |
+    | `pipeline/tests/` | `apps/api/tests/` (`unit/`, `integration/`) |
+    | `pipeline/pyproject.toml`, `uv run pytest`, `cd pipeline` | `apps/api/pyproject.toml`, `pytest`, `cd apps/api` |
+    | the package `fieldshift` and the command `fieldshift build` | the package `datacorn`; the build command's name is set in Task 9 ([#43](https://github.com/RikepilB/Data_corn/issues/43)) |
+    | `cd web && pnpm build` | `cd apps/web && npm run build` |
+    | `contracts/` | `contracts/` (unchanged, repository root; arrives with the next pull request) |
+
+    Where the skeleton already has a stub for a plan task, keep the stub's signature and adapt the test to it. Proposed homes, as files under `apps/api/src/datacorn/` (read from the skeleton on 2026-11-14):
+
+    | Plan task | Where it goes |
+    |---|---|
+    | Task 2, cached POWER adapter ([#36](https://github.com/RikepilB/Data_corn/issues/36)) | `infrastructure/power.py` (`PowerClient.daily_point`) |
+    | Task 3, FAO-56 ET0 ([#37](https://github.com/RikepilB/Data_corn/issues/37)) | `domain/agronomy/et0.py` (`et0_fao56`) |
+    | Task 4, SSURGO to available water ([#38](https://github.com/RikepilB/Data_corn/issues/38)) | `infrastructure/ssurgo.py` |
+    | Task 5, crop parameters and site config ([#39](https://github.com/RikepilB/Data_corn/issues/39)) | `resources/crops/maize.yaml`, `resources/demo/fields.json` |
+    | Task 6, daily soil-water balance ([#40](https://github.com/RikepilB/Data_corn/issues/40)) | `domain/agronomy/water_balance.py` (`simulate`, `flowering_deficit_mm`) |
+    | Task 7, year types and planting window ([#41](https://github.com/RikepilB/Data_corn/issues/41)) | `domain/agronomy/scenarios.py` (campaign scenarios, year-type tagging) and `domain/agronomy/risks.py` (planting window) |
+    | Task 8, rotation by year-type matrix ([#42](https://github.com/RikepilB/Data_corn/issues/42)) | `domain/agronomy/rotation.py` (`compare`) |
+    | Task 9, build use case and command ([#43](https://github.com/RikepilB/Data_corn/issues/43)) | `application/use_cases/analyze_field.py` plus a new build command |
+    | Task 10, AppEEARS loader and SMAP check ([#44](https://github.com/RikepilB/Data_corn/issues/44)) | a new adapter in `infrastructure/` (the skeleton's SMAP adapter uses Earth Engine: `earthengine/soil_moisture.py`) |
+    | Task 11, NDVI crop calendar ([#45](https://github.com/RikepilB/Data_corn/issues/45)) | `domain/agronomy/vegetation.py` (the skeleton's NDVI adapters use Earth Engine) |
+    | Tasks 1, 12 and 15: contract validator, erosion index, GRACE | new files; the skeleton has no stub for them |
 
 ## 7. Keeping the documents true
 

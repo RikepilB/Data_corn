@@ -30,12 +30,14 @@ Missing data is shown as "no data", never as zero. Units are US units (inches, Â
 
 ## How the repository fits together
 
-This repository joins two pieces of work into one product.
+This repository joins two pieces of work into one codebase, laid out as the Data Corn skeleton (decision of 2026-11-14: the skeleton's layout is the trunk).
 
-- **Field Shift core** (`contracts/`, `pipeline/`): an offline Python pipeline that turns NASA POWER climate and USDA soil data into one validated JSON "ficha" per field, with the rotation by year-type matrix. This is the product we submit.
-- **Data Corn skeleton** (`apps/web/`, `apps/api/`, `infra/`): a web app with a 3D globe and field drawing, plus an optional live API on Google Cloud. The Field Shift tool page will be built into `apps/web/`, the single web app. `apps/api/` is parked: it needs a Google Cloud project and Earth Engine access that the Must path does not use, and it is the route to other regions after the hackathon.
+- **`apps/api/`** is the engine home: Python 3.12 in Clean Architecture (domain, application, infrastructure, interfaces), with a test that enforces the dependency rule. The Field Shift science fills its stubs: the FAO-56 reference evapotranspiration, the daily soil-water balance, the dry/normal/wet year types, the planting window and the rotation comparison go in `apps/api/src/datacorn/domain/agronomy/`; the NASA POWER and USDA SSURGO clients go in `apps/api/src/datacorn/infrastructure/`. Its live HTTP service (FastAPI on Cloud Run, Earth Engine) is a stretch goal: the Must path needs no Google Cloud project.
+- **`apps/web/`** is the single web app: Astro, React and MapLibre, with the skeleton's 3D globe and field drawing. The Field Shift tool page (planting strip, matrix, rotation cards) is built into it.
+- **`contracts/`** will hold the one contract between engine and web, `ficha.schema.json` (v0.2.0), with a synthetic example. It arrives with the next pull request ([#11](https://github.com/RikepilB/Data_corn/issues/11)).
+- **The demo is precompute-first.** The engine runs offline for the demo fields, using NASA POWER and USDA SSURGO only (no Earth Engine), and writes one JSON "ficha" per field to `apps/web/public/data/fichas/`. The site is static on Firebase Hosting, with no server to keep alive while the judges look.
 
-Each part has its own guide: this README for Field Shift, [apps/README.md](apps/README.md) for the skeleton.
+Each part has its own guide: this README for Field Shift as a whole, and [apps/README.md](apps/README.md) for the skeleton (its original README, with only the links adjusted).
 
 ## Status
 
@@ -43,9 +45,9 @@ Hackathon build in progress. Submission closes Sun 2026-11-15 23:59 PET (interna
 
 | Piece | State |
 |---|---|
-| Contract `contracts/ficha.schema.json` v0.2.0, a synthetic example ficha, and the pipeline package (`pipeline/`) | Exist on a team member's machine (`uv run pytest`: 9 passed at 15:00 PET) but are **not in this repository yet**. They arrive in the next pull request ([#11](https://github.com/RikepilB/Data_corn/issues/11)). The science modules are the plan's Tasks 1-12 and 15 and are not implemented yet. |
-| Web app (`apps/web/`) | Skeleton from the Data Corn start: Astro 7, React 19, MapLibre GL, English and Spanish text. The Field Shift tool page (planting strip, matrix, rotation cards) is not built into it yet. |
-| Live API (`apps/api/`) | Skeleton: `GET /api/v1/health`, `/regions` and `/demo-fields` work; field analysis returns `501`. Parked (see above). |
+| Contract `contracts/ficha.schema.json` v0.2.0 and a synthetic example ficha | Exist on a team member's machine (the 9 contract tests passed there at 15:00 PET) but are **not in this repository yet**. They arrive in the next pull request ([#11](https://github.com/RikepilB/Data_corn/issues/11)). |
+| Engine (`apps/api/`) | Skeleton: ports, use-case skeletons, region and crop profiles, a cache, and a test of the dependency rule. `GET /api/v1/health`, `/regions` and `/demo-fields` work (the skeleton's own claim; we have not run it); field analysis returns `501`. **Every science function is still a stub**: 59 `NotImplementedError` in 29 files (counted on 2026-11-14). The plan's Tasks 1-12 and 15 fill them. |
+| Web app (`apps/web/`) | Skeleton: Astro 7, React 19, MapLibre GL, English and Spanish text. The Field Shift tool page (planting strip, matrix, rotation cards) is not built into it yet. |
 | Hosting | Firebase project `field-shift-datacorn` exists (Spark plan, no Auth, no Firestore). **Nothing is deployed.** The planned address `field-shift-datacorn.web.app` goes live with the first deploy, [#52](https://github.com/RikepilB/Data_corn/issues/52). |
 | Results | None yet. No real ficha has been generated; the only ficha is the synthetic example, labelled as such. |
 
@@ -53,28 +55,27 @@ Hackathon build in progress. Submission closes Sun 2026-11-15 23:59 PET (interna
 
 | Layer | Choice |
 |---|---|
-| Pipeline | Python 3.12, uv, numpy, pandas, requests, jsonschema, pytest |
+| Engine | `apps/api/`: Python 3.12, numpy, scipy, httpx, pytest, ruff; `jsonschema` planned for the contract test |
 | Contract | JSON Schema (draft 2020-12), `contracts/ficha.schema.json` v0.2.0 |
 | Web | `apps/web/`: Astro 7, React 19, TypeScript 6, MapLibre GL JS, Recharts, Terra Draw; planned: Vitest, Playwright |
-| Live API (parked) | `apps/api/`: Python 3.12, FastAPI, Google Earth Engine, Cloud Run |
+| Live service (stretch) | FastAPI on Cloud Run with Google Earth Engine, in `apps/api/`; needs a billing-enabled Google Cloud project |
 | Hosting | Firebase Hosting on the free Spark plan. No Auth, no database. |
 
 **Clean Architecture, contract-first.**
 
-- `pipeline/src/fieldshift/domain/` is pure science (FAO-56 water balance, year types, planting window). It does no I/O and imports nothing from `adapters/` or `usecases/`.
-- `pipeline/src/fieldshift/adapters/` holds all I/O: POWER, SSURGO, AppEEARS, the HTTP cache, the CLI.
-- `pipeline/src/fieldshift/usecases/` orchestrates the two and builds the ficha.
-- The pipeline runs offline and writes **one JSON "ficha" per field**, validated against the contract before it is written. The web only reads and renders fichas, converting SI units to US units for display. It never computes science.
+- `apps/api/src/datacorn/domain/` is pure science (FAO-56 water balance, year types, planting window). It does no I/O and imports nothing from `application/`, `infrastructure/` or `interfaces/`.
+- `apps/api/src/datacorn/infrastructure/` holds all I/O: POWER, SSURGO, the AppEEARS loader (planned), the cache, and the Earth Engine adapters of the live service.
+- `apps/api/src/datacorn/application/` holds the ports and the use cases that orchestrate the two; `bootstrap.py` is the only place where the layers are wired. A test (`apps/api/tests/unit/test_architecture.py`) enforces the dependency rule.
+- The engine runs offline and writes **one JSON "ficha" per field**, validated against the contract before it is written. The web only reads and renders fichas, converting SI units to US units for display. It never computes science.
 - Every test runs without network access, from recorded fixtures.
-- `apps/api/` follows the same layering (domain, application, infrastructure, interfaces) and has a test that enforces its dependency rule.
 
-Design decisions and the system diagram: [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md).
+Design decisions and the system diagram: [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) (written before the move to `apps/api/`; read its `pipeline/` as `apps/api/`, see the map in [docs/planning/README.md](docs/planning/README.md) section 6).
 
 ```text
 NASA POWER daily + USDA SSURGO soil   (optional: SMAP, MODIS NDVI, SRTM, GRACE)
         |
-        v   pipeline/  (Python, offline, every download cached)
-  adapters  ->  domain (FAO-56 twin, year types, planting window)  ->  usecases
+        v   apps/api/  (Python, offline build, every download cached)
+  infrastructure  ->  domain (FAO-56 twin, year types, planting window)  ->  application (builds the ficha)
         |
         v
   one ficha JSON per field, validated against contracts/ficha.schema.json
@@ -85,7 +86,7 @@ NASA POWER daily + USDA SSURGO soil   (optional: SMAP, MODIS NDVI, SRTM, GRACE)
 
 ## Quickstart
 
-Run the commands from the repository root. You need Node 22.23.4 or later, plus Python 3.12 for the API and the pipeline, and [uv](https://docs.astral.sh/uv/) for the pipeline.
+Run the commands from the repository root. You need Node 22.23.4 or later and Python 3.12.
 
 Web app:
 
@@ -95,7 +96,7 @@ cd apps/web && npm install && npm run dev
 
 The dev server listens on http://localhost:4321 and proxies `/api` to `localhost:8080`. `npm run build` type-checks and builds to `apps/web/dist`.
 
-Live API (parked):
+Engine and live API:
 
 ```bash
 cd apps/api
@@ -105,19 +106,13 @@ uvicorn datacorn.main:app --reload --port 8080
 pytest
 ```
 
-Pipeline (arrives with the next pull request, [#11](https://github.com/RikepilB/Data_corn/issues/11)):
-
-```bash
-cd pipeline && uv sync && uv run pytest
-```
-
 Deploy the web app:
 
 ```bash
 cd apps/web && npm run build && cd ../.. && npx firebase-tools deploy --only hosting --project field-shift-datacorn
 ```
 
-The last command deploys to Firebase Hosting. Only the project owner runs it, and nothing has been deployed yet ([#52](https://github.com/RikepilB/Data_corn/issues/52)). `firebase.json` also rewrites `/api/**` to a Cloud Run service named `datacorn-api`, which is not deployed.
+The last command deploys to Firebase Hosting. Only the project owner runs it, and nothing has been deployed yet ([#52](https://github.com/RikepilB/Data_corn/issues/52)). `firebase.json` also rewrites `/api/**` to a Cloud Run service named `datacorn-api`, which is not deployed; the first static deploy is planned without that rewrite.
 
 ### Local configuration
 
@@ -126,12 +121,12 @@ Credentials never go in the repository.
 - **NASA Earthdata** (SMAP, MODIS, GRACE through AppEEARS and `earthaccess`): each person logs in once with their own account. The login is stored in `~/.netrc`, outside the repo.
 
   ```bash
-  cd pipeline && uv run --extra earthdata python -c "import earthaccess; earthaccess.login(persist=True)"
+  cd apps/api && pip install earthaccess && python -c "import earthaccess; earthaccess.login(persist=True)"
   ```
 
-- **Pilot site**: the pipeline reads a site config at `pipeline/config/sites/<site-id>.json` (plan Task 5). Once Task 9 lands ([#43](https://github.com/RikepilB/Data_corn/issues/43)) a ficha is built with `fieldshift build --site config/sites/<site-id>.json --out ../apps/web/public/data/fichas`, run from `pipeline/`. These files do not exist yet.
+- **Pilot field**: the engine reads the pilot field's definition from a config file whose location is set in plan Task 5 ([#39](https://github.com/RikepilB/Data_corn/issues/39)); the skeleton keeps its demo fields in `apps/api/src/datacorn/resources/demo/fields.json`. Once Task 9 lands ([#43](https://github.com/RikepilB/Data_corn/issues/43)), an offline build command writes the fichas to `apps/web/public/data/fichas/`. That command does not exist yet.
 - **Firebase**: the project is `field-shift-datacorn`. Run `npx firebase-tools login` once; the owner adds teammates as Editors in the console. Accounts and offers: [docs/setup/ACCOUNTS.md](docs/setup/ACCOUNTS.md).
-- **Google Cloud** (only for the parked API): see [infra/README.md](infra/README.md) (Spanish).
+- **Google Cloud** (only for the stretch-goal live service): see [infra/README.md](infra/README.md) (Spanish).
 
 **Network note (one Windows machine):** Git-Bash `curl` fails TLS against `power.larc.nasa.gov` and `spaceappschallenge.org`. Python, PowerShell and `curl.exe` work. Python requests also hit occasional `WinError 10054` resets, so the adapters retry and cache.
 
@@ -140,10 +135,9 @@ Credentials never go in the repository.
 | Path | What lives there |
 |---|---|
 | `apps/web/` | Astro + React web app, the single front end. The Field Shift tool page reads `apps/web/public/data/fichas/*.json`. |
-| `apps/api/` | Parked live API: FastAPI on Cloud Run, clean architecture, YAML region profiles. |
-| `infra/` | Deployment notes for Cloud Run and Firebase Hosting (Spanish). |
-| `contracts/` | The one contract between pipeline and web (`ficha.schema.json`) and a synthetic example ficha. Arrives with the next pull request. |
-| `pipeline/` | Python 3.12 + uv. `adapters/` fetch and cache data, `domain/` is pure science, `usecases/` builds fichas. Arrives with the next pull request. |
+| `apps/api/` | The engine: Python 3.12, clean architecture. `domain/agronomy/` is the science, `infrastructure/` the data clients and cache, `application/` the ports and use cases, `interfaces/http/` the live service. YAML region and crop profiles in `resources/`. |
+| `infra/` | Deployment notes for Cloud Run and Firebase Hosting (Spanish). Cloud Run is the stretch goal. |
+| `contracts/` | The one contract between engine and web (`ficha.schema.json`) and a synthetic example ficha. Arrives with the next pull request. |
 | `data/raw/` | Downloaded source data (gitignored). |
 | `docs/` | Planning documents (English), architecture, implementation plan, data sources, submission checklist, references, and the Data Corn working documents (Spanish). |
 | `firebase.json` | Firebase Hosting of `apps/web/dist`. No Auth, no database: judges must never hit a login. |
@@ -182,7 +176,7 @@ Start at the index: [docs/planning/README.md](docs/planning/README.md).
 | [Team action plan](docs/TEAM-ACTION-PLAN.es.md) (Spanish) | Roles, timeline, mentor questions, brand |
 | [Prior-art research](docs/research/ANTECEDENTES-maiz-EEUU.es.md) (Spanish) | Existing corn tools and the pivot rationale |
 
-**Path note.** The planning documents were written before the web app moved to `apps/web/`. Where they say `web/`, read `apps/web/` (see the conventions in [docs/planning/README.md](docs/planning/README.md)).
+**Path note.** The planning documents and the implementation plan were written before the layout moved to the Data Corn skeleton. Where they say `web/`, read `apps/web/`; where they say `pipeline/src/fieldshift/`, read `apps/api/src/datacorn/`. The full map is in [docs/planning/README.md](docs/planning/README.md) section 6.
 
 Team plan page (visual version of the Spanish team plan): https://claude.ai/artifact/D3nj2FonudnMYTzJB8JrZA <!-- TODO(owner): set sharing to anyone-with-the-link before submission -->
 
@@ -195,8 +189,8 @@ Spanish working documents from the skeleton: [arquitectura](docs/arquitectura.md
 ## Contributing
 
 1. **One branch per task**, named `feat/<slug>`, and a pull request into `main`. Never push to `main` directly.
-2. **Tests green before merge**: `cd apps/web && npm run build` (type check and build) and, for the parts you touched, `cd apps/api && pytest` and `cd pipeline && uv run pytest` (the pipeline arrives with the next pull request). Add `npm test` once the web tests land.
-3. **Contract first**: change `contracts/ficha.schema.json`, then the pipeline and the web.
+2. **Tests green before merge**: `cd apps/web && npm run build` (type check and build) and, for the engine, `cd apps/api && pytest`. Add `npm test` once the web tests land.
+3. **Contract first**: change `contracts/ficha.schema.json`, then the engine and the web.
 4. **Tests first**: each task in the implementation plan starts with failing tests.
 5. **SI-assisted files** start with the header `SI-assisted (Claude Code); reviewed by <name>`.
 6. **Cite every new source** (data, library, font, image, paper) with a row in `docs/REFERENCES.md` in the same commit.
