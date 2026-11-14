@@ -90,8 +90,10 @@ h3 {
   inset: 0;
 }
 
+/* `.mapwrap .map` outranks MapLibre's `.maplibregl-map { position: relative }`, which loads
+   later in the production build and otherwise collapses the map to 0 px tall. */
 .mapwrap,
-.map {
+.mapwrap .map {
   position: absolute;
   inset: 0;
 }
