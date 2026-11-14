@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDataCorn } from '../application/useDataCorn';
 import { useFilm } from '../application/useFilm';
 import type { FormatContext } from '../domain/format';
@@ -123,9 +123,16 @@ export default function DataCornApp() {
   useEffect(() => setDrawError(false), [dc.points.length]);
 
   // --- Acciones del globo ------------------------------------------------------------------
+  // Un toque antes de que el mapa cargue (red lenta en el teléfono) queda en espera y se
+  // ejecuta al cargar; antes se perdía sin aviso.
+  const pendingFlight = useRef<{ center: LngLat; zoom: number; then: () => void } | null>(null);
   const flyThen = useCallback(
     async (center: LngLat, zoom: number, then: () => void) => {
-      if (!map) return;
+      if (!map) {
+        pendingFlight.current = { center, zoom, then };
+        setFlying(true);
+        return;
+      }
       stopSpin();
       setFlying(true);
       await flyToPlace(map, center, zoom);
@@ -134,6 +141,12 @@ export default function DataCornApp() {
     },
     [map, stopSpin],
   );
+  useEffect(() => {
+    const p = pendingFlight.current;
+    if (!map || !p) return;
+    pendingFlight.current = null;
+    void flyThen(p.center, p.zoom, p.then);
+  }, [map, flyThen]);
 
   const onLocate = useCallback(() => {
     if (!('geolocation' in navigator)) {
