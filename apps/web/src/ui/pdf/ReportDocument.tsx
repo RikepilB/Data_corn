@@ -4,7 +4,7 @@ import { Circle, Document, G, Image, Line, Page, Polyline, Rect, StyleSheet, Svg
 import type { ReactNode } from 'react';
 import { type FormatContext, longDate, messageText, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
-import { RISK_COLOR, pickRun, yieldColor } from '../../domain/season';
+import { RISK_COLOR, SEVERITY, pickRun, yieldColor } from '../../domain/season';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
 import { numberLocale, t } from '../../i18n';
 import type { CardModel } from '../results/cards';
@@ -128,7 +128,7 @@ function SeasonStrip({ report, ctx }: { report: FieldReport; ctx: FormatContext 
     <View style={st.box} wrap={false}>
       <Svg width={520} height={46} viewBox="0 0 520 46">
         <Rect x={10} y={18} width={500} height={8} fill="#ececee" />
-        {report.timeline.risk_bands.map((b) => (
+        {[...report.timeline.risk_bands].sort((x, y) => SEVERITY[x.risk] - SEVERITY[y.risk]).map((b) => (
           <Rect key={`${b.indicator}${b.start}`} x={x(b.start)} y={18} width={Math.max(4, x(b.end) - x(b.start))} height={8} fill={RISK_COLOR[b.risk]} />
         ))}
         {stages

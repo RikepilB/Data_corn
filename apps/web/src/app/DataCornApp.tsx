@@ -14,7 +14,7 @@ import { Icon } from '../ui/common/Icon';
 import { TopBar } from '../ui/common/TopBar';
 import { LayerChips, Legend, TimeSlider } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
-import { fitField, flyToPlace, reducedMotion, useGlobeSpin } from '../ui/map/camera';
+import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
 import { setClimate, setField, setFieldFill } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
 import { downloadReportPdf } from '../ui/pdf/download';
@@ -71,7 +71,10 @@ export default function DataCornApp() {
   }, [months]);
 
   // Semana de la película: la capa del mapa se actualiza por semana, no por día
-  const filmWeek = Math.floor(film.day / 7);
+  // Rendimiento: mientras la película corre, la capa cambia cada 4 semanas (cambiarla recarga
+  // las teselas); en pausa, la semana exacta.
+  const layerStep = film.playing ? 28 : 7;
+  const filmWeek = Math.floor(film.day / layerStep) * (layerStep / 7);
   const filmLayerTime = useMemo(() => {
     if (!layer || !film.run) return null;
     return nearestAvailable(layer, analogDate(film.run, filmWeek * 7));
@@ -216,12 +219,7 @@ export default function DataCornApp() {
     setPdfBusy(true);
     setPdfError(false);
     try {
-      let mapImage: string | null = null;
-      try {
-        mapImage = map ? map.getCanvas().toDataURL('image/jpeg', 0.86) : null;
-      } catch {
-        mapImage = null;
-      }
+      const mapImage = map ? await snapshotMap(map) : null;
       await downloadReportPdf({
         report: dc.report,
         ctx,

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -27,7 +27,8 @@ interface Props {
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
 export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, filmSlot }: Props) {
   const { locale } = ctx;
-  const cards = buildCards(report, ctx);
+  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
+  const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
