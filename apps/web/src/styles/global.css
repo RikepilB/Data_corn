@@ -392,6 +392,11 @@ h3 {
   pointer-events: auto;
 }
 
+/* The "Sample data" banner sits where the layer chips start; push the chips below it. */
+.mock-banner ~ .layerbar {
+  top: 118px;
+}
+
 .chips {
   display: flex;
   gap: 8px;
