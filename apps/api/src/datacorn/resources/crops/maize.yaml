@@ -1,0 +1,19 @@
+# Maíz para grano. Valores a verificar antes de F3/F4 (marcados con "verificar").
+crop: maize
+base_temp_c: 10.0        # grados-día base 10 °C (50 °F)
+upper_temp_c: 30.0       # tope 30 °C (86 °F), método 86/50
+heat_stress_c: 35.0      # la viabilidad del polen cae sobre ~35 °C · verificar
+frost_c: 0.0
+kc: { ini: 0.30, mid: 1.20, end: 0.60 }   # FAO-56 tabla 12; end 0.35 si se cosecha seco · verificar
+ky: { total: 1.25, vegetative: 0.40, flowering: 1.50, grain_fill: 0.50, ripening: 0.20 }  # FAO-33
+root_depth_m: { min: 0.15, max: 1.20 }    # FAO-56 tabla 22: 1.0-1.7 m · verificar para el suelo
+depletion_fraction_p: 0.55                # FAO-56 tabla 22
+# Grados-día (°C·día) hasta madurez fisiológica según la madurez relativa (RM, días) · verificar
+gdd_maturity_by_rm:
+  - [80, 1170]
+  - [100, 1390]
+  - [120, 1610]
+gdd_flowering_fraction: 0.50              # floración ≈ mitad de los grados-día · verificar
+references:
+  - "Allen et al. (1998). FAO Irrigation and Drainage Paper 56."
+  - "Doorenbos & Kassam (1979). FAO Irrigation and Drainage Paper 33."

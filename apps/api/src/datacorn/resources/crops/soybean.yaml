@@ -1,0 +1,15 @@
+# Soya: solo como cultivo anterior en la comparación de rotación (agua y residuos). · verificar
+crop: soybean
+base_temp_c: 10.0
+upper_temp_c: 30.0
+heat_stress_c: 35.0
+frost_c: 0.0
+kc: { ini: 0.40, mid: 1.15, end: 0.50 }   # FAO-56 tabla 12
+ky: { total: 0.85, vegetative: 0.20, flowering: 0.80, grain_fill: 1.00, ripening: 0.20 }  # verificar
+root_depth_m: { min: 0.15, max: 1.00 }    # FAO-56 tabla 22: 0.6-1.3 m
+depletion_fraction_p: 0.50
+gdd_maturity_by_rm: []                     # la soya depende del fotoperíodo; no se usa
+gdd_flowering_fraction: 0.50
+references:
+  - "Allen et al. (1998). FAO Irrigation and Drainage Paper 56."
+  - "Doorenbos & Kassam (1979). FAO Irrigation and Drainage Paper 33."

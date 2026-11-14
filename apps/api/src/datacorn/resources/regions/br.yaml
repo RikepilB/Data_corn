@@ -1,0 +1,17 @@
+# Brasil (planificado). Maíz de segunda (safrinha) después de la soya.
+id: br
+name: { es: "Brasil", en: "Brazil" }
+status: planned
+countries: [BR]
+notes: "Pendiente: MapBiomas Brasil (cultivos por año), CONAB e IBGE PAM (estadísticas)."
+providers:
+  admin: [gaul]
+  climate: [power_imerg, era5_land]
+  soil: [soilgrids]
+  elevation: [nasadem]
+  vegetation: [hls_sentinel2, modis]
+  soil_moisture: [smap_l4]
+  evapotranspiration: [ecostress]
+  enso: [oni]
+  crop_history: [mapbiomas_brasil]  # por evaluar
+  yield_stats: [conab, ibge_pam]  # por evaluar

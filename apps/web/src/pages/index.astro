@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DataCornApp from '../app/DataCornApp';
+---
+
+<!-- Pantalla única (docs/pantalla.md). El mapa necesita el navegador: isla solo cliente. -->
+<BaseLayout title="Data Corn">
+  <DataCornApp client:only="react" />
+</BaseLayout>
