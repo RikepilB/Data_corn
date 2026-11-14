@@ -4,90 +4,87 @@ Decision support for medium and large corn growers, built on NASA Earth observat
 NASA Space Apps Challenge 2026 — *Field Shift: Adapting Farms with NASA Data*.
 
 "Google Earth for corn":
-- Start on a 3D globe with NASA climate layers: drought, rain, heat and vegetation, on a time slider.
+- Start on a 3D globe with NASA climate layers: soil moisture, rain, heat and vegetation, on a time slider.
 - Fly to your location, tap the corners of your field and enter a few field facts.
 - Get one simple screen that both the farm manager and the agronomist can read:
-  - an animated **season film** over the map;
-  - **25-season climate stripes** for that field;
-  - six key cards: planting window, water at flowering, heat at flowering, hybrid fit and frost,
-    irrigation or waterlogging, and corn-after-corn vs. corn-after-soybean.
+  - an animated **season film** over the map (soil water day by day);
+  - **25-season climate stripes** for that field, with El Niño / La Niña years marked;
+  - six key cards: planting window (or season progress), water at flowering, heat at flowering,
+    hybrid fit and frost, irrigation or waterlogging, and corn-after-corn vs. corn-after-soybean.
 - The full report downloads as a PDF.
 
-The first region is the United States (demo state: Nebraska). The architecture is built so that
-new countries (Peru, Brazil, Argentina, …) are added with a region profile, without changing the
-domain or the screen.
+The first region is the United States (demo state: Nebraska). New countries (Peru, Brazil,
+Argentina, …) are added with a region profile, without changing the domain or the screen.
 
 > Data Corn supports — it does not replace — farmer judgment and local agronomic expertise.
 
-## Repository layout
-
-| Path | What |
-|---|---|
-| `apps/api/` | Python 3.12 + FastAPI backend (Cloud Run), clean architecture |
-| `apps/web/` | Astro + React frontend (single screen) |
-| `docs/` | Challenge text, flow, screen, requirements and architecture (team docs in Spanish) |
-| `infra/` | Deployment notes: Cloud Run, Firebase Hosting, budget |
-
-See [docs/arquitectura.md](docs/arquitectura.md) for the architecture and
-[docs/requerimientos.md](docs/requerimientos.md) for functional and non-functional requirements.
-
 ## Status
 
-This is the project skeleton: architecture, API contract, region profiles and the screen flow.
-- **Works now:** `GET /api/v1/health`, `/regions` and `/demo-fields`.
-- **Not built yet:** field analysis returns `501` naming the missing build step (`F1` … `F9`).
-- **Tests:** domain rules and the clean-architecture dependency rule run with `pytest`.
+The whole flow works end to end with real data and **no accounts or keys**:
+
+| Data | Source (no key) |
+|---|---|
+| Daily weather 2001–today, root-zone soil wetness, elevation | NASA POWER (MERRA-2) |
+| Soil texture, available water, drainage, slope | USDA NRCS SSURGO (Soil Data Access) |
+| Crop grown on the field each year | USDA NASS CropScape (Cropland Data Layer) |
+| County and state | FCC Census Area API |
+| Field NDVI (season progress) | NASA MODIS MOD13Q1 via ORNL DAAC |
+| El Niño / La Niña | NOAA CPC ONI |
+| Globe layers | NASA GIBS: Blue Marble, SMAP L4, GPM IMERG, MODIS LST, MODIS NDVI |
+| Soil outside the US | ISRIC SoilGrids |
+
+The models are the FAO-56 Penman-Monteith reference ET and daily root-zone water balance, FAO-33 yield response, growing degree days, and season scenarios. A scenario is the observed days plus each historical year for the rest of the season, grouped by El Niño phase.
+
+- **Tests:** 29 tests cover the domain math, the use cases end to end with fakes, the clean-architecture dependency rule and the API.
+- **Timing on the sample field:**
+  - closing the field (`describe`) takes about 9 s;
+  - results (`analyze`) take under 1 s;
+  - a past or current season adds the MODIS NDVI download, about 1 minute.
 
 ## Pending tasks
 
-### Accounts and setup
-- [ ] New Google Cloud project ($300 trial) registered for Earth Engine (non-commercial use)
-- [ ] Cloud Run service account with Earth Engine access, and a Cloud Storage bucket for the cache
-- [ ] USDA NASS QuickStats API key, stored in Secret Manager
-- [ ] Firebase project linked to the Google Cloud project, and a budget alert
-- [ ] Deployment steps: [infra/README.md](infra/README.md)
+### Needs accounts
+- [ ] New Google Cloud project ($300 trial), deployed with Cloud Run (API) and Firebase Hosting (web). See [infra/README.md](infra/README.md).
+- [ ] Register the project for Earth Engine. That unlocks the in-field zones (Sentinel-2 / HLS), the drought anomaly layer, and PRISM, SMAP and OpenET for validation. The adapters are already stubbed in `apps/api/src/datacorn/infrastructure/earthengine/`.
+- [ ] USDA NASS QuickStats API key (`DATACORN_NASS_API_KEY`) for county corn yields. The adapter is already written.
+- [ ] Earthdata login for ECOSTRESS (AppEEARS).
 
-### Build steps (details in [docs/requerimientos.md](docs/requerimientos.md))
-- [ ] **F0 Base:** deploy the API (`/health`) on Cloud Run and the web app with the globe on Firebase Hosting
-- [ ] **F1 Field:** fly to my location on the globe, draw the field point by point (Terra Draw), validate the polygon, detect region and county
-- [ ] **F2 Field data:** SSURGO soil, NASADEM terrain, CDL crop history, NASS county yields and typical planting date
-- [ ] **F3 Weather and phenology:** daily history (PRISM + NASA POWER), growing degree days, season scenarios, frost
-- [ ] **F4 Soil-water twin:** FAO-56 water balance validated with SMAP, planting window, irrigation need (OpenET check)
-- [ ] **F5 Satellite and layers:** heat at flowering, NDVI season progress, waterlogging, climate layers on the map (NASA GIBS + Earth Engine drought anomaly)
-- [ ] **F6 El Niño / La Niña:** effect measured on each field's history (NOAA ONI)
-- [ ] **F7 Rotation:** corn after corn vs. corn after soybean, relative yield vs. county
-- [ ] **F8 Screen:** step flow (globe → draw → calculating → form → results), season film, 25-season stripes, 6 key cards, ES/EN, imperial/metric, PDF report
-- [ ] **F9 Demo and submission:** precomputed sample fields (Nebraska, Iowa, Illinois, Kansas)
-
-### To verify before F3–F5
-- [ ] Earth Engine dataset IDs marked `verificar` in the adapters (PRISM daily, SMAP L4 version, NLDAS, OpenET)
-- [ ] Corn parameters marked `verificar` in `apps/api/src/datacorn/resources/crops/maize.yaml`
-- [ ] NASA GIBS layer IDs and tile matrix sets; EOX basemap license (non-commercial)
-
-### Code alignment with the latest design
-- [ ] The web skeleton still uses the earlier two-column layout: rebuild it as the step flow (F1/F8)
-- [ ] Add the daily season-film series and the per-year stripes to the report model (F8)
-- [ ] Add the `/api/v1/layers` endpoints (F5)
+### Product
+- [ ] Precompute 3–4 demo fields (Nebraska irrigated and rainfed, Iowa, Kansas) so the demo is instant.
+- [ ] Review the corn parameters marked `verificar` in `apps/api/src/datacorn/resources/crops/maize.yaml` with an agronomist, and calibrate them against NASS county yields once the key is available.
+- [ ] Shared links with the field in the URL (RF-42).
 
 ### Space Apps submission
-- [ ] Demo: video of 30 s or less with English subtitles, or 7 slides or fewer, in English
-- [ ] Project page in English, every dataset cited, AI use declared
-- [ ] Submit before Sunday, November 15, 2026, 23:59 local time
+- [ ] Demo: video of 30 s or less with English subtitles, or 7 slides or fewer, in English.
+- [ ] Project page in English, every dataset cited, AI use declared.
+- [ ] Submit before Sunday, November 15, 2026, 23:59 local time.
 
 ### Later: more countries
 - [ ] Peru: ICEN (coastal El Niño), MapBiomas Peru, MIDAGRI
 - [ ] Brazil: MapBiomas Brazil, CONAB / IBGE
 - [ ] Argentina: MapBiomas Argentina, MAGyP
 
+## Repository layout
+
+| Path | What |
+|---|---|
+| `apps/api/` | Python 3.12 + FastAPI backend (Cloud Run), clean architecture |
+| `apps/web/` | Astro + React frontend: globe, steps, film, stripes, cards, PDF |
+| `docs/` | Challenge text, flow, screen, requirements, architecture, API contract (team docs in Spanish) |
+| `infra/` | Deployment notes: Cloud Run, Firebase Hosting, budget |
+
+See [docs/arquitectura.md](docs/arquitectura.md), [docs/requerimientos.md](docs/requerimientos.md) and
+[docs/contrato-api.md](docs/contrato-api.md).
+
 ## Run locally
 
-API (Python 3.12+):
+API (Python 3.12+), no keys needed:
 
 ```bash
 cd apps/api
 python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-uvicorn datacorn.main:app --reload --port 8080
+uvicorn datacorn.main:app --port 8080
 pytest
 ```
 
@@ -99,12 +96,7 @@ npm install
 npm run dev        # http://localhost:4321, proxies /api to localhost:8080
 ```
 
-## Data sources
-
-NASA: POWER, GPM IMERG, SMAP, HLS (Landsat/Sentinel-2), MODIS, NASADEM (SRTM), ECOSTRESS.
-Partners and others: ESA Copernicus Sentinel-2, ECMWF ERA5-Land, USDA NASS Cropland Data Layer,
-USDA NRCS SSURGO, PRISM, NLDAS, OpenET, USDA NASS QuickStats, USGS NWIS, NOAA CPC ONI, ISRIC
-SoilGrids. Full citations are shown in the app (sources panel).
+Open `http://localhost:4321/?mock=1` to try the screen with sample data and no API.
 
 ## License
 

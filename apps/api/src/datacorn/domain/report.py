@@ -142,6 +142,26 @@ class EnsoInsight:
 
 
 @dataclass(frozen=True, slots=True)
+class SeasonRun:
+    """Una campaña simulada (película y franjas, RF-31 y RF-38).
+
+    `water_pct[i]` es el agua disponible en la zona de raíces (0-100 %) del día `start + i`;
+    `tmax_c[i]` la máxima de ese día. La serie va de la siembra a la cosecha.
+    """
+
+    year: int  # año análogo (o el año observado)
+    observed_days: int  # cuántos días del inicio son observados (0 = todo escenario)
+    enso_phase: EnsoPhase | None
+    start: date
+    water_pct: tuple[int, ...]
+    tmax_c: tuple[float, ...]
+    stages: tuple[StageWindow, ...]
+    flowering_deficit_mm: float
+    flowering_heat_days: int
+    relative_yield: float  # 1 = sin pérdida por agua
+
+
+@dataclass(frozen=True, slots=True)
 class Summary:
     """RF-30."""
 
@@ -163,3 +183,5 @@ class FieldReport:
     zones_geojson: Mapping[str, object] | None
     sources: tuple[str, ...]
     observed_until: date | None
+    runs: tuple[SeasonRun, ...] = ()
+    typical_year: int | None = None  # el año con el rendimiento relativo mediano

@@ -1,17 +1,20 @@
 # Estados Unidos. Demo en Nebraska; también Iowa, Illinois y Kansas.
 # Cada lista es la cadena de respaldo: si la primera fuente no tiene datos, se usa la siguiente.
+# Todo lo activo funciona sin cuentas. Con Earth Engine se suman (al inicio de cada lista):
+#   climate: prism_power · elevation: nasadem · crop_history: cdl
+#   vegetation: hls_sentinel2 · soil_moisture: smap_l4 · evapotranspiration: openet
 id: us
 name: { es: "Estados Unidos", en: "United States" }
 status: active
 countries: [US]
 providers:
-  admin: [tiger_counties, gaul]
-  climate: [prism_power, power_imerg, era5_land]
-  soil: [ssurgo, soilgrids]
-  elevation: [nasadem]
-  vegetation: [hls_sentinel2, modis]
-  soil_moisture: [smap_l4, nldas]
-  evapotranspiration: [openet, ecostress]
+  admin: [fcc, point_admin]
+  climate: [power]
+  soil: [ssurgo, soilgrids_rest]
+  elevation: [ssurgo_power_terrain, power_terrain]
+  vegetation: [ornl_modis]
+  soil_moisture: [power_soil_wetness]
+  evapotranspiration: [no_et]
   enso: [oni]
-  crop_history: [cdl]
-  yield_stats: [nass]
+  crop_history: [cropscape]
+  yield_stats: [nass]  # necesita DATACORN_NASS_API_KEY; sin clave se omite

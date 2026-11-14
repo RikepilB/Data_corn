@@ -6,7 +6,7 @@ heat_stress_c: 35.0      # la viabilidad del polen cae sobre ~35 °C · verifica
 frost_c: 0.0
 kc: { ini: 0.30, mid: 1.20, end: 0.60 }   # FAO-56 tabla 12; end 0.35 si se cosecha seco · verificar
 ky: { total: 1.25, vegetative: 0.40, flowering: 1.50, grain_fill: 0.50, ripening: 0.20 }  # FAO-33
-root_depth_m: { min: 0.15, max: 1.20 }    # FAO-56 tabla 22: 1.0-1.7 m · verificar para el suelo
+root_depth_m: { min: 0.15, max: 1.50 }    # FAO-56 tabla 22: 1.0-1.7 m; 1.5 en suelos profundos de loess · verificar
 depletion_fraction_p: 0.55                # FAO-56 tabla 22
 # Grados-día (°C·día) hasta madurez fisiológica según la madurez relativa (RM, días) · verificar
 gdd_maturity_by_rm:

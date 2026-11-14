@@ -1,75 +1,297 @@
-import { useEffect, useState } from 'react';
+import type { Map as MapLibreMap } from 'maplibre-gl';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDataCorn } from '../application/useDataCorn';
-import { defaultSeason } from '../domain/inputs';
+import { useFilm } from '../application/useFilm';
+import type { FormatContext } from '../domain/format';
+import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
+import { analogDate, waterColor } from '../domain/season';
 import type { UnitSystem } from '../domain/units';
-import type { Locale } from '../i18n';
-import { StatusPanel } from '../ui/common/StatusPanel';
+import { type Locale, t } from '../i18n';
+import { CLIMATE_LAYERS, type ClimateLayerId, nearestAvailable, recentMonths } from '../infrastructure/gibs';
+import type { Place } from '../infrastructure/geocode';
+import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { TopBar } from '../ui/common/TopBar';
-import { EnsoPanel } from '../ui/enso/EnsoPanel';
-import { FieldContextCard } from '../ui/field/FieldContextCard';
-import { FieldForm } from '../ui/form/FieldForm';
-import { IndicatorGrid } from '../ui/indicators/IndicatorGrid';
-import { FieldMap } from '../ui/map/FieldMap';
-import { RotationCompare } from '../ui/rotation/RotationCompare';
-import { SourcesPanel } from '../ui/sources/SourcesPanel';
-import { SummaryCard } from '../ui/summary/SummaryCard';
-import { SeasonTimeline } from '../ui/timeline/SeasonTimeline';
+import { LayerChips, Legend, TimeSlider } from '../ui/layers/LayerControls';
+import { MapView } from '../ui/map/MapView';
+import { fitField, flyToPlace, reducedMotion, useGlobeSpin } from '../ui/map/camera';
+import { setClimate, setField, setFieldFill } from '../ui/map/layers';
+import { useDrawing } from '../ui/map/useDrawing';
+import { downloadReportPdf } from '../ui/pdf/download';
+import { ResultsPanel } from '../ui/results/ResultsPanel';
+import { SeasonFilm } from '../ui/results/SeasonFilm';
+import { buildCards } from '../ui/results/cards';
+import { CalculatingPanel } from '../ui/steps/CalculatingPanel';
+import { DrawPanel } from '../ui/steps/DrawPanel';
+import { FieldForm } from '../ui/steps/FieldForm';
+import { GlobePanel } from '../ui/steps/GlobePanel';
 
-// Pantalla única (docs/pantalla.md): izquierda = mapa, lote y datos; derecha = resultados.
+function useIsDesktop(): boolean {
+  const query = '(min-width: 900px)';
+  const [desktop, setDesktop] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setDesktop(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return desktop;
+}
+
+/** Pantalla única por pasos (docs/pantalla.md): globo → dibujar → calcular → datos → resultados. */
 export default function DataCornApp() {
-  const [locale, setLocale] = useState<Locale>('es');
+  const [locale, setLocale] = useState<Locale>(() => (navigator.language?.startsWith('es') ? 'es' : 'en'));
   const [units, setUnits] = useState<UnitSystem>('imperial');
-  const next = defaultSeason();
-  const [season, setSeason] = useState(next);
+  const [map, setMap] = useState<MapLibreMap | null>(null);
+  const [layerId, setLayerId] = useState<ClimateLayerId | null>('soil_moisture');
+  const [globeTime, setGlobeTime] = useState<string>('');
+  const [flying, setFlying] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [denied, setDenied] = useState(false);
+  const [drawError, setDrawError] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
   const dc = useDataCorn();
+  const film = useFilm(dc.report);
+  const desktop = useIsDesktop();
+  const ctx: FormatContext = useMemo(() => ({ locale, units }), [locale, units]);
+  const { step } = dc;
 
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const report = dc.report;
-  const context = report?.context ?? dc.described?.context ?? null;
-  const busy = dc.status === 'describing' || dc.status === 'analyzing';
+  // --- Globo: giro lento y capa de clima con su deslizador de meses ---------------------------
+  const stopSpin = useGlobeSpin(map, step === 'globe' && !flying);
+  const layer = layerId ? CLIMATE_LAYERS[layerId] : null;
+  const months = useMemo(() => (layer ? recentMonths(layer) : []), [layer]);
+  useEffect(() => {
+    if (months.length) setGlobeTime(months[months.length - 1]!);
+  }, [months]);
+
+  // Semana de la película: la capa del mapa se actualiza por semana, no por día
+  const filmWeek = Math.floor(film.day / 7);
+  const filmLayerTime = useMemo(() => {
+    if (!layer || !film.run) return null;
+    return nearestAvailable(layer, analogDate(film.run, filmWeek * 7));
+  }, [layer, film.run, filmWeek]);
+
+  useEffect(() => {
+    if (!map) return;
+    if (step === 'globe') setClimate(map, layer, globeTime || null);
+    else if (step === 'results') setClimate(map, layer, filmLayerTime, 0.4);
+    else setClimate(map, null, null);
+  }, [map, step, layer, globeTime, filmLayerTime]);
+
+  // --- Lote en el mapa ---------------------------------------------------------------------
+  const fieldRing = step === 'calculating' || step === 'form' || step === 'results' ? dc.points : null;
+  useEffect(() => {
+    if (map) setField(map, fieldRing);
+  }, [map, fieldRing]);
+
+  const water = film.run ? film.run.water_pct[film.day] : undefined;
+  useEffect(() => {
+    if (!map) return;
+    setFieldFill(map, step === 'results' && water != null ? waterColor(water) : null);
+  }, [map, step, water]);
+
+  const fitPadding = useCallback(
+    () =>
+      desktop
+        ? { top: 90, bottom: step === 'results' ? 250 : 90, left: 60, right: 500 }
+        : { top: 90, bottom: Math.round(window.innerHeight * 0.58) + 20, left: 30, right: 30 },
+    [desktop, step],
+  );
+
+  // Encuadra el lote al entrar a cada paso (no en cada cambio de puntos)
+  const ringForFit = fieldRing && fieldRing.length >= 3 ? fieldRing : null;
+  const fitKey = ringForFit ? `${step}|${desktop}|${ringForFit.length}|${ringForFit[0]!.join(',')}` : '';
+  useEffect(() => {
+    if (map && ringForFit) fitField(map, bounds(ringForFit), fitPadding());
+  }, [map, fitKey]);
+
+  // --- Dibujo ------------------------------------------------------------------------------
+  const tryClose = useCallback(() => {
+    const check = checkField(dc.points);
+    if (check.status === 'ok') {
+      setDrawError(false);
+      dc.closeField(dc.points);
+    } else {
+      setDrawError(true);
+    }
+  }, [dc]);
+  useDrawing(map, step === 'draw', dc.points, dc.setPoints, tryClose);
+  useEffect(() => setDrawError(false), [dc.points.length]);
+
+  // --- Acciones del globo ------------------------------------------------------------------
+  const flyThen = useCallback(
+    async (center: LngLat, zoom: number, then: () => void) => {
+      if (!map) return;
+      stopSpin();
+      setFlying(true);
+      await flyToPlace(map, center, zoom);
+      setFlying(false);
+      then();
+    },
+    [map, stopSpin],
+  );
+
+  const onLocate = useCallback(() => {
+    if (!('geolocation' in navigator)) {
+      setDenied(true);
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        void flyThen([pos.coords.longitude, pos.coords.latitude], FIELD_ZOOM, dc.startDrawing);
+      },
+      () => {
+        setLocating(false);
+        setDenied(true);
+      },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+    );
+  }, [flyThen, dc.startDrawing]);
+
+  const onPlace = useCallback(
+    (p: Place) => void flyThen([p.lon, p.lat], FIELD_ZOOM, dc.startDrawing),
+    [flyThen, dc.startDrawing],
+  );
+
+  const onSample = useCallback(
+    () => void flyThen(centroid(SAMPLE_FIELD), 14.6, () => dc.closeField(SAMPLE_FIELD, true)),
+    [flyThen, dc],
+  );
+
+  const backToGlobe = useCallback(() => {
+    dc.backToGlobe();
+    if (map) {
+      map.stop();
+      map.easeTo({ center: GLOBE_VIEW.center, zoom: GLOBE_VIEW.zoom, duration: reducedMotion() ? 0 : 2600 });
+    }
+  }, [dc, map]);
+
+  const onPdf = useCallback(async () => {
+    if (!dc.report) return;
+    setPdfBusy(true);
+    setPdfError(false);
+    try {
+      let mapImage: string | null = null;
+      try {
+        mapImage = map ? map.getCanvas().toDataURL('image/jpeg', 0.86) : null;
+      } catch {
+        mapImage = null;
+      }
+      await downloadReportPdf({
+        report: dc.report,
+        ctx,
+        cards: buildCards(dc.report, ctx),
+        mapImage,
+        isSample: dc.isSample,
+        mock: dc.mock,
+      });
+    } catch (e) {
+      console.error(e);
+      setPdfError(true);
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [dc.report, dc.isSample, dc.mock, map, ctx]);
+
+  const showLayers = step === 'globe' || step === 'results';
+  const filmView = dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null;
+  const filmNoLayer =
+    step === 'results' && layer && film.run && !filmLayerTime
+      ? t(locale, 'layer.no_data_year', { year: film.run.year })
+      : undefined;
 
   return (
-    <>
-      <TopBar
-        locale={locale}
-        units={units}
-        season={season}
-        seasons={[next - 2, next - 1, next]}
-        onLocale={setLocale}
-        onUnits={setUnits}
-        onSeason={setSeason}
-      />
-      <main className="dc-layout">
-        <div className="dc-column">
-          <FieldMap locale={locale} onFieldDrawn={(g) => dc.onFieldDrawn(g, season)} />
-          <FieldContextCard context={context} locale={locale} units={units} />
-          <FieldForm
-            values={dc.values}
+    <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
+      <MapView locale={locale} onReady={setMap} />
+      <TopBar step={step} locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      {dc.mock && <div className="mock-banner">{t(locale, 'results.mock')}</div>}
+
+      {showLayers && !flying && (
+        <div className="layerbar">
+          <LayerChips value={layerId} onChange={setLayerId} locale={locale} />
+          {layerId && <Legend id={layerId} locale={locale} note={filmNoLayer} />}
+        </div>
+      )}
+
+      {step === 'globe' && !flying && (
+        <div className="globe-dock">
+          {layer && months.length > 0 && (
+            <TimeSlider months={months} value={globeTime} onChange={setGlobeTime} locale={locale} />
+          )}
+          <GlobePanel
             locale={locale}
-            units={units}
-            busy={busy}
-            onChange={dc.setValues}
-            onSubmit={dc.analyze}
+            locating={locating}
+            denied={denied}
+            onLocate={onLocate}
+            onPlace={onPlace}
+            onSample={onSample}
           />
         </div>
-        <div className="dc-column" aria-live="polite">
-          {report && dc.status === 'ready' ? (
-            <>
-              <SummaryCard summary={report.summary} locale={locale} />
-              <SeasonTimeline timeline={report.timeline} locale={locale} />
-              <IndicatorGrid indicators={report.indicators} locale={locale} />
-              <RotationCompare rotation={report.rotation} locale={locale} />
-              <EnsoPanel enso={report.enso} locale={locale} />
-            </>
-          ) : (
-            <StatusPanel status={dc.status} error={dc.error} locale={locale} />
-          )}
-          <SourcesPanel sources={report?.sources ?? []} locale={locale} />
+      )}
+
+      {step === 'draw' && (
+        <DrawPanel
+          points={dc.points}
+          locale={locale}
+          units={units}
+          showError={drawError}
+          onUndo={() => dc.setPoints((p) => p.slice(0, -1))}
+          onClose={tryClose}
+          onBack={backToGlobe}
+        />
+      )}
+
+      {step === 'calculating' && (
+        <div className="dock-right">
+          <CalculatingPanel
+            locale={locale}
+            done={dc.describeDone}
+            error={dc.error}
+            onRetry={dc.retry}
+            onRedraw={dc.startDrawing}
+          />
         </div>
-      </main>
-    </>
+      )}
+
+      {step === 'form' && dc.described && dc.values && (
+        <FieldForm
+          context={dc.described.context}
+          values={dc.values}
+          locale={locale}
+          units={units}
+          busy={dc.analyzing}
+          error={dc.error}
+          isSample={dc.isSample}
+          onChange={dc.setValues}
+          onSubmit={dc.analyze}
+          onRedraw={dc.startDrawing}
+        />
+      )}
+
+      {step === 'results' && dc.report && (
+        <>
+          {desktop && <div className="film-dock">{filmView}</div>}
+          <ResultsPanel
+            report={dc.report}
+            film={film}
+            ctx={ctx}
+            isSample={dc.isSample}
+            mock={dc.mock}
+            pdfBusy={pdfBusy}
+            pdfError={pdfError}
+            onPdf={onPdf}
+            onChange={dc.editData}
+            onNew={dc.startDrawing}
+            filmSlot={desktop ? null : filmView}
+          />
+        </>
+      )}
+    </div>
   );
 }
