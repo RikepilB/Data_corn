@@ -1,0 +1,17 @@
+# Argentina (planificado). La Niña trae sequía en la Pampa (2022-23).
+id: ar
+name: { es: "Argentina", en: "Argentina" }
+status: planned
+countries: [AR]
+notes: "Pendiente: MapBiomas Argentina (cultivos por año) y estimaciones de MAGyP."
+providers:
+  admin: [gaul]
+  climate: [power_imerg, era5_land]
+  soil: [soilgrids]
+  elevation: [nasadem]
+  vegetation: [hls_sentinel2, modis]
+  soil_moisture: [smap_l4]
+  evapotranspiration: [ecostress]
+  enso: [oni]
+  crop_history: [mapbiomas_argentina]  # por evaluar
+  yield_stats: [magyp]  # por evaluar

@@ -1,0 +1,16 @@
+# Respaldo para cualquier lugar sin perfil propio (RF-51). Solo fuentes mundiales; confianza más baja.
+id: global
+name: { es: "Global (fuentes mundiales)", en: "Global (worldwide sources)" }
+status: active
+countries: []
+providers:
+  admin: [gaul]
+  climate: [power_imerg, era5_land]
+  soil: [soilgrids]
+  elevation: [nasadem]
+  vegetation: [hls_sentinel2, modis]
+  soil_moisture: [smap_l4]
+  evapotranspiration: [ecostress]
+  enso: [oni]
+  crop_history: []
+  yield_stats: []

@@ -1,0 +1,17 @@
+# Estados Unidos. Demo en Nebraska; también Iowa, Illinois y Kansas.
+# Cada lista es la cadena de respaldo: si la primera fuente no tiene datos, se usa la siguiente.
+id: us
+name: { es: "Estados Unidos", en: "United States" }
+status: active
+countries: [US]
+providers:
+  admin: [tiger_counties, gaul]
+  climate: [prism_power, power_imerg, era5_land]
+  soil: [ssurgo, soilgrids]
+  elevation: [nasadem]
+  vegetation: [hls_sentinel2, modis]
+  soil_moisture: [smap_l4, nldas]
+  evapotranspiration: [openet, ecostress]
+  enso: [oni]
+  crop_history: [cdl]
+  yield_stats: [nass]
