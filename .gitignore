@@ -29,3 +29,30 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Field Shift additions (merged in from the first Field Shift .gitignore)
+
+# Pre-hackathon research (a separate nested repo): never part of the submitted repository.
+references/
+
+# Local agent config and session handoff: useful on one machine, not part of the public repo.
+.claude/
+handoff.md
+docs/handoff/
+
+# Local credentials (Earthdata uses ~/.netrc, never the repo)
+.netrc
+_netrc
+*.pem
+
+# Raw downloads: large, re-fetchable, sometimes licence-restricted
+data/raw/
+*.nc
+*.h5
+*.hdf
+*.tif
+*.tiff
+*.zip
+
+# Firebase CLI log rotations
+firebase-debug.log*
