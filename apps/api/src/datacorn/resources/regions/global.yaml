@@ -1,16 +1,17 @@
-# Respaldo para cualquier lugar sin perfil propio (RF-51). Solo fuentes mundiales; confianza más baja.
+# Respaldo para cualquier lugar sin perfil propio (RF-51). Solo fuentes mundiales; confianza baja.
+# Con Earth Engine se suman: climate: power_imerg, era5_land · elevation: nasadem · vegetation: hls_sentinel2
 id: global
 name: { es: "Global (fuentes mundiales)", en: "Global (worldwide sources)" }
 status: active
 countries: []
 providers:
-  admin: [gaul]
-  climate: [power_imerg, era5_land]
-  soil: [soilgrids]
-  elevation: [nasadem]
-  vegetation: [hls_sentinel2, modis]
-  soil_moisture: [smap_l4]
-  evapotranspiration: [ecostress]
+  admin: [point_admin]
+  climate: [power]
+  soil: [soilgrids_rest]
+  elevation: [power_terrain]
+  vegetation: [ornl_modis]
+  soil_moisture: [power_soil_wetness]
+  evapotranspiration: [no_et]
   enso: [oni]
   crop_history: []
   yield_stats: []

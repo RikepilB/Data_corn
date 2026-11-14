@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from statistics import mean
 
 from datacorn.application.cache_keys import cache_key
+from datacorn.application.data_windows import climate_window, ndvi_window, optional
 from datacorn.application.dto import DescribeFieldResult
 from datacorn.application.ports import CachePort, ClockPort, RegionResolverPort
 from datacorn.domain import geometry as geo
-from datacorn.domain.agronomy.phenology import default_hybrid_rm
-from datacorn.domain.models import Crop, FieldContext, FieldDefaults, FieldGeometry
+from datacorn.domain.agronomy.phenology import default_hybrid_rm, default_planting_date
+from datacorn.domain.models import AdminArea, Crop, FieldContext, FieldDefaults, FieldGeometry
 
 
 class DescribeField:
-    """Detecta todo lo que sale del contorno (RF-04, RF-05) y propone valores por defecto."""
+    """Al cerrar el lote: valida, detecta todo y deja los datos en caché (RF-04, RF-05).
+
+    Las descargas van en paralelo; las que no son imprescindibles pueden faltar.
+    """
 
     def __init__(
         self,
@@ -41,52 +46,58 @@ class DescribeField:
         area = geo.validate(geometry, max_vertices=self._max_vertices, **self._limits)
         point = geo.centroid(geometry)
         src = self._regions.resolve(point)
-        admin = src.admin.locate(point)
+        first, last = self._history_start_year, today.year - 1
+        start, end = climate_window(today, first)
+        ndvi = ndvi_window(season, today)
 
-        # F2 · suelo, relieve, cultivos por año y estadísticas del condado
-        last_year = today.year - 1
-        soil = src.soil.profile(geometry)
-        terrain = src.elevation.terrain(geometry)
-        crop_history = (
-            src.crop_history.history(geometry, self._history_start_year, last_year)
-            if src.crop_history
-            else ()
-        )
-        county_yields = (
-            src.yield_stats.county_yields(admin, Crop.MAIZE, self._history_start_year, last_year)
-            if src.yield_stats
-            else ()
-        )
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            admin_f = pool.submit(
+                optional, lambda: src.admin.locate(point), AdminArea(country=src.region_id.upper())
+            )
+            soil_f = pool.submit(optional, lambda: src.soil.profile(geometry), None)
+            terrain_f = pool.submit(optional, lambda: src.elevation.terrain(geometry), None)
+            history_f = pool.submit(
+                optional,
+                lambda: src.crop_history.history(geometry, first, last) if src.crop_history else (),
+                (),
+            )
+            enso_f = pool.submit(optional, src.enso.current, None)
+            # Se precargan para que analyze sea inmediato
+            climate_f = pool.submit(src.climate.daily, geometry, start, end)
+            pool.submit(optional, lambda: src.soil_moisture.series(geometry, start, end), ())
+            if ndvi:
+                pool.submit(optional, lambda: src.vegetation.ndvi_series(geometry, *ndvi), ())
+            pool.submit(optional, lambda: src.enso.history(first, today.year), ())
+            admin = admin_f.result()
+            yields = (
+                optional(lambda: src.yield_stats.county_yields(admin, Crop.MAIZE, first, last), ())
+                if src.yield_stats
+                else ()
+            )
+            planting = (
+                optional(lambda: src.yield_stats.typical_planting_date(admin, Crop.MAIZE, season), None)
+                if src.yield_stats
+                else None
+            )
+            climate = climate_f.result()
+            context = FieldContext(
+                region_id=src.region_id,
+                admin=admin,
+                area_ha=area,
+                centroid=point,
+                soil=soil_f.result(),
+                terrain=terrain_f.result(),
+                crop_history=history_f.result(),
+                county_yields=yields,
+                enso_now=enso_f.result(),
+            )
 
-        # F6 · fase actual de El Niño
-        enso_now = src.enso.current()
-
-        context = FieldContext(
-            region_id=src.region_id,
-            admin=admin,
-            area_ha=area,
-            centroid=point,
-            soil=soil,
-            terrain=terrain,
-            crop_history=crop_history,
-            county_yields=county_yields,
-            enso_now=enso_now,
-        )
-
-        planting = (
-            src.yield_stats.typical_planting_date(admin, Crop.MAIZE, season)
-            if src.yield_stats
-            else None
-        )
-        if planting is None:
-            raise NotImplementedError("F2: fecha de siembra por defecto sin estadísticas locales")
-        recent = [y.yield_t_ha for y in county_yields[-5:]]
+        recent = [y.yield_t_ha for y in yields[-5:]]
         defaults = FieldDefaults(
-            planting_date=planting,
+            planting_date=planting or default_planting_date(climate, season),
             hybrid_rm_days=default_hybrid_rm(point.lat),
-            yield_goal_t_ha=mean(recent) if recent else None,
+            yield_goal_t_ha=round(mean(recent), 2) if recent else None,
         )
-
         result = DescribeFieldResult(context=context, defaults=defaults)
         self._cache.put(key, result)
         return result

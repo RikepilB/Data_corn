@@ -22,10 +22,14 @@ def test_demo_fields_empty_until_f9(client: TestClient) -> None:
     assert client.get("/api/v1/demo-fields").json() == []
 
 
-def test_describe_reports_missing_step(client: TestClient) -> None:
-    response = client.post("/api/v1/fields/describe", json={"geometry": FIELD, "season": 2027})
-    assert response.status_code == 501
-    assert response.json()["detail"].startswith("F1")
+def test_describe_rejects_crossing_sides(client: TestClient) -> None:
+    bowtie = [[-98.0, 40.9], [-97.99, 40.91], [-97.99, 40.9], [-98.0, 40.91], [-98.0, 40.9]]
+    response = client.post(
+        "/api/v1/fields/describe",
+        json={"geometry": {"type": "Polygon", "coordinates": [bowtie]}, "season": 2027},
+    )
+    assert response.status_code == 422
+    assert response.json() == {"error": "invalid_geometry", "reason": "self_intersection"}
 
 
 def test_analyze_validates_form(client: TestClient) -> None:

@@ -6,13 +6,13 @@ status: planned
 countries: [PE]
 notes: "Pendiente: MapBiomas Perú (cultivos por año) y MIDAGRI SIEA (estadísticas)."
 providers:
-  admin: [gaul]
-  climate: [power_imerg, era5_land]
-  soil: [soilgrids]
-  elevation: [nasadem]
-  vegetation: [hls_sentinel2, modis]
-  soil_moisture: [smap_l4]
-  evapotranspiration: [ecostress]
+  admin: [point_admin]
+  climate: [power]
+  soil: [soilgrids_rest]
+  elevation: [power_terrain]
+  vegetation: [ornl_modis]
+  soil_moisture: [power_soil_wetness]
+  evapotranspiration: [no_et]
   enso: [icen, oni]
   crop_history: [mapbiomas_peru]  # por evaluar
   yield_stats: [midagri_siea]  # por evaluar

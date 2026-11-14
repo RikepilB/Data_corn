@@ -3,20 +3,32 @@ import type { DemoField, DescribeFieldResult, FieldReport, PolygonGeometry } fro
 
 const BASE = '/api/v1';
 
+export interface ApiErrorBody {
+  error?: string;
+  detail?: string | unknown;
+  reason?: string;
+  source?: string;
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly body: { error?: string; detail?: string; reason?: string } | null,
+    readonly body: ApiErrorBody | null,
   ) {
-    super(`API ${status}${body?.detail ? `: ${body.detail}` : ''}`);
+    super(`API ${status}${typeof body?.detail === 'string' ? `: ${body.detail}` : ''}`);
   }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      ...init,
+      headers: { 'Content-Type': 'application/json', ...init?.headers },
+    });
+  } catch {
+    throw new ApiError(0, { error: 'network' });
+  }
   if (!response.ok) {
     throw new ApiError(response.status, await response.json().catch(() => null));
   }

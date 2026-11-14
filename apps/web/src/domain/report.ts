@@ -103,6 +103,20 @@ export interface EnsoInsight {
   message: Message;
 }
 
+/** Una campaña simulada: película (día a día) y franja (RF-31, RF-38). Ver docs/contrato-api.md §5. */
+export interface SeasonRun {
+  year: number;
+  observed_days: number;
+  enso_phase: EnsoPhase | null;
+  start: string;
+  water_pct: number[];
+  tmax_c: number[];
+  stages: StageWindow[];
+  flowering_deficit_mm: number;
+  flowering_heat_days: number;
+  relative_yield: number;
+}
+
 export interface Summary {
   risk: RiskLevel;
   confidence: Confidence;
@@ -142,6 +156,18 @@ export interface FieldReport {
   zones_geojson: Record<string, unknown> | null;
   sources: string[];
   observed_until: string | null;
+  runs: SeasonRun[];
+  typical_year: number | null;
+  inputs: {
+    season: number;
+    planting_date: string;
+    hybrid_rm_days: number;
+    irrigation: string;
+    irrigation_capacity_mm_day: number | null;
+    tillage: string;
+    yield_goal_t_ha: number | null;
+    previous_crop: Crop | null;
+  };
 }
 
 export interface DemoField {
