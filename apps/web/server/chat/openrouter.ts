@@ -30,7 +30,13 @@ export interface ModelTool {
 export type ModelEvent =
   | { type: 'text'; delta: string }
   /** Last event of a call. `length`: the answer hit the token cap. */
-  | { type: 'end'; finish: 'stop' | 'length' | 'tool_calls'; toolCalls: ToolCall[] };
+  | {
+      type: 'end';
+      finish: 'stop' | 'length' | 'tool_calls';
+      toolCalls: ToolCall[];
+      /** What this call cost in US dollars, when the service reports it. */
+      costUsd?: number;
+    };
 
 export interface ModelRequest {
   messages: ModelMessage[];
@@ -116,6 +122,8 @@ export async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator
 
 interface WireChunk {
   error?: { message?: string; code?: unknown };
+  /** Sent in the last chunk when the request asks for usage accounting. */
+  usage?: { cost?: number };
   choices?: {
     delta?: {
       content?: string | null;
@@ -146,6 +154,8 @@ export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
           messages: messages.map(toWire),
           tools: tools.map((t) => ({ type: 'function', function: t })),
           tool_choice: 'auto',
+          // Adds the call's cost to the last chunk, so the dev server can keep a spending cap.
+          usage: { include: true },
         }),
       });
       if (!response.ok || !response.body) {
@@ -154,6 +164,7 @@ export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
 
       const calls = new Map<number, ToolCall>();
       let finish: 'stop' | 'length' | 'tool_calls' = 'stop';
+      let costUsd: number | undefined;
       for await (const data of sseData(response.body)) {
         let chunk: WireChunk;
         try {
@@ -162,6 +173,7 @@ export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
           continue;
         }
         if (chunk.error) throw new Error('OpenRouter stream error');
+        if (typeof chunk.usage?.cost === 'number') costUsd = chunk.usage.cost;
         const choice = chunk.choices?.[0];
         if (!choice) continue;
         const delta = choice.delta;
@@ -181,7 +193,12 @@ export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
         .sort(([a], [b]) => a - b)
         .map(([i, c]) => ({ ...c, id: c.id || `call_${i}` }))
         .filter((c) => c.name);
-      yield { type: 'end', finish: toolCalls.length ? 'tool_calls' : finish, toolCalls };
+      yield {
+        type: 'end',
+        finish: toolCalls.length ? 'tool_calls' : finish,
+        toolCalls,
+        ...(costUsd === undefined ? {} : { costUsd }),
+      };
     },
   };
 }

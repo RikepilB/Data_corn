@@ -52,6 +52,16 @@ describe('OpenRouter model', () => {
     });
   });
 
+  it('reads the cost from the usage chunk', async () => {
+    const { out, sent } = await collect([
+      chunk({ content: 'x' }, 'stop'),
+      `data: ${JSON.stringify({ choices: [], usage: { prompt_tokens: 10, completion_tokens: 2, cost: 0.0123 } })}`,
+      'data: [DONE]',
+    ]);
+    expect(out.at(-1)).toEqual({ type: 'end', finish: 'stop', toolCalls: [], costUsd: 0.0123 });
+    expect(JSON.parse(String(sent[0]!.body)).usage).toEqual({ include: true });
+  });
+
   it('reports the length cap', async () => {
     const { out } = await collect([chunk({ content: 'x' }, 'length')]);
     expect(out.at(-1)).toMatchObject({ finish: 'length' });
