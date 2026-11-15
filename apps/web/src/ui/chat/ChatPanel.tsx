@@ -9,7 +9,7 @@ import type { UnitSystem } from '../../domain/units';
 import { type Locale, t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { prepareAttachment } from './attachment';
-import { type ChatMessage, buildChatRequest, errorKey, sendChat } from './chatClient';
+import { type ChatMessage, buildChatRequest, errorKey, plainText, sendChat } from './chatClient';
 import './chat.css';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
@@ -187,13 +187,13 @@ export function ChatPanel({ open, onClose, locale, units, reportId, irrigation }
               {m.attachmentName && (
                 <span className="chat__file-tag">{t(locale, 'chat.attached', { name: m.attachmentName })}</span>
               )}
-              {m.text && <p>{m.text}</p>}
+              {m.text && <p>{m.role === 'assistant' ? plainText(m.text) : m.text}</p>}
             </div>
           ))}
           {answer !== null && (
             <div className="chat__msg chat__msg--assistant">
               <span className="chat__who">{t(locale, 'chat.assistant')}</span>
-              <p>{answer || t(locale, 'chat.thinking')}</p>
+              <p>{answer ? plainText(answer) : t(locale, 'chat.thinking')}</p>
             </div>
           )}
           {truncated && <p className="chat__note">{t(locale, 'chat.truncated')}</p>}

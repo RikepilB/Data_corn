@@ -11,6 +11,7 @@ import {
   createNdjsonReader,
   errorKey,
   fitsAttachmentLimit,
+  plainText,
   scaledSize,
   sendChat,
   toBase64,
@@ -97,6 +98,12 @@ describe('buildChatRequest', () => {
   it('maps an unknown irrigation to rainfed', () => {
     expect(chatIrrigation('drip')).toBe('drip');
     expect(chatIrrigation('sprinkler')).toBe('none');
+  });
+});
+
+describe('plainText', () => {
+  it('drops bold and heading marks but keeps lists and numbers', () => {
+    expect(plainText('**Why High:** 13 of 25\n## Next\n- pivot\n- 2 * 3')).toBe('Why High: 13 of 25\nNext\n- pivot\n- 2 * 3');
   });
 });
 

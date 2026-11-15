@@ -126,6 +126,17 @@ export function buildChatRequest(args: {
   };
 }
 
+/**
+ * The panel shows answers as plain text. When the model still writes Markdown emphasis or
+ * headings, their marks are dropped so no stray asterisks or # show. Lists ("- ") stay as they are.
+ */
+export function plainText(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '');
+}
+
 export function isAttachmentType(type: string): type is AttachmentType {
   return (ATTACHMENT_TYPES as readonly string[]).includes(type);
 }
