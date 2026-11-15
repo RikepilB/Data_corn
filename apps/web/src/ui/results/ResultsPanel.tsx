@@ -9,6 +9,7 @@ import { RiskBadge } from '../common/RiskBadge';
 import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
+import { warmPdf } from '../pdf/download';
 import { buildCards } from './cards';
 
 interface Props {
@@ -145,6 +146,9 @@ export const ResultsPanel = memo(function ResultsPanel({
         className="btn btn--primary btn--xl"
         onClick={onPdf}
         disabled={pdfBusy}
+        onPointerEnter={warmPdf}
+        onFocus={warmPdf}
+        onTouchStart={warmPdf}
       >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
