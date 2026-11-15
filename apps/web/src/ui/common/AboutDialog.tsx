@@ -60,7 +60,6 @@ export function AboutDialog({ open, locale, onClose }: { open: boolean; locale: 
         <p className="muted small">{t(locale, 'about.credits.nasa')}</p>
 
         <h3>{t(locale, 'about.ai.title')}</h3>
-        <p>{t(locale, 'about.ai.text')}</p>
       </div>
     </dialog>
   );

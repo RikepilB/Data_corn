@@ -1,25 +1,6 @@
 /* SI-assisted (Claude Code); reviewed by <name>
-   Step label, the "Display" menu (text size, contrast, calm mode) and what calm mode folds away.
+   The "Display" menu (text size, contrast, calm mode) and what calm mode folds away.
    The value overrides themselves are in tokens.css. */
-
-/* --- Paso actual con palabras (los puntos solos no dicen nada) ------------------------------ */
-.stepname {
-  display: none;
-  margin: 0 auto;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  color: var(--ink-2);
-}
-
-@media (min-width: 760px) {
-  .stepname {
-    display: block;
-  }
-
-  .stepdots {
-    display: none;
-  }
-}
 
 .brand {
   white-space: nowrap;

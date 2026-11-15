@@ -404,38 +404,10 @@ p {
   font-weight: 700;
 }
 
-.stepdots {
-  display: flex;
-  gap: 4px;
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-}
-
-.stepdots li {
-  width: 20px;
-  height: 3px;
-  background: var(--line);
-  transition: width 250ms var(--ease), background 250ms;
-}
-
-.stepdots li.done {
-  background: var(--muted);
-}
-
-.stepdots li.now {
-  width: 32px;
-  background: var(--ink);
-}
-
 .topbar__tools {
   display: flex;
   gap: 8px;
   margin-left: auto;
-}
-
-.stepdots + .topbar__tools {
-  margin-left: 0;
 }
 
 .segmented {
@@ -531,19 +503,6 @@ p {
 
 .layerbar > * {
   pointer-events: auto;
-}
-
-/* Sample data (?mock=1) on a phone: the banner covers the layer chips, so the chips and the
-   Center button under them move down by the banner's height (it ends at --top + 35px).
-   On desktop the chips sit to one side of the banner and nothing overlaps. */
-@media (max-width: 899px) {
-  .mock-banner ~ .layerbar {
-    top: calc(var(--top) + 44px);
-  }
-
-  .app:has(.mock-banner) .mapbtn {
-    top: calc(var(--top) + 96px);
-  }
 }
 
 .layerbar .chips {
@@ -1679,6 +1638,28 @@ fieldset.field > legend {
   min-width: 36px;
 }
 
+/* Navegación de resultados: pegada arriba del panel al desplazarse, tres botones del mismo ancho.
+   El top negativo igual al padding-top del panel la pega al borde, sin una franja por la que se
+   vea el contenido pasar. */
+.results__nav {
+  position: sticky;
+  top: -8px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--paper);
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.results__nav .btn {
+  min-width: 0;
+  padding: 4px 8px;
+  white-space: normal;
+  text-align: center;
+}
+
 .results__links {
   display: flex;
   align-items: center;
@@ -1701,21 +1682,6 @@ fieldset.field > legend {
   font-size: var(--fs-xs);
   line-height: 1.5;
   color: var(--muted);
-}
-
-.mock-banner {
-  position: absolute;
-  top: calc(var(--top) + 8px);
-  left: 50%;
-  translate: -50% 0;
-  z-index: 35;
-  padding: 6px 10px;
-  border-radius: var(--r-sm);
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
-  white-space: nowrap;
 }
 
 /* --- Película de la campaña ------------------------------------------------------------ */
@@ -2015,6 +1981,10 @@ html[data-text='xlarge'] .globe-panel__links .link {
     border-radius: 0;
   }
 
+  .results__nav {
+    top: -20px;
+  }
+
   .sheet__grip {
     display: none;
   }
@@ -2034,10 +2004,6 @@ html[data-text='xlarge'] .globe-panel__links .link {
 }
 
 @media (max-width: 420px) {
-  .stepdots {
-    display: none;
-  }
-
   .cards {
     gap: 8px;
   }
