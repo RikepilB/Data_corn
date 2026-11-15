@@ -516,6 +516,19 @@ p {
   pointer-events: auto;
 }
 
+/* Sample data (?mock=1) on a phone: the banner covers the layer chips, so the chips and the
+   Center button under them move down by the banner's height (it ends at --top + 35px).
+   On desktop the chips sit to one side of the banner and nothing overlaps. */
+@media (max-width: 899px) {
+  .mock-banner ~ .layerbar {
+    top: calc(var(--top) + 44px);
+  }
+
+  .app:has(.mock-banner) .mapbtn {
+    top: calc(var(--top) + 88px);
+  }
+}
+
 .layerbar .chips {
   flex-wrap: nowrap;
   overflow-x: auto;
