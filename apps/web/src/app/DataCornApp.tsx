@@ -12,6 +12,7 @@ import { CLIMATE_LAYERS, nearestAvailable, recentMonths } from '../infrastructur
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { Icon } from '../ui/common/Icon';
+import { AboutDialog } from '../ui/common/AboutDialog';
 import { TopBar } from '../ui/common/TopBar';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
@@ -53,6 +54,7 @@ export default function DataCornApp() {
   const [drawError, setDrawError] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
@@ -302,6 +304,7 @@ export default function DataCornApp() {
             onLocate={onLocate}
             onPlace={onPlace}
             onSample={onSample}
+            onAbout={() => setAboutOpen(true)}
           />
         </div>
       )}
@@ -359,6 +362,7 @@ export default function DataCornApp() {
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
+            onAbout={() => setAboutOpen(true)}
             filmSlot={
               desktop ? null : (
                 <>
@@ -370,6 +374,8 @@ export default function DataCornApp() {
           />
         </>
       )}
+
+      <AboutDialog open={aboutOpen} locale={locale} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }
