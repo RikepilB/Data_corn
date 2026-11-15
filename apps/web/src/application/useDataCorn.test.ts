@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { FieldFormValues } from '../domain/inputs';
+import type { FieldReport } from '../domain/report';
 import type { PrecomputedReport } from '../infrastructure/precomputed';
-import { matchesPrecomputed, pickPrecomputed } from './useDataCorn';
+import { formMatchesReport, matchesPrecomputed, pickPrecomputed } from './useDataCorn';
 
 const inputs = {
   season: 2027,
@@ -56,5 +57,23 @@ describe('pickPrecomputed', () => {
   it('still works with a file written without variants', () => {
     expect(pickPrecomputed(form, pre)).toBe(pre.analyze);
     expect(pickPrecomputed({ ...form, irrigation: 'pivot' }, pre)).toBeNull();
+  });
+});
+
+describe('formMatchesReport', () => {
+  const report = { inputs } as unknown as FieldReport;
+
+  it('accepts the untouched form, so → can show the same results again', () => {
+    expect(formMatchesReport(form, report)).toBe(true);
+  });
+
+  it('rejects a changed form, so → never shows results computed with other inputs', () => {
+    expect(formMatchesReport({ ...form, irrigation: 'pivot' }, report)).toBe(false);
+  });
+
+  it('rejects a missing form, report or report inputs', () => {
+    expect(formMatchesReport(null, report)).toBe(false);
+    expect(formMatchesReport(form, null)).toBe(false);
+    expect(formMatchesReport(form, {} as unknown as FieldReport)).toBe(false);
   });
 });
