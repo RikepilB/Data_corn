@@ -11,10 +11,12 @@ interface Props {
   onClose: () => void;
   onBack: () => void;
   showError: boolean;
+  /** The map came here from an approximate position (Wi-Fi or IP), not from the field itself. */
+  coarse?: boolean;
 }
 
 /** Paso 2 · Dibujar el lote con puntos (RF-01). */
-export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, showError }: Props) {
+export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, showError, coarse }: Props) {
   const { status, areaHa } = checkField(points);
   const canClose = status === 'ok';
   return (
@@ -30,6 +32,11 @@ export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, show
           </span>
           <span className="muted">{t(locale, 'draw.points', { n: points.length })}</span>
         </div>
+        {coarse && points.length === 0 && (
+          <p className="draw-bar__note" role="status">
+            <Icon name="info" size={16} /> {t(locale, 'draw.locate_coarse')}
+          </p>
+        )}
         {showError && status !== 'ok' && points.length > 0 && (
           <p className="draw-bar__error" role="alert">
             <Icon name="alert" size={16} /> {t(locale, `draw.error.${status}`)}

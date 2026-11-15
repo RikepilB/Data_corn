@@ -108,3 +108,57 @@ test('the example tapped right away reaches the results', async ({ page }) => {
 test('the example tapped after the globe settles reaches the results', async ({ page }) => {
   await exampleToResults(page, { waitForGlobe: true });
 });
+
+// "Go to my location" (the first button of the app). The position only moves the map.
+const NEBRASKA = { latitude: 40.88, longitude: -98 };
+
+test.describe('go to my location, permission granted', () => {
+  test.use({ geolocation: { ...NEBRASKA, accuracy: 20 }, permissions: ['geolocation'] });
+
+  test('a precise position flies to the field and opens the draw step', async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-hint')).toContainText('Tap the corners of your field');
+    await expect(page.locator('.draw-bar__note')).toHaveCount(0);
+
+    // Back to the globe: the first panel returns with its three choices.
+    await page.getByRole('button', { name: 'Back to the globe' }).click();
+    await expect(page.getByRole('button', { name: 'Go to my location' })).toBeEnabled({ timeout: 15_000 });
+    expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+  });
+});
+
+test.describe('go to my location, approximate position', () => {
+  // Desktop browsers locate by Wi-Fi or IP: kilometres off, so it is not shown as the field.
+  test.use({ geolocation: { ...NEBRASKA, accuracy: 5000 }, permissions: ['geolocation'] });
+
+  test('opens the draw step and says the location is approximate', async ({ page }) => {
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-bar__note')).toContainText('approximate location');
+  });
+});
+
+test.describe('go to my location, permission denied', () => {
+  test.use({ permissions: [] });
+
+  test('says why, and the search still reaches the draw step', async ({ page }) => {
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.search__note')).toContainText('Location is blocked for this site');
+    // Typed coordinates need no network.
+    await page.getByLabel('Search a place').fill('40.88, -98');
+    await page.getByLabel('Search a place').press('Enter');
+    await page.getByRole('button', { name: '40.8800, -98.0000' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-bar__note')).toHaveCount(0);
+  });
+});
