@@ -14,6 +14,8 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
   const first = runs[0]!.year;
   const last = runs[runs.length - 1]!.year;
   const middle = runs[Math.floor(runs.length / 2)]!.year;
+  const idx = runs.findIndex((r) => r.year === selected);
+  const goTo = (i: number) => film.setMode({ kind: 'year', year: runs[Math.min(runs.length - 1, Math.max(0, i))]!.year }, motionAllowed());
 
   return (
     <section className="card stripes" aria-labelledby="stripes-title">
@@ -56,6 +58,17 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
         <span>{first}</span>
         <span>{middle}</span>
         <span>{last}</span>
+      </div>
+      <div className="stripes__step">
+        <button type="button" className="btn btn--secondary" disabled={idx === 0} onClick={() => goTo(idx < 0 ? runs.length - 1 : idx - 1)}>
+          <span aria-hidden="true">‹</span> {t(locale, 'stripes.prev')}
+        </button>
+        <span className="stripes__year" aria-live="polite">
+          {idx < 0 ? t(locale, 'stripes.none') : t(locale, 'stripes.year', { year: runs[idx]!.year })}
+        </span>
+        <button type="button" className="btn btn--secondary" disabled={idx === runs.length - 1} onClick={() => goTo(idx < 0 ? 0 : idx + 1)}>
+          {t(locale, 'stripes.next')} <span aria-hidden="true">›</span>
+        </button>
       </div>
       <div className="stripes__legend">
         <span>
