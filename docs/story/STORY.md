@@ -25,10 +25,10 @@ It sees patterns. It does not know what the farmer cares about. So it does not g
 
 ## 3. What it saw (sample field, 25 seasons, 2001 to 2025)
 
-- **Planting.** With a planting date tried every 7 days in each past season, the best window was **Apr 17 to May 7**. A late frost after planting happened in about **1 year in 25**.
-- **Water at silking.** In **13 of 25 seasons**, rainfed corn on this field would have run short of water around silking, the stage that matters most for yield.
+- **Planting.** Five planting dates, a week apart from Apr 6 to May 4, were replayed on every past season. The app's window is **Apr 17 to May 7**. May 4, the latest date tried, scored best; later dates were not tested. A late frost after planting happened in about **1 year in 25**.
+- **Water.** In **13 of 25 seasons**, rainfed corn on this field would have lost 15% or more of its potential yield to water shortage, or run 30 mm (1.2 in) or more short around silking, the stage that matters most for yield. In **4** of them (2001, 2002, 2012, 2013), the silking shortfall passed 30 mm.
 - **The bad years were very bad.** In 2002 and 2012 the water balance gives about **half** of the field's potential yield.
-- **El Niño.** NOAA's index says a strong El Niño is under way now (ONI +2.5, Aug to Oct 2026). In the El Niño years we have (2002, 2015, 2023), the water shortfall at silking was larger than in other years.
+- **El Niño.** NOAA's index shows a strong El Niño now (ONI +2.5, Aug to Oct 2026). We have only 3 El Niño seasons (2002, 2015, 2023). Their median shortfall at silking was larger than in other seasons, but 2015 had none, and their median yield was no lower than in neutral seasons. The app rates the El Niño effect on this field as weak.
 
 Every number is a range of past seasons replayed on this field: **a scenario, not a forecast.**
 
@@ -90,4 +90,4 @@ Six panels for a comic-style deck, as the team proposed: simple panels, little t
 
 ## Source of the numbers
 
-`POST /api/v1/fields/describe` and `/analyze` on the API at commit a82f147, sample field `SAMPLE_FIELD` from `apps/web/src/infrastructure/mapStyle.ts`, season 2027, irrigation `none`, previous crop corn. Fields used: `indicators[planting_window | flowering_water | frost]`, `runs[].relative_yield`, `enso.now` and `enso.outcomes`. Sources reported by the API: NASA POWER (MERRA-2), NOAA CPC ONI, USDA NASS CropScape CDL, USDA NRCS SSURGO.
+`POST /api/v1/fields/describe` and `/analyze` on the API at commit a82f147, sample field `SAMPLE_FIELD` from `apps/web/src/infrastructure/mapStyle.ts`, season 2027, irrigation `none`, previous crop corn. Fields used: `indicators[planting_window | flowering_water | frost]`, `runs[].relative_yield`, `enso.now` and `enso.outcomes`. Sources reported by the API: NASA POWER (MERRA-2), NOAA CPC ONI, USDA NASS CropScape CDL, USDA NRCS SSURGO. The live demo shows `apps/web/public/data/reports/hamilton-ne.json`, computed on 2026-11-15 with engine `4009966` (regenerated with engine `9905448` for #108, same rainfed numbers); its numbers match these.
