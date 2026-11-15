@@ -86,6 +86,7 @@ Six panels for a comic-style deck, as the team proposed: simple panels, little t
 - **Real screenshots.** Panels 3 and 5 are screenshots of the app, not drawings. If a shot comes from the sample report, keep its "Sample data" label visible.
 - **Art.** Hand-drawn or Canva shapes. No NASA logo, flag or mission patch. If an image-generating SI tool makes any panel art, that panel carries a visible "SI-generated" watermark and the README section on SI use lists it (#66).
 - **Voice.** The farmer decides and the tool shows. Never "will", "predicts" or "you should".
+- **Slide count.** A deck may have at most 7 slides, title and intro included; one more and the project is not eligible for Global Judging. Use one title slide (team name, member names, the challenge) plus these six panels, and add no other slide.
 
 ## Source of the numbers
 
