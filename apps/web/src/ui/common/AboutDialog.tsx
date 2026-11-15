@@ -9,6 +9,7 @@ const CREDITS = [
   'USDA NRCS SSURGO',
   'USDA NASS Cropland Data Layer',
   'NOAA CPC Oceanic Niño Index',
+  'USGS The National Map: Orthoimagery (USDA NAIP)',
   'Sentinel-2 cloudless 2024 by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024)',
   'Iowa State University Extension (rotation evidence)',
 ];
