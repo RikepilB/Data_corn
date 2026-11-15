@@ -1,17 +1,16 @@
 <!-- SI-assisted (Claude Code); reviewed by <name> -->
 # Project page text (the form fields)
 
-Draft for [#63](https://github.com/RikepilB/Data_corn/issues/63), written Sun 2026-11-15 and refreshed the same day against `main` at `3b66e43`, which includes the rotation panel (PR [#80](https://github.com/RikepilB/Data_corn/pull/80)). One block per field of the submission form. Each code block is true of the app **today** (the live link, sample data): paste it as it is. A line starting with "Replace if" says what changes when something else lands. The form does not publish character limits; the counts are here so you can check them in the Edit form.
+Draft for [#63](https://github.com/RikepilB/Data_corn/issues/63), rewritten Sun 2026-11-15 against `main` at `2faccfa`. That commit includes the rotation sources ([#88](https://github.com/RikepilB/Data_corn/pull/88)), the About panel ([#90](https://github.com/RikepilB/Data_corn/pull/90)) and the reports computed in advance ([#98](https://github.com/RikepilB/Data_corn/pull/98)). There is one block per form field, in the form's order. Paste each code block as it is. A line starting with "Until the redeploy" says what the live link does not show yet. The guides publish no character limits; the counts are here to check against the Edit form.
 
 ## Settle these first
 
-1. **Name.** The app and its PDF call themselves "Data Corn"; the README says "Field Shift", which is the challenge's name. The blocks write `{NAME}`: replace it when [#54](https://github.com/RikepilB/Data_corn/issues/54) decides.
-2. **Demo link.** Waits for [#61](https://github.com/RikepilB/Data_corn/issues/61) and [#62](https://github.com/RikepilB/Data_corn/issues/62).
-3. **Real results.** The live link has no API behind it, so it shows a recorded sample field and says so. If real reports ship with the site ([#53](https://github.com/RikepilB/Data_corn/issues/53)), use the "Replace if" lines.
-4. **Rotation panel.** PR [#80](https://github.com/RikepilB/Data_corn/pull/80) is merged and the text below describes it. Before pasting, open the live link and check that the three-strategy panel is there; if the link was not redeployed, say so to the team.
-5. **SI.** Four sentences in the SI block are the team's to confirm; the list is under that block.
+1. **Name.** The app and its PDF say "Data Corn"; the challenge is "Field Shift". The blocks write `{NAME}` until [#54](https://github.com/RikepilB/Data_corn/issues/54) decides.
+2. **Demo link.** Waits for [#61](https://github.com/RikepilB/Data_corn/issues/61) and [#62](https://github.com/RikepilB/Data_corn/issues/62). The comic panels for the deck are in `docs/story/STORY.md`.
+3. **Redeploy.** On `main`, "See an example" opens a Nebraska field with real engine results computed in advance. The live link still serves an older build, whose example shows generated sample numbers. The redeploy needs Richard's go-ahead. After it, open the link in a private window and check that the example's banner starts with "Real data, computed in advance".
+4. **SI.** The team confirms the sentences listed under the SI block.
 
-Left out on purpose: the rotation by dry/normal/wet matrix (cut; the compliance draft and issues #31 and #62 still describe it); the SMAP consistency check (not built, [#44](https://github.com/RikepilB/Data_corn/issues/44)); "GRACE shows the aquifer decline" (the NASA page cited below does not say it); the Sheridan-6 LEMA figures (unverified, [#26](https://github.com/RikepilB/Data_corn/issues/26)); the names of other tools (the comparison is in `docs/planning/PROBLEM.md`, section 7).
+Left out on purpose: forecasts of any kind (the tool replays past seasons); the dry/normal/wet matrix (cut: seasons are grouped by El Niño and La Niña); erosion numbers (the erosion index is not wired into the app, [#94](https://github.com/RikepilB/Data_corn/issues/94)); "GRACE shows the aquifer decline" (the NASA page cited below does not say it); the Sheridan-6 LEMA figures (unverified, [#26](https://github.com/RikepilB/Data_corn/issues/26)); anything about Peru (the tool is for US corn).
 
 ## Project Name
 
@@ -21,75 +20,98 @@ Left out on purpose: the rotation by dry/normal/wet matrix (cut; the compliance 
 
 The tagline is a proposal; [#54](https://github.com/RikepilB/Data_corn/issues/54) decides.
 
-## High-Level Project Summary  _(1040 characters)_
+## High-Level Project Summary  _(1034 characters)_
 
 ```
-{NAME} helps a corn producer decide before the season is known. Start on a 3D globe with NASA climate layers, fly to your field and outline it on the map. The tool replays the real daily weather of the last 25 seasons (2001 to 2025) through a soil-water model, on the soil survey data for your field, and shows what each of those seasons would have meant for it: when to plant, where water runs short around silking, how hot flowering gets, how much irrigation it needs, and three rotations explained side by side (continuous corn, corn-soybean, corn-soybean with a rye cover crop), with the evidence, what we do not know and the risks to check locally for each. The result is one screen in plain English and US units that a farm manager and an agronomist can both read: a season film over the map, 25 season stripes with El Niño and La Niña years marked, and a card for each decision. Every number is a scenario built from past climate, not a forecast. The tool supports the producer's judgment and does not replace local agronomic advice.
+{NAME} helps a US corn producer decide before the season is known. Start on a 3D globe with NASA climate layers, fly to your field and outline it on the map. The tool replays the real daily weather of the seasons from 2001 to 2025, from NASA POWER, through a soil-water model on the USDA soil survey for that field. It shows what each season would have meant: when to plant, where water ran short around silking, how hot flowering got, how much irrigation the field needed, and three rotation strategies side by side (corn after corn; corn and soybean, taking turns; the same with a rye cover crop). Each strategy lists its evidence, what we do not know and the risks to check locally. One screen in plain English and US units serves a farm manager and an agronomist: a season film over the map, season stripes with El Niño and La Niña years marked, and a card for each decision. Every number is a scenario built from past climate, not a forecast. The tool supports the producer's judgment and does not replace local agronomic advice.
 ```
 
 ## Link to Project Demo
 
-Decided in [#61](https://github.com/RikepilB/Data_corn/issues/61). Paste the public link to the 7-slide deck or the 30-second video here, after opening it in a private window.
+Decided in [#61](https://github.com/RikepilB/Data_corn/issues/61). Paste the public link to the 7-slide deck or the 30-second video, after opening it in a private window.
 
-## Link to Final Project  _(340 characters)_
-
-```
-Live tool: https://field-shift-datacorn.vercel.app/ (provisional address). It runs on a recorded sample field in Nebraska, because no data server is deployed behind it, and the app labels it "Sample data". Source code, tests and data credits: https://github.com/RikepilB/Data_corn (Apache-2.0). Neither link needs a login or a registration.
-```
-
-Replace if #53 ships real reports: the second sentence becomes "It shows real results for N example fields, computed in advance from NASA POWER and USDA soil data."
-
-## Detailed Project Description  _(3471 characters)_
+## Link to Final Project  _(462 characters)_
 
 ```
-What it does. A corn producer flies to a field on the globe, taps its corners, and checks a few details that come prefilled with typical values: season, planting date, hybrid maturity, irrigation, tillage and yield goal. In about ten seconds the tool shows how that field behaved across 25 past seasons. A season film plays the soil water day by day over the map. Season stripes show every year at a glance, with El Niño and La Niña years marked; tap a year to play its film. Cards cover the planting date, water and heat at silking, hybrid and frost, irrigation, waterlogging and the crops the field actually grew each year. A rotation panel under the verdict explains three strategies: continuous corn, corn-soybean, and corn-soybean with a cereal-rye cover. The one the crop map matches is marked and open. Each lists why it is suggested, the evidence, the benefits, what we do not know and the risks that someone local must review. The evidence comes mostly from Iowa studies, not from the High Plains, and the model does not carry water between crops. A PDF report downloads from the same screen.
-
-How it works. For the field's location the engine reads daily weather from NASA POWER (2001 to today) and soil from the USDA soil survey (SSURGO). It computes reference evapotranspiration with the FAO-56 Penman-Monteith equation and runs a daily root-zone water balance. Relative yield follows the FAO-33 response to water by growth stage; crop development follows growing degree days. A scenario is the days already observed this season plus each past year for the rest of the season. NASA MODIS NDVI shows how the current season is going. The El Niño and La Niña phase of each past year comes from NOAA. Nothing needs a login, an account or an API key.
-
-Why it helps. Planting, hybrid and irrigation choices are made before anyone knows what summer will bring, and an average year never happens. Twenty-five real seasons show the range. On the High Plains farmers irrigate from the Ogallala aquifer, which NASA Earth Observatory describes as under stress: about 30 percent of the water once stored beneath Kansas was gone by 2018, and about 40 percent more could go within 50 years if current trends continue. Knowing in advance how much water a field would need in a dry year helps plan that use.
-
-What is new. Public tools we found each cover one piece of this decision: planting dates and frost, crop-stage forecasts, or soil-moisture monitoring. We did not find one that replays past seasons on a single field through a water balance and compares rotation options in one screen. We reviewed public information only, so a commercial product may do part of it.
-
-Tools. Python 3.12 (FastAPI, NumPy, SciPy) in Clean Architecture for the engine; TypeScript, Astro, React and MapLibre GL JS for the web app; @react-pdf/renderer for the report. More than 60 engine tests and more than 30 web tests pass.
-
-What we do not claim. Results are scenarios from historical climate, not forecasts. Weather comes from a grid about 50 km wide and soil from a survey, not from a probe in the field. The yield numbers come from published water-balance methods and are not calibrated against any farm's yields. We do not know the producer's priorities, budget or risk tolerance, so every card ends with something to check in the field. The public demo shows a recorded sample field (Nebraska) because no server is deployed behind it; the repository runs the full engine on real data.
+Live tool: https://field-shift-datacorn.vercel.app/ (provisional address). No data server is deployed behind it, so "See an example" opens a field in Hamilton County, Nebraska, with real engine results computed in advance and labelled that way. Change a value and it switches to sample numbers, labelled "Sample data (no API)". Source code, tests and data credits: https://github.com/RikepilB/Data_corn (Apache-2.0). Neither link needs a login or a registration.
 ```
 
-Replace if #53 ships real reports: in "What we do not claim", drop the last sentence.
+Until the redeploy: the live example shows generated sample numbers, so this block is not true yet. Paste it after the check in "Settle these first", point 3.
 
-The "What is new" paragraph is the draft of [#29](https://github.com/RikepilB/Data_corn/issues/29); the team confirms the wording. Its basis is `docs/planning/PROBLEM.md`, section 7.
+## Project Details (the Detailed Project Description field)  _(4813 characters for the six answers)_
 
-## Use of Super Intelligence (SI)  _(311 characters)_
+The Edit form asks six questions in this field (screenshot Richard shared on 2026-11-15). The public guide lists five prompts for the same field, and the six answers cover them. If the form shows one box, paste the six questions and answers in order. If it shows six boxes, paste each answer into its own box.
+
+### What does your project do, and how does it work?  _(1242 characters)_
 
 ```
-Yes. We used Claude Code (Anthropic) as a coding and writing assistant. It scaffolded the repository, drafted planning documents and GitHub issues, helped research and cite sources, wrote and tested engine and web code under the team's direction, and helped write this page. docs/REFERENCES.md lists every tool.
+{NAME} shows a US corn producer how one field would have behaved in each of up to 25 past seasons, 2001 to 2025. You fly over a 3D globe with NASA climate layers, outline your field on the map and check a few prefilled details: season, planting date, hybrid maturity, irrigation and tillage. For that spot, the engine reads daily weather from NASA POWER and soil from the USDA soil survey (SSURGO). It computes reference evapotranspiration with the FAO-56 Penman-Monteith equation and runs a daily root-zone water balance. Crop stages follow growing degree days, and relative yield follows the FAO-33 seasonal response of maize to water. Each scenario is this season's observed days, if any, followed by one past season for the rest. One screen then shows a season film of the field's soil water over the map; season stripes with El Niño and La Niña years marked from NOAA's index; and cards for planting date, field progress (NASA MODIS NDVI), water and heat at silking, hybrid and frost, irrigation, waterlogging and the crop grown each year (USDA Cropland Data Layer). A panel, "Three ways to rotate", explains corn after corn, corn and soybean taking turns, and the same with a rye cover crop. A PDF report downloads from the same screen.
 ```
 
-The team confirms these before pasting ([#66](https://github.com/RikepilB/Data_corn/issues/66)); add each sentence only if it is true.
+### What benefits does it have?  _(447 characters)_
 
-- The idea, the choice of problem and the story came from the team, not from SI.
+```
+A producer sees the range of real seasons on their own field, instead of one average year that never happens. The screen is in plain English and US units, so a farm manager and an agronomist can read it together, and the cards say what to check in the field. Each rotation strategy lists why it is shown, its evidence and source, the benefits, what we do not know and the risks to check locally. It runs in a browser, with no login and no account.
+```
+
+### What is the intended impact of the project?  _(599 characters)_
+
+```
+We want producers to weigh planting, hybrid, irrigation and rotation choices before the season, with the range of past outcomes in view. On the High Plains, irrigation draws on the Ogallala aquifer, which NASA Earth Observatory describes as under stress: about 30 percent of the water once stored beneath Kansas was gone by 2018, and about 40 percent more could go within 50 years if trends continue. Knowing in advance how much water a field would have needed in dry seasons helps plan that use. The tool supports the producer's judgment and the local agronomist's advice. It does not replace them.
+```
+
+### What tools, coding languages, hardware, or software did you use?  _(666 characters)_
+
+```
+Python 3.12 with FastAPI, Pydantic, NumPy and SciPy for the engine, in layers (Clean Architecture) that keep the science apart from the data sources. TypeScript with Astro, React and MapLibre GL JS for the web app, and @react-pdf/renderer for the PDF report. GitHub Actions runs the checks on every pull request: ruff and more than 170 engine tests (pytest), then the web build, the type check and more than 40 unit tests (Vitest). Playwright smoke tests are run by hand. No special hardware. Claude Code and Codex helped write code, tests and documents (see the SI answer). Every data source and method, with its licence, is in docs/REFERENCES.md in the repository.
+```
+
+### How is your project creative?  _(1002 characters)_
+
+```
+It turns 25 years of daily weather into a film of one field's season, with season stripes you can tap to replay any year. It puts rotation strategies side by side with what we do not know about each, not only their benefits. Decision tools for US corn already exist. DAWN, described in the Bulletin of the American Meteorological Society (2024), turns seasonal forecasts and crop models into planting, irrigation and fertilizer comparisons for Corn Belt farmers, with user accounts and a network of extension partners. Agroptimizer recommends corn and soybean management, and a 2024 study compared it with local experts in Wisconsin. Ours takes another route. It replays observed past seasons through a water balance on the soil of one drawn field, needs no login, and states what it does not know next to each rotation strategy. It gives scenarios from past climate, not forecasts, and it has no nutrient or profit model. We reviewed public information only, so another product may cover part of this.
+```
+
+The prior-art sentences are the draft for [#29](https://github.com/RikepilB/Data_corn/issues/29); both sources have rows in `docs/REFERENCES.md`. DAWN was read in full; for Agroptimizer only the abstract and the university's summary were read.
+
+### What factors did your team consider?  _(857 characters)_
+
+```
+Results are scenarios built from past climate, not forecasts. Weather comes from a grid about 50 km wide and soil from a survey, not from a probe in the field. Yield numbers come from published water-balance methods and are not calibrated against any farm's yields. The rotation evidence comes mostly from Iowa studies, not from the High Plains. The model does not carry water between crops or model the water a rye cover uses. Missing data shows as "not available", never as a guess. We do not know a producer's priorities, budget or risk tolerance, and the tool has not been tested with farmers or extension specialists yet. The app needs no login and asks for no personal data, and NASA appears only as a data source. The public demo shows real results for one example field in Nebraska, computed in advance, because no data server is deployed behind it.
+```
+
+Until the redeploy: the last sentence is not true of the live link yet.
+
+## Use of Super Intelligence (SI)  _(1015 characters)_
+
+```
+Yes. The idea, the choice of challenge and the story came from the team. We used Claude Code (Anthropic) as a coding, writing and research assistant: it helped scaffold the repository, write and test engine and web code under the team's direction, draft planning documents and GitHub issues, find and summarize sources, and write this page. One team member used Codex (OpenAI) to write a soil-erosion index function that the app does not use yet. Every number in a real report is computed by the engine from public data, with the methods cited in docs/REFERENCES.md; no SI model writes or estimates those values. The sample numbers the demo shows after a value is changed come from code written with SI help, and the app labels them "Sample data". The README has a section on SI use, and the package metadata says the code was written with SI assistance. No image, video or audio in the project was generated by SI; if one is added, it carries a visible watermark. No NASA logos, flags or mission insignia are used.
+```
+
+Judges do not read this answer, but the form requires it ([#66](https://github.com/RikepilB/Data_corn/issues/66)). The team confirms these before pasting, and keeps a sentence only if it is true:
+
+- The idea, the choice of challenge and the story came from the team, not from SI.
 - Each member adds any other SI tool they used, and what it did.
-- SI-assisted files start with a header line naming the tool and the human reviewer. Today 20 of 171 code and document files carry it (counted 2026-11-15), so do not say "every file" yet.
-- No image, video or audio in the project was generated by SI. If one is added, it carries a visible watermark.
+- No image, video or audio was generated by SI, including the comic and any Canva art.
 
-## NASA Data  _(765 characters)_
-
-```
-NASA POWER, daily (parameters T2M_MAX, T2M_MIN, RH2M, WS2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR, GWETROOT, GWETTOP; soil wetness from MERRA-2): the weather and root-zone wetness behind every result, 2001 to today. This is the central NASA data: without it the tool has no answer. NASA MODIS Vegetation Indices MOD13Q1 (250 m, 16-day NDVI), read through the ORNL DAAC MODIS web service: field NDVI for the season-progress card. NASA GIBS imagery: SMAP L4 root-zone soil moisture, GPM IMERG precipitation rate, MODIS Terra land surface temperature and NDVI, and Blue Marble, shown as layers on the globe (the model does not read them). Adapters for more NASA products (SMAP L4 SPL4SMGP, HLS, NASADEM, OpenET) are in the repository, switched off and not part of any result.
-```
-
-## Space Agency Partner Data and Other References  _(932 characters)_
+## NASA Data  _(672 characters)_
 
 ```
-ESA Copernicus Sentinel-2: the EOxCloudless mosaic for 2024 from EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024; used under CC BY-NC-SA 4.0, non-commercial) is the satellite basemap when the globe is zoomed in. Other data: USDA NRCS SSURGO (Soil Data Access), USDA NASS CropScape (Cropland Data Layer), NOAA Climate Prediction Center ONI, ISRIC SoilGrids (outside the US), FCC Census Area API, OpenStreetMap Nominatim place search (data from OpenStreetMap contributors, ODbL). Methods: FAO Irrigation and Drainage Paper 56 (Allen et al. 1998) and 33 (Doorenbos and Kassam 1979); Saxton and Rawls (2006). Background: NASA Earth Observatory (2018), "Satellites Investigate Irrigation in a Stressed Aquifer". Libraries and fonts: Astro, React, MapLibre GL JS, @react-pdf/renderer, FastAPI, Pydantic, NumPy, SciPy, IBM Plex. Product IDs, versions and licences for every item: docs/REFERENCES.md in the repository.
+NASA POWER, daily (T2M_MAX, T2M_MIN, RH2M, WS2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR): the weather behind every result, 2001 to today. It is the central NASA data: without it the tool has no answer. NASA MODIS Vegetation Indices MOD13Q1 (250 m, 16-day NDVI), read through the ORNL DAAC MODIS web service: the field's NDVI for the field-progress card. NASA GIBS imagery: SMAP L4 root-zone soil moisture, GPM IMERG precipitation rate, MODIS Terra land surface temperature and NDVI, and Blue Marble, shown as layers on the globe (the model does not read them). Adapters for more NASA products (SMAP L4, HLS, NASADEM) are in the repository, switched off and not part of any result.
 ```
 
-EOX's licence page (read 2026-11-15) allows free non-commercial use under CC BY-NC-SA 4.0 and asks for this credit wherever the imagery is shown: "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)". Check the app's credit string against it ([#65](https://github.com/RikepilB/Data_corn/issues/65)).
+## Space Agency Partner Data and Other References  _(1218 characters)_
+
+```
+ESA Copernicus Sentinel-2: EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024), the satellite basemap when the globe is zoomed in, used under CC BY-NC-SA 4.0 (non-commercial). Other data: USDA NRCS SSURGO (Soil Data Access), USDA NASS Cropland Data Layer (CropScape), NOAA Climate Prediction Center Oceanic Niño Index, ISRIC SoilGrids (soil fallback), FCC Census Area API, OpenStreetMap Nominatim place search (data from OpenStreetMap contributors, ODbL). Methods: FAO Irrigation and Drainage Papers 56 (Allen et al. 1998) and 33 (Doorenbos and Kassam 1979); Saxton and Rawls (2006) when the soil survey gives no available water. Rotation evidence: Iowa State University Extension. Background and prior art: NASA Earth Observatory (2018), "Satellites Investigate Irrigation in a Stressed Aquifer"; Liang et al. (2024), DAWN, Bulletin of the American Meteorological Society; Mourtzinis and Conley (2024), Agroptimizer, Crop, Forage & Turfgrass Management. Libraries and fonts: Astro, React, MapLibre GL JS, @react-pdf/renderer, FastAPI, Pydantic, NumPy, SciPy, IBM Plex. Product IDs, versions and licences for every item: docs/REFERENCES.md in the repository.
+```
+
+The EOX credit above is the one EOX's licence page asks for (read 2026-11-15). The app on `main` still credits "Sentinel-2 cloudless 2024 by EOX…" on the map, in the PDF and in the About panel. The design branch ([#55](https://github.com/RikepilB/Data_corn/issues/55)) fixes the map and the PDF; the About panel needs the same change ([#65](https://github.com/RikepilB/Data_corn/issues/65)). Replace if #55 merges: "IBM Plex" becomes "Atkinson Hyperlegible".
 
 ## Images (optional)
 
-JPG, PNG or GIF, 10 MB at most. Take four screenshots from the live link: the globe with a NASA layer, the outlined field, the results screen with the season stripes, and the season film. Keep the "Sample data" label visible. No NASA logos, and none of them SI-generated.
+JPG, PNG or GIF, 10 MB at most. After the redeploy, take four screenshots from the live link: the globe with a NASA layer, the outlined field, the results with the season stripes and the "Real data, computed in advance" banner, and the "Three ways to rotate" panel. No NASA logos, and none SI-generated.
 
 ## Checked against
 
-The code at `3b66e43` (adapters, `apps/web/src/ui/results/RotationPanel.tsx`, `apps/web/src/i18n/en.json`, `apps/api/src/datacorn/domain/report.py`); `python scripts/probe_sources.py modis` on 2026-11-15 (the ORNL DAAC MODIS service answered: 6 NDVI composites for the pilot point); `docs/REFERENCES.md` on this branch; the NASA Earth Observatory page and the EOX licence summary (`cloudless.eox.at/documentation/license`), both read in full on 2026-11-15. Not re-run today: the real API run behind the numbers in `docs/story/STORY.md` (2026-11-14).
+`main` at `2faccfa`. A fact-check on 2026-11-15 read the engine (`et0.py`, `water_balance.py`, `scenarios.py`, `phenology.py`, `soil.py`, `risks.py`), the web copy (`apps/web/src/i18n/en.json`), the reports computed in advance and the 2026 guides. This version applies its corrections: yield loss uses the FAO-33 seasonal Ky, not a product by growth stage; the yield goal and previous-crop inputs change no result; only the Nebraska example is reachable from the app; the live link redirects (307) to `?mock=1`. Test counts come from the merge checks of #88, #90 and #98: 179 engine tests and 47 web unit tests. Not re-run today: the API run behind the numbers in `docs/story/STORY.md` (2026-11-14).
