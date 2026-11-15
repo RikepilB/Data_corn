@@ -60,7 +60,8 @@ def compare(
     after_soy = sum(1 for a, b in pairs if b.crop is Crop.MAIZE and a.crop is Crop.SOYBEAN)
     after_corn = sum(1 for a, b in pairs if b.crop is Crop.MAIZE and a.crop is Crop.MAIZE)
     pattern = " ".join(LETTER[c.crop] for c in history[-8:])
-    slope = context.terrain.mean_slope_pct if context.terrain else 0.0
+    # Sin pendiente conocida se asume terreno llano; el informe lo declara en sus fuentes.
+    slope = (context.terrain.mean_slope_pct if context.terrain else None) or 0.0
     current = current_strategy(history)
 
     corn_corn = RotationOption(

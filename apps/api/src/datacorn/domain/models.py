@@ -97,8 +97,8 @@ class SoilProfile:
 @dataclass(frozen=True, slots=True)
 class Terrain:
     elevation_m: float
-    mean_slope_pct: float
-    low_area_fraction: float
+    mean_slope_pct: float | None  # None = sin dato (nunca 0)
+    low_area_fraction: float | None
     source: str
 
 

@@ -29,7 +29,9 @@ def waterlogging(
     """
     drainage = (soil.drainage_class or "").lower() if soil else ""
     poor = any(p in drainage for p in POOR_DRAINAGE) or (soil and soil.hydrologic_group == "D")
-    flat = terrain is not None and terrain.mean_slope_pct < 1.0
+    flat = (
+        terrain is not None and terrain.mean_slope_pct is not None and terrain.mean_slope_pct < 1.0
+    )
     threshold = 75.0 if poor else 100.0
     if flat:
         threshold -= 10

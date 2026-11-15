@@ -136,7 +136,7 @@ class PowerSoilWetness:
 
 
 class PowerTerrain:
-    """Respaldo global: altura de POWER; la pendiente queda sin dato (0)."""
+    """Respaldo global: altura de POWER; la pendiente queda sin dato (None)."""
 
     def __init__(self, power: PowerClient) -> None:
         self._power = power
@@ -147,7 +147,7 @@ class PowerTerrain:
         data = self._power.daily_point(lat=c.lat, lon=c.lon, start=today, end=today)
         return Terrain(
             elevation_m=float(data["geometry"]["coordinates"][2]),
-            mean_slope_pct=0.0,
-            low_area_fraction=0.0,
+            mean_slope_pct=None,
+            low_area_fraction=None,
             source="NASA POWER (altura)",
         )
