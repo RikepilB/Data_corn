@@ -500,7 +500,7 @@
   "tag.irrigation": "Riego {mm}",
   "tag.yield": "Rinde {pct} %",
 
-  "film.odds": "Prob. de buena cosecha",
+  "film.odds": "Buenas cosechas en años parecidos",
   "film.odds_up": "▲ {pts} pts desde la siembra",
   "film.odds_down": "▼ {pts} pts desde la siembra",
   "film.odds_flat": "Igual que al sembrar",

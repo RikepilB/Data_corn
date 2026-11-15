@@ -500,7 +500,7 @@
   "tag.irrigation": "Irrigation {mm}",
   "tag.yield": "Yield {pct} %",
 
-  "film.odds": "Chance of a good harvest",
+  "film.odds": "Good harvests in similar years",
   "film.odds_up": "▲ {pts} pts since planting",
   "film.odds_down": "▼ {pts} pts since planting",
   "film.odds_flat": "Same as at planting",
