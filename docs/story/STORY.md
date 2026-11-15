@@ -67,6 +67,25 @@ Then they decide, with their agronomist, using what they know and the observer d
 | Demo (7 slides or 30 s, #61, #62) | 1 problem, 2 observer, 3 to 4 what it saw, 4 what we don't know, 5 impact |
 | Story page (#60) | the same order, shorter |
 | Project page text (#63) | sections 1, 3, 4 and 5, plus data credits |
+| Comic deck (#62) | the six panels below |
+
+## Comic version for the deck (#62)
+
+Six panels for a comic-style deck, as the team proposed: simple panels, little text, real data. They follow the problem, who it affects, the solution, how it works and the impact. The farmer is Juan, the team's character. Captions are the words on the panel: one short sentence each, in English.
+
+| Panel | Scene | Caption |
+|---|---|---|
+| 1 | Dawn over a corn field. Juan, a farmer in a cap, holds a seed bag and looks at a dry patch beside green rows. | Juan has to choose before he knows the summer. |
+| 2 | Juan at the kitchen table, a calendar and three question marks: planting date, water, rotation. | When to plant? How much water? Corn after corn, or soybeans? |
+| 3 | A real screenshot: the 3D globe, then Juan's field outlined on the map. | He outlines his field. No login. |
+| 4 | Simple arrows: NASA POWER weather and USDA soil flow into a soil-water model, then into 25 season stripes. | The tool replays 25 real seasons on his soil. |
+| 5 | A real screenshot: the season stripes, the "Water at silking" card and the "Three ways to rotate" panel. Juan taps one option. | He compares the seasons and reads what we don't know. |
+| 6 | Juan and a local agronomist at a truck, the printed PDF report between them. | Scenarios, not forecasts. Juan decides. |
+
+- **Real numbers only.** "25 seasons" is what the app replays (2001 to 2025). Add no other number unless the app shows it.
+- **Real screenshots.** Panels 3 and 5 are screenshots of the app, not drawings. If a shot comes from the sample report, keep its "Sample data" label visible.
+- **Art.** Hand-drawn or Canva shapes. No NASA logo, flag or mission patch. If an image-generating SI tool makes any panel art, that panel carries a visible "SI-generated" watermark and the README section on SI use lists it (#66).
+- **Voice.** The farmer decides and the tool shows. Never "will", "predicts" or "you should".
 
 ## Source of the numbers
 
