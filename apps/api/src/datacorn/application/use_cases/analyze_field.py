@@ -131,6 +131,10 @@ class AnalyzeField:
         sources = {*climate.sources, *(s for ind in indicators for s in ind.evidence.sources)}
         if ctx.soil and ctx.soil.source != "fallback":
             sources.add(ctx.soil.source)
+        else:
+            sources.add("Generic loam soil (no soil data; assumed)")
+        if ctx.terrain is None or ctx.terrain.mean_slope_pct is None:
+            sources.add("Slope not available (assumed flat)")
         sources.update(c.source for c in ctx.crop_history)
         if ctx.enso_now:
             sources.add("NOAA CPC ONI")
