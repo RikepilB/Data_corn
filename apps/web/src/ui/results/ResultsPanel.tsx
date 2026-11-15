@@ -21,12 +21,13 @@ interface Props {
   onPdf: () => void;
   onChange: () => void;
   onNew: () => void;
+  onAbout: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
 }
 
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, filmSlot }: Props) {
+export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, onAbout, filmSlot }: Props) {
   const { locale } = ctx;
   // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
@@ -123,6 +124,10 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         <span aria-hidden="true">·</span>
         <button type="button" className="link" onClick={onNew}>
           {t(locale, 'results.new')}
+        </button>
+        <span aria-hidden="true">·</span>
+        <button type="button" className="link" onClick={onAbout}>
+          {t(locale, 'about.link')}
         </button>
       </div>
       <p className="disclaimer">

@@ -10,10 +10,11 @@ interface Props {
   onLocate: () => void;
   onPlace: (p: Place) => void;
   onSample: () => void;
+  onAbout: () => void;
 }
 
 /** Paso 1 · El globo: ir a mi ubicación, buscar o ver un ejemplo. */
-export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSample }: Props) {
+export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSample, onAbout }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const open = searchOpen || denied;
   return (
@@ -39,6 +40,9 @@ export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSamp
               <Icon name="sample" size={18} /> {t(locale, 'globe.sample')}
             </button>
           </div>
+          <button type="button" className="link link--small globe-panel__about" onClick={onAbout}>
+            <Icon name="info" size={16} /> {t(locale, 'about.link')}
+          </button>
         </>
       )}
     </section>

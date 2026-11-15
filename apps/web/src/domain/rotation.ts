@@ -40,7 +40,7 @@ export function strategyViews(rotation: RotationComparison): StrategyView[] {
     const s = strategyOf(o);
     if (s && !byStrategy.has(s)) byStrategy.set(s, o);
   }
-  const sent = rotation.options.some((o) => o.current !== undefined);
+  const sent = rotation.options.some((o) => o.current != null);
   const flagged = rotation.options.find((o) => o.current);
   const current = sent ? (flagged ? strategyOf(flagged) : null) : strategyFromHistory(rotation.field_history ?? []);
 
