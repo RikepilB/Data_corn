@@ -313,6 +313,42 @@ p {
   border-color: var(--ink);
 }
 
+/* The one Back control, at the top left of every step's card */
+.backbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  min-height: var(--target);
+  padding: 0 14px 0 8px;
+  border-radius: var(--r);
+  border: var(--bw) solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.backbtn:hover {
+  border-color: var(--ink);
+}
+
+/* Step navigation row: Back on the left, the secondary ways out (new field, start over) on the right */
+.stepnav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 16px;
+}
+
+.stepnav__more {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
 .link {
   white-space: nowrap;
   display: inline-flex;
@@ -855,10 +891,6 @@ p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-}
-
-.draw-bar .link--small {
-  align-self: center;
 }
 
 /* --- Paso 3 · Calculando --------------------------------------------------------------- */
@@ -1659,19 +1691,9 @@ fieldset.field > legend {
   position: sticky;
   top: -8px;
   z-index: 2;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
   padding: 8px 0;
   background: var(--paper);
   box-shadow: 0 1px 0 var(--line);
-}
-
-.results__nav .btn {
-  min-width: 0;
-  padding: 4px 8px;
-  white-space: normal;
-  text-align: center;
 }
 
 .results__links {
