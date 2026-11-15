@@ -3,7 +3,8 @@ import { type Locale, t } from '../../i18n';
 
 const CREDITS = [
   'NASA POWER (MERRA-2)',
-  'NASA GIBS: Blue Marble, SMAP L4, GPM IMERG, MODIS Terra',
+  'NASA GIBS: Blue Marble, SMAP L4, GPM IMERG, MODIS Terra, GHRSST MUR (NASA JPL)',
+  'NOAA GOES-East and GOES-West ABI GeoColor (through NASA GIBS)',
   'NASA MODIS MOD13Q1 (ORNL DAAC)',
   'USDA NRCS SSURGO',
   'USDA NASS Cropland Data Layer',
