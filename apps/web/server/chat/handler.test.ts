@@ -104,6 +104,16 @@ describe('handleChat stream', () => {
     expect(reasons).toEqual(['HTTP 402']);
   });
 
+  it('says model_busy when the model service is still rate limited', async () => {
+    const busy: ChatModel = {
+      // eslint-disable-next-line require-yield
+      async *stream() {
+        throw new ModelHttpError(429);
+      },
+    };
+    expect(await events(await handleChat(post(body()), deps(busy)))).toEqual([{ type: 'error', code: 'model_busy' }]);
+  });
+
   it('uses the irrigation variant on screen', async () => {
     const model = scriptedModel([callTool('get_summary'), say('ok')]);
     await events(await handleChat(post(body({ irrigation: 'pivot' })), deps(model)));

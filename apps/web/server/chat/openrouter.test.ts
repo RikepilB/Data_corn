@@ -1,6 +1,6 @@
 // SI-assisted (Claude Code); reviewed by <name>
 import { describe, expect, it } from 'vitest';
-import { type ModelEvent, createOpenRouterModel } from './openrouter';
+import { type ModelEvent, ModelHttpError, createOpenRouterModel } from './openrouter';
 
 function sse(lines: string[]): ReadableStream<Uint8Array> {
   const text = lines.join('\n') + '\n';
@@ -52,9 +52,63 @@ describe('OpenRouter model', () => {
     });
   });
 
+  it('reads the cost from the usage chunk', async () => {
+    const { out, sent } = await collect([
+      chunk({ content: 'x' }, 'stop'),
+      `data: ${JSON.stringify({ choices: [], usage: { prompt_tokens: 10, completion_tokens: 2, cost: 0.0123 } })}`,
+      'data: [DONE]',
+    ]);
+    expect(out.at(-1)).toEqual({ type: 'end', finish: 'stop', toolCalls: [], costUsd: 0.0123 });
+    expect(JSON.parse(String(sent[0]!.body)).usage).toEqual({ include: true });
+  });
+
   it('reports the length cap', async () => {
     const { out } = await collect([chunk({ content: 'x' }, 'length')]);
     expect(out.at(-1)).toMatchObject({ finish: 'length' });
+  });
+
+  it('retries a busy service, then streams', async () => {
+    const statuses = [429, 503, 200];
+    const waits: number[] = [];
+    const fetcher = (async () => {
+      const status = statuses.shift()!;
+      return status === 200
+        ? new Response(sse([chunk({ content: 'ok' }, 'stop')]), { status })
+        : new Response('busy', { status, headers: status === 429 ? { 'retry-after': '2' } : {} });
+    }) as unknown as typeof fetch;
+    const model = createOpenRouterModel({ apiKey: 'k', fetcher, sleep: async (ms) => void waits.push(ms) });
+    const out: ModelEvent[] = [];
+    for await (const e of model.stream({ messages: [], tools: [], maxTokens: 1 })) out.push(e);
+    expect(out[0]).toEqual({ type: 'text', delta: 'ok' });
+    expect(waits).toEqual([2000, 4000]);
+  });
+
+  it('gives up after two retries with the last status', async () => {
+    let calls = 0;
+    const fetcher = (async () => {
+      calls++;
+      return new Response('busy', { status: 429 });
+    }) as unknown as typeof fetch;
+    const model = createOpenRouterModel({ apiKey: 'k', fetcher, sleep: async () => undefined });
+    const run = async () => {
+      for await (const _ of model.stream({ messages: [], tools: [], maxTokens: 1 })) void _;
+    };
+    await expect(run()).rejects.toEqual(new ModelHttpError(429));
+    expect(calls).toBe(3);
+  });
+
+  it('does not retry a refused key', async () => {
+    let calls = 0;
+    const fetcher = (async () => {
+      calls++;
+      return new Response('no', { status: 401 });
+    }) as unknown as typeof fetch;
+    const model = createOpenRouterModel({ apiKey: 'k', fetcher, sleep: async () => undefined });
+    const run = async () => {
+      for await (const _ of model.stream({ messages: [], tools: [], maxTokens: 1 })) void _;
+    };
+    await expect(run()).rejects.toBeInstanceOf(ModelHttpError);
+    expect(calls).toBe(1);
   });
 
   it('throws on an HTTP error without echoing the body', async () => {

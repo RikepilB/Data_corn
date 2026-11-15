@@ -5,18 +5,32 @@
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
 import { handleChat } from './chat/handler';
-import { createRateLimiter } from './chat/limits';
-import { createOpenRouterModel } from './chat/openrouter';
+import { withBudget } from './chat/budget';
+import { RATE_LIMIT_MAX, createRateLimiter } from './chat/limits';
+import { type ChatModel, createOpenRouterModel } from './chat/openrouter';
 import { createReportFetcher } from './chat/reports';
 
 const PORT = 8787;
 const origin = process.env.CHAT_SITE_ORIGIN || 'http://localhost:4321';
 const apiKey = process.env.OPENROUTER_API_KEY;
-const model = apiKey ? createOpenRouterModel({ apiKey, model: process.env.OPENROUTER_MODEL, referer: origin }) : null;
+// Local testing only: a spending cap in US dollars, and a higher limit of questions per 10 minutes
+// (every local request comes from the same address, so the normal limit is reached quickly).
+const budgetUsd = Number(process.env.CHAT_DEV_BUDGET_USD) || 0;
+const rateMax = Number(process.env.CHAT_DEV_RATE_LIMIT) || RATE_LIMIT_MAX;
+
+let model: ChatModel | null = apiKey
+  ? createOpenRouterModel({ apiKey, model: process.env.OPENROUTER_MODEL, referer: origin })
+  : null;
+if (model && budgetUsd > 0) {
+  model = withBudget(model, budgetUsd, (call, total) =>
+    console.log(`Model call $${call.toFixed(4)} · total $${total.toFixed(4)} of $${budgetUsd.toFixed(2)}`),
+  );
+}
+
 const deps = {
   model,
   fetchReport: createReportFetcher(origin),
-  limiter: createRateLimiter(),
+  limiter: createRateLimiter(rateMax),
   // Only the HTTP status or an error class name: never the question, the file or the answer.
   onModelError: (reason: string) => console.error(`Model call failed: ${reason}`),
 };
@@ -46,6 +60,9 @@ const server = createServer(async (req, res) => {
         ? await handleChat(request, deps)
         : new Response(JSON.stringify({ code: 'not_found' }), { status: 404 });
 
+    // A request refused before its body was read (too large, wrong method) is still read to the end
+    // and thrown away, so the client gets the answer instead of a dropped connection.
+    if (!req.readableEnded) req.resume();
     res.writeHead(response.status, Object.fromEntries(response.headers));
     if (!response.body) {
       res.end();
@@ -67,4 +84,6 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Chat server on http://localhost:${PORT}/api/chat (reports from ${origin})`);
   console.log(model ? 'Model: OpenRouter' : 'No OPENROUTER_API_KEY: every request answers not_configured.');
+  if (model && budgetUsd > 0) console.log(`Spending cap: $${budgetUsd.toFixed(2)} (CHAT_DEV_BUDGET_USD)`);
+  if (rateMax !== RATE_LIMIT_MAX) console.log(`Rate limit: ${rateMax} questions per 10 minutes (CHAT_DEV_RATE_LIMIT)`);
 });
