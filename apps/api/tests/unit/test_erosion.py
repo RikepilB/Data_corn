@@ -60,8 +60,14 @@ def test_nan_days_are_skipped_and_counted() -> None:
     assert "skipped 1" in result.gaps[-1]
 
 
-@pytest.mark.parametrize("rain", [[], [float("nan"), float("nan")]])
-def test_no_valid_rain_is_no_data(rain: list[float]) -> None:
+def test_none_and_nan_days_are_skipped_and_counted() -> None:
+    result = erosion_index([None, 20.0, float("nan"), 0.0, 30.0], [0.8, 0.5, 0.9, 0.2, 0.3])
+    assert result.index == erosion_index([20.0, 0.0, 30.0], [0.5, 0.2, 0.3]).index
+    assert (result.missing_days, result.erosive_days) == (2, 2)
+
+
+@pytest.mark.parametrize("rain", [[], [float("nan"), float("nan")], [None, None]])
+def test_no_valid_rain_is_no_data(rain: list[float | None]) -> None:
     result = erosion_index(rain, 0.5)
     assert result.index is None
     assert result.missing_days == len(rain)

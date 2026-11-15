@@ -19,7 +19,7 @@ class ErosionResult:
 
 
 def erosion_index(
-    daily_rain_mm: Sequence[float],
+    daily_rain_mm: Sequence[float | None],
     cover_factor: float | Sequence[float],
     *,
     slope_pct: float | None = None,
@@ -29,7 +29,7 @@ def erosion_index(
 
     Compare rotations within one field using K * S(slope) * sum(cover * rain**1.5)
     over days with rain >= 12.7 mm. The exponent 1.5 is to confirm with an agronomist.
-    NaN rain days are skipped; an empty or entirely missing record has no data (None).
+    NaN and None rain days are skipped; an empty or entirely missing record has no data (None).
     """
     gaps: list[str] = []
     if slope_pct is None:
@@ -59,7 +59,7 @@ def erosion_index(
     erosive_days = 0
     exposure = 0.0
     for rain_day, cover_day in zip(rain, covers, strict=True):
-        if isnan(rain_day):
+        if rain_day is None or isnan(rain_day):
             missing_days += 1
             continue
         if not isfinite(rain_day) or rain_day < 0:
