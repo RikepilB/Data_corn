@@ -1,11 +1,11 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDataCorn } from '../application/useDataCorn';
-import { useFilm } from '../application/useFilm';
+import { useDay } from '../application/dayStore';
+import { type Film, useFilm } from '../application/useFilm';
 import { type FormatContext, messageText } from '../domain/format';
 import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
 import { analogDate } from '../domain/season';
-import { waterColor } from '../ui/common/palette';
 import type { UnitSystem } from '../domain/units';
 import { zonesOf } from '../domain/zones';
 import { type Locale, t } from '../i18n';
@@ -18,6 +18,7 @@ import { TopBar } from '../ui/common/TopBar';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
 import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
+import { bucketColor, waterBucket } from '../ui/map/fillBucket';
 import { setClimate, setField, setFieldFill, setZones } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
 import { downloadReportPdf } from '../ui/pdf/download';
@@ -28,6 +29,25 @@ import { CalculatingPanel } from '../ui/steps/CalculatingPanel';
 import { DrawPanel } from '../ui/steps/DrawPanel';
 import { FieldForm } from '../ui/steps/FieldForm';
 import { GlobePanel } from '../ui/steps/GlobePanel';
+
+// Rendered once, not per film tick: these only change with the map, the language or the step.
+const MapViewMemo = memo(MapView);
+const TopBarMemo = memo(TopBar);
+
+/**
+ * Keeps the field's colour in step with the film's water level. It lives in its own component so
+ * the film's day ticks re-render this null component, not the whole app, and it calls into the map
+ * only when the quantised bucket changes (see fillBucket.ts).
+ */
+function FieldFillSync({ map, film, active }: { map: MapLibreMap | null; film: Film; active: boolean }) {
+  const { run, dayStore } = film;
+  const bucket = useDay(dayStore, (d) => waterBucket(run?.water_pct[d]));
+  useEffect(() => {
+    if (!map) return;
+    setFieldFill(map, active && bucket >= 0 ? bucketColor(bucket) : null);
+  }, [map, active, bucket]);
+  return null;
+}
 
 function useIsDesktop(): boolean {
   const query = '(min-width: 900px)';
@@ -56,6 +76,7 @@ export default function DataCornApp() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const openAbout = useCallback(() => setAboutOpen(true), []);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
@@ -78,7 +99,8 @@ export default function DataCornApp() {
   // Rendimiento: mientras la película corre, la capa cambia cada 4 semanas (cambiarla recarga
   // las teselas); en pausa, la semana exacta.
   const layerStep = film.playing ? 28 : 7;
-  const filmWeek = Math.floor(film.day / layerStep) * (layerStep / 7);
+  // Selecting the week (not the day) re-renders the app every few seconds of playback, not every tick
+  const filmWeek = useDay(film.dayStore, (d) => Math.floor(d / layerStep) * (layerStep / 7));
   const filmLayerTime = useMemo(() => {
     if (!layer || !film.run) return null;
     return nearestAvailable(layer, analogDate(film.run, filmWeek * 7));
@@ -105,12 +127,6 @@ export default function DataCornApp() {
   }, [map, zonesOn, zones]);
 
   // Con las zonas a la vista, el lote no se pinta según el agua: se verían dos colores encimados
-  const water = film.run ? film.run.water_pct[film.day] : undefined;
-  useEffect(() => {
-    if (!map) return;
-    setFieldFill(map, step === 'results' && water != null && !zonesOn ? waterColor(water) : null);
-  }, [map, step, water, zonesOn]);
-
   const fitPadding = useCallback(
     () =>
       desktop
@@ -231,13 +247,14 @@ export default function DataCornApp() {
     );
   }, [map, step, desktop, dc.points, fitPadding, stopSpin]);
 
+  const dcBackToGlobe = dc.backToGlobe;
   const backToGlobe = useCallback(() => {
-    dc.backToGlobe();
+    dcBackToGlobe();
     if (map) {
       map.stop();
       map.easeTo({ center: GLOBE_VIEW.center, zoom: GLOBE_VIEW.zoom, duration: reducedMotion() ? 0 : 2600 });
     }
-  }, [dc, map]);
+  }, [dcBackToGlobe, map]);
 
   const onPdf = useCallback(async () => {
     if (!dc.report) return;
@@ -262,21 +279,38 @@ export default function DataCornApp() {
   }, [dc.report, dc.isSample, dc.mock, dc.precomputedAt, map, ctx]);
 
   const showLayers = step === 'globe' || step === 'results';
-  const filmView = dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null;
+  const filmView = useMemo(
+    () => (dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null),
+    [dc.report, step, film, locale],
+  );
   const filmNoLayer =
     step === 'results' && layer && film.run && !filmLayerTime
       ? t(locale, 'layer.no_data_year', { year: film.run.year })
       : undefined;
   const zonesMessage = dc.report?.indicators.find((i) => i.id === 'field_zones')?.message;
   // En celular la leyenda de zonas va con la película, dentro del panel: sobre el mapa taparía el lote
-  const zonesLegend = zonesOn ? (
-    <ZonesLegend zones={zones} note={zonesMessage && messageText(zonesMessage, ctx)} ctx={ctx} />
-  ) : null;
+  const zonesLegend = useMemo(
+    () =>
+      zonesOn ? <ZonesLegend zones={zones} note={zonesMessage && messageText(zonesMessage, ctx)} ctx={ctx} /> : null,
+    [zonesOn, zones, zonesMessage, ctx],
+  );
+
+  const filmSlot = useMemo(
+    () =>
+      desktop ? null : (
+        <>
+          {zonesLegend}
+          {filmView}
+        </>
+      ),
+    [desktop, zonesLegend, filmView],
+  );
 
   return (
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
-      <MapView locale={locale} onReady={setMap} />
-      <TopBar step={step} locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      <MapViewMemo locale={locale} onReady={setMap} />
+      <FieldFillSync map={map} film={film} active={step === 'results' && !zonesOn} />
+      <TopBarMemo step={step} locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
       {!flying && (
         <button type="button" className="mapbtn" onClick={onCenter} title={t(locale, 'map.center_hint')}>
           <Icon name="locate" size={18} />
@@ -311,7 +345,7 @@ export default function DataCornApp() {
             onLocate={onLocate}
             onPlace={onPlace}
             onSample={onSample}
-            onAbout={() => setAboutOpen(true)}
+            onAbout={openAbout}
           />
         </div>
       )}
@@ -369,15 +403,8 @@ export default function DataCornApp() {
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
-            onAbout={() => setAboutOpen(true)}
-            filmSlot={
-              desktop ? null : (
-                <>
-                  {zonesLegend}
-                  {filmView}
-                </>
-              )
-            }
+            onAbout={openAbout}
+            filmSlot={filmSlot}
           />
         </>
       )}

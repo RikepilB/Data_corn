@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -39,10 +39,22 @@ function Secondary({ calm, label, children }: { calm: boolean; label: string; ch
 }
 
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, onAbout, filmSlot }: Props) {
+export const ResultsPanel = memo(function ResultsPanel({
+  report,
+  film,
+  ctx,
+  isSample,
+  mock,
+  pdfBusy,
+  pdfError,
+  onPdf,
+  onChange,
+  onNew,
+  onAbout,
+  filmSlot,
+}: Props) {
   const { locale } = ctx;
   const calm = useDisplayPrefs().calm;
-  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
   return (
@@ -128,7 +140,12 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary btn--xl" onClick={onPdf} disabled={pdfBusy}>
+      <button
+        type="button"
+        className="btn btn--primary btn--xl"
+        onClick={onPdf}
+        disabled={pdfBusy}
+      >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
       </button>
@@ -156,4 +173,4 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
       <p className="sources">{t(locale, 'results.sources', { list: report.sources.join(' · ') })}</p>
     </aside>
   );
-}
+});
