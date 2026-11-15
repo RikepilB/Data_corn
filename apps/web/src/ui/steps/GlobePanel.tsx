@@ -11,10 +11,11 @@ interface Props {
   onPlace: (p: Place) => void;
   onSample: () => void;
   onAbout: () => void;
+  onHelp: () => void;
 }
 
 /** Paso 1 · El globo: ir a mi ubicación, buscar o ver un ejemplo. */
-export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSample, onAbout }: Props) {
+export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSample, onAbout, onHelp }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const open = searchOpen || denied;
   return (
@@ -40,9 +41,16 @@ export function GlobePanel({ locale, locating, denied, onLocate, onPlace, onSamp
               <Icon name="sample" size={18} /> {t(locale, 'globe.sample')}
             </button>
           </div>
-          <button type="button" className="link link--small globe-panel__about" onClick={onAbout}>
-            <Icon name="info" size={16} /> {t(locale, 'about.link')}
-          </button>
+          {/* Help shares About's row, so the card (and the map padding under it) keeps its height */}
+          <div className="globe-panel__more">
+            <button type="button" className="link link--small globe-panel__about" onClick={onAbout}>
+              <Icon name="info" size={16} /> {t(locale, 'about.link')}
+            </button>
+            <span aria-hidden="true">·</span>
+            <button type="button" className="link link--small" onClick={onHelp}>
+              <Icon name="help" size={16} /> {t(locale, 'help.link')}
+            </button>
+          </div>
         </>
       )}
     </section>

@@ -29,6 +29,7 @@ interface Props {
   /** Back to the globe, where the layers, the search and the example are. */
   onRestart: () => void;
   onAbout: () => void;
+  onHelp: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
 }
@@ -59,6 +60,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   onNew,
   onRestart,
   onAbout,
+  onHelp,
   filmSlot,
 }: Props) {
   const { locale } = ctx;
@@ -193,6 +195,9 @@ export const ResultsPanel = memo(function ResultsPanel({
       <div className="results__links">
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
+        </button>
+        <button type="button" className="link" onClick={onHelp}>
+          {t(locale, 'help.link')}
         </button>
       </div>
       <p className="disclaimer">
