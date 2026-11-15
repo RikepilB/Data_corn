@@ -1234,6 +1234,104 @@ fieldset.field > legend {
   gap: 10px;
 }
 
+/* --- Rotaciones: tres estrategias explicadas (#42) ---------------------------------------- */
+.rotation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rotation__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rotation__head h2 {
+  font-size: 1rem;
+}
+
+.rotation__intro,
+.rotation__gap {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.rotation__gap {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.rcard {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+
+.rcard--current {
+  border: 2px solid var(--ink);
+}
+
+.rcard__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rcard__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rcard__summary::after {
+  content: '+';
+  margin-left: auto;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.rcard[open] > .rcard__summary::after {
+  content: '\2212';
+}
+
+.rcard__name {
+  font-weight: 600;
+}
+
+.rcard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.rcard__erosion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.rcard__part h3 {
+  margin-bottom: 2px;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rcard__part p {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .kcard {
   display: flex;
   flex-direction: column;
