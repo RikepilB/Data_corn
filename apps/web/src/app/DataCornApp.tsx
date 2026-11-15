@@ -2,20 +2,21 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDataCorn } from '../application/useDataCorn';
 import { useFilm } from '../application/useFilm';
-import type { FormatContext } from '../domain/format';
+import { type FormatContext, messageText } from '../domain/format';
 import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
 import { analogDate, waterColor } from '../domain/season';
 import type { UnitSystem } from '../domain/units';
+import { zonesOf } from '../domain/zones';
 import { type Locale, t } from '../i18n';
-import { CLIMATE_LAYERS, type ClimateLayerId, nearestAvailable, recentMonths } from '../infrastructure/gibs';
+import { CLIMATE_LAYERS, nearestAvailable, recentMonths } from '../infrastructure/gibs';
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { Icon } from '../ui/common/Icon';
 import { TopBar } from '../ui/common/TopBar';
-import { LayerChips, Legend, TimeSlider } from '../ui/layers/LayerControls';
+import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
 import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
-import { setClimate, setField, setFieldFill } from '../ui/map/layers';
+import { setClimate, setField, setFieldFill, setZones } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
 import { downloadReportPdf } from '../ui/pdf/download';
 import { ResultsPanel } from '../ui/results/ResultsPanel';
@@ -44,7 +45,7 @@ export default function DataCornApp() {
   const [units, setUnits] = useState<UnitSystem>('imperial');
   const [map, setMap] = useState<MapLibreMap | null>(null);
   // Sin capa al inicio: la vista arranca en blanco y negro; las capas de datos son opcionales
-  const [layerId, setLayerId] = useState<ClimateLayerId | null>(null);
+  const [layerId, setLayerId] = useState<LayerChoice | null>(null);
   const [globeTime, setGlobeTime] = useState<string>('');
   const [flying, setFlying] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -64,7 +65,7 @@ export default function DataCornApp() {
 
   // --- Globo: giro lento y capa de clima con su deslizador de meses ---------------------------
   const stopSpin = useGlobeSpin(map, step === 'globe' && !flying);
-  const layer = layerId ? CLIMATE_LAYERS[layerId] : null;
+  const layer = layerId && layerId !== 'zones' ? CLIMATE_LAYERS[layerId] : null;
   const months = useMemo(() => (layer ? recentMonths(layer) : []), [layer]);
   useEffect(() => {
     if (months.length) setGlobeTime(months[months.length - 1]!);
@@ -93,11 +94,19 @@ export default function DataCornApp() {
     if (map) setField(map, fieldRing);
   }, [map, fieldRing]);
 
+  // Zonas del lote (RF-60): solo en resultados y solo si el reporte las trae
+  const zones = step === 'results' ? zonesOf(dc.report) : null;
+  const zonesOn = layerId === 'zones' && zones != null;
+  useEffect(() => {
+    if (map) setZones(map, zonesOn ? zones : null);
+  }, [map, zonesOn, zones]);
+
+  // Con las zonas a la vista, el lote no se pinta según el agua: se verían dos colores encimados
   const water = film.run ? film.run.water_pct[film.day] : undefined;
   useEffect(() => {
     if (!map) return;
-    setFieldFill(map, step === 'results' && water != null ? waterColor(water) : null);
-  }, [map, step, water]);
+    setFieldFill(map, step === 'results' && water != null && !zonesOn ? waterColor(water) : null);
+  }, [map, step, water, zonesOn]);
 
   const fitPadding = useCallback(
     () =>
@@ -255,6 +264,11 @@ export default function DataCornApp() {
     step === 'results' && layer && film.run && !filmLayerTime
       ? t(locale, 'layer.no_data_year', { year: film.run.year })
       : undefined;
+  const zonesMessage = dc.report?.indicators.find((i) => i.id === 'field_zones')?.message;
+  // En celular la leyenda de zonas va con la película, dentro del panel: sobre el mapa taparía el lote
+  const zonesLegend = zonesOn ? (
+    <ZonesLegend zones={zones} note={zonesMessage && messageText(zonesMessage, ctx)} ctx={ctx} />
+  ) : null;
 
   return (
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
@@ -270,8 +284,9 @@ export default function DataCornApp() {
 
       {showLayers && !flying && (
         <div className="layerbar">
-          <LayerChips value={layerId} onChange={setLayerId} locale={locale} />
-          {layerId && <Legend id={layerId} locale={locale} note={filmNoLayer} />}
+          <LayerChips value={layerId} onChange={setLayerId} locale={locale} zones={zones != null} />
+          {layer && <Legend id={layer.id} locale={locale} note={filmNoLayer} />}
+          {desktop && zonesLegend}
         </div>
       )}
 
@@ -344,7 +359,14 @@ export default function DataCornApp() {
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
-            filmSlot={desktop ? null : filmView}
+            filmSlot={
+              desktop ? null : (
+                <>
+                  {zonesLegend}
+                  {filmView}
+                </>
+              )
+            }
           />
         </>
       )}

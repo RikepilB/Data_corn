@@ -561,6 +561,58 @@ p {
   color: var(--muted);
 }
 
+/* Zonas del lote: cada clase con su palabra y su parte del lote, no solo el color.
+   Ancho fijo: con min() la frase larga ensancharía la barra de capas, que no deja tocar el mapa. */
+.legend--zones {
+  width: 260px;
+  max-width: 100%;
+}
+
+.legend__zones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.legend__zones li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.legend__zones i {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--ink);
+  border-radius: 1px;
+}
+
+.legend__zones b {
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.legend__note {
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+/* En el celular la leyenda de zonas va dentro del panel: sobre el mapa taparía el lote */
+.results .legend {
+  flex: none;
+  align-self: stretch;
+  width: auto;
+}
+
 /* --- Paso 1 · Globo -------------------------------------------------------------------- */
 .globe-dock {
   position: absolute;
@@ -1445,6 +1497,7 @@ fieldset.field > legend {
   color: var(--paper);
   font-family: var(--mono);
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 /* --- Película de la campaña ------------------------------------------------------------ */

@@ -16,6 +16,7 @@ from datacorn.infrastructure.earthengine.climate import (
     PrismPowerClimate,
 )
 from datacorn.infrastructure.earthengine.crop_history import CdlCropHistory
+from datacorn.infrastructure.earthengine.drought import SmapDroughtLayer
 from datacorn.infrastructure.earthengine.elevation import NasademElevation
 from datacorn.infrastructure.earthengine.evapotranspiration import OpenEtEvapotranspiration
 from datacorn.infrastructure.earthengine.session import EarthEngineSession
@@ -91,6 +92,7 @@ class Memo:
 class ProviderFactory:
     def __init__(self, settings: Settings) -> None:
         ee = EarthEngineSession(project=settings.gcp_project, enabled=settings.earth_engine_enabled)
+        self._ee = ee
         power = PowerClient()
         sda = SoilDataAccess()
         self._fcc = FccCensusArea()
@@ -143,6 +145,9 @@ class ProviderFactory:
 
     def country_locator(self) -> FccCountryLocator:
         return FccCountryLocator(self._fcc)
+
+    def drought_layer(self) -> SmapDroughtLayer:
+        return SmapDroughtLayer(self._ee)
 
     def _instance(self, provider_id: str) -> object:
         if provider_id not in self._instances:
