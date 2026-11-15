@@ -175,7 +175,7 @@ export interface FieldContext {
     drainage_class: string | null;
     source: string;
   } | null;
-  terrain: { elevation_m: number; mean_slope_pct: number; low_area_fraction: number } | null;
+  terrain: { elevation_m: number; mean_slope_pct: number | null; low_area_fraction: number | null } | null;
   crop_history: CropYear[];
   county_yields: { year: number; crop: Crop; yield_t_ha: number; source: string }[];
   enso_now: EnsoState | null;
