@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { filmEvents } from '../domain/film';
+import { harvestOdds, waterDays } from '../domain/outlook';
 import type { FieldReport, SeasonRun } from '../domain/report';
-import { createDayStore } from './dayStore';
 import { type FilmMode, filmLength, pickRun } from '../domain/season';
+import { createDayStore } from './dayStore';
 
-const DAYS_PER_SECOND = 10;
+const DAYS_PER_SECOND = 11;
+/** Pausa en cada momento clave para que se pueda leer la leyenda. */
+const HOLD_MS = 1500;
 
 /** Estado de la película de la campaña: qué año, qué día y si está corriendo (RF-31). */
 export function useFilm(report: FieldReport | null) {
@@ -13,6 +17,9 @@ export function useFilm(report: FieldReport | null) {
   const [playing, setPlaying] = useState(false);
   const run: SeasonRun | null = useMemo(() => (report ? pickRun(report, mode) : null), [report, mode]);
   const length = run ? filmLength(run) : 0;
+  const events = useMemo(() => (run ? filmEvents(run) : []), [run]);
+  const odds = useMemo(() => (run && report ? harvestOdds(report.runs ?? [], run) : []), [run, report]);
+  const waterLeft = useMemo(() => (run ? waterDays(run) : []), [run]);
 
   // Al llegar un reporte nuevo: año típico, día de floración visible y en pausa
   useEffect(() => {
@@ -32,9 +39,21 @@ export function useFilm(report: FieldReport | null) {
     let acc = dayStore.get();
     let raf = 0;
     let timer = 0;
+    let holdUntil = 0;
+    let next = events.findIndex((e) => e.day > acc);
     const stepOnce = (now: number) => {
+      if (now < holdUntil) {
+        last = now;
+        return true;
+      }
       acc += ((now - last) / 1000) * DAYS_PER_SECOND;
       last = now;
+      const e = next >= 0 ? events[next] : undefined;
+      if (e && acc >= e.day) {
+        acc = e.day;
+        holdUntil = now + HOLD_MS;
+        next = next + 1 < events.length ? next + 1 : -1;
+      }
       if (acc >= length - 1) {
         dayStore.set(length - 1);
         setPlaying(false);
@@ -60,7 +79,7 @@ export function useFilm(report: FieldReport | null) {
       cancelAnimationFrame(raf);
       window.clearInterval(timer);
     };
-  }, [playing, length, dayStore]);
+  }, [playing, length, events, dayStore]);
 
   const setDay = useCallback(
     (i: number) => dayStore.set(Math.max(0, Math.min(Math.round(i), Math.max(length - 1, 0)))),
@@ -85,8 +104,8 @@ export function useFilm(report: FieldReport | null) {
 
   // Stable identity between ticks, so memoised children skip renders the film did not cause
   return useMemo(
-    () => ({ mode, setMode, run, dayStore, setDay, playing, toggle, setPlaying, length }),
-    [mode, setMode, run, dayStore, setDay, playing, toggle, length],
+    () => ({ mode, setMode, run, dayStore, setDay, playing, toggle, setPlaying, length, events, odds, waterLeft }),
+    [mode, setMode, run, dayStore, setDay, playing, toggle, length, events, odds, waterLeft],
   );
 }
 

@@ -144,10 +144,125 @@ export function setFieldFill(map: MapLibreMap, color: string | null, opacity = 0
   map.setPaintProperty('field-fill', 'fill-opacity', color ? opacity : 0.18);
 }
 
-const current = new WeakMap<MapLibreMap, string>();
+export interface Overlay {
+  /** Identifica la capa: si cambia, se reemplaza; si es la misma, solo cambia la hora. */
+  key: string;
+  parts: { url: string; maxzoom: number }[];
+}
+
+interface OverlayState {
+  key: string;
+  slot: 0 | 1;
+  urls: string[];
+  count: number;
+  token: number;
+  opacity: number;
+}
+
+const overlays = new WeakMap<MapLibreMap, OverlayState>();
+const slotId = (slot: number, i: number) => `gibs-${slot}-${i}`;
+const SWAP_TIMEOUT_MS = 4000;
+
+function removeOverlay(map: MapLibreMap, count: number): void {
+  for (const slot of [0, 1]) {
+    for (let i = 0; i < count; i++) {
+      const id = slotId(slot, i);
+      if (map.getLayer(id)) map.removeLayer(id);
+      if (map.getSource(id)) map.removeSource(id);
+    }
+  }
+}
+
+function slotOpacity(map: MapLibreMap, slot: number, count: number, opacity: number): void {
+  for (let i = 0; i < count; i++) {
+    const id = slotId(slot, i);
+    if (map.getLayer(id)) map.setPaintProperty(id, 'raster-opacity', opacity);
+  }
+}
+
+function addPart(map: MapLibreMap, id: string, url: string, maxzoom: number, opacity: number, first: boolean): void {
+  map.addSource(id, {
+    type: 'raster',
+    tiles: [url],
+    tileSize: 256,
+    maxzoom,
+    attribution: first ? GIBS_ATTRIBUTION : undefined,
+  });
+  map.addLayer(
+    {
+      id,
+      type: 'raster',
+      source: id,
+      paint: {
+        'raster-opacity': opacity,
+        'raster-opacity-transition': { duration: 260, delay: 0 },
+        'raster-fade-duration': 0,
+      },
+    },
+    'field-fill',
+  );
+}
 
 /**
- * Muestra una capa de GIBS en una fecha; null la oculta. En el lote (zoom alto) va más
+ * Capa de datos de NASA GIBS sobre el mapa (null la quita). Doble búfer: la hora nueva se carga
+ * en una copia oculta y se muestra cuando sus teselas llegaron, así la animación no parpadea.
+ */
+export function setOverlay(map: MapLibreMap, overlay: Overlay | null, opacity = 0.72): void {
+  const st = overlays.get(map);
+  if (!overlay) {
+    if (st) removeOverlay(map, st.count);
+    overlays.delete(map);
+    return;
+  }
+  const urls = overlay.parts.map((p) => p.url);
+  const count = overlay.parts.length;
+  if (!st || st.key !== overlay.key) {
+    if (st) removeOverlay(map, st.count);
+    overlay.parts.forEach((p, i) => addPart(map, slotId(0, i), p.url, p.maxzoom, opacity, i === 0));
+    overlays.set(map, { key: overlay.key, slot: 0, urls, count, token: 0, opacity });
+    return;
+  }
+  st.opacity = opacity;
+  if (urls.every((u, i) => u === st.urls[i])) {
+    slotOpacity(map, st.slot, count, opacity);
+    return;
+  }
+  st.urls = urls;
+  const target = st.slot === 0 ? 1 : 0;
+  const token = ++st.token;
+  overlay.parts.forEach((p, i) => {
+    const id = slotId(target, i);
+    const source = map.getSource(id) as RasterTileSource | undefined;
+    if (source) {
+      map.setPaintProperty(id, 'raster-opacity', 0);
+      source.setTiles([p.url]);
+    } else {
+      addPart(map, id, p.url, p.maxzoom, 0, false);
+    }
+  });
+  const ids = overlay.parts.map((_, i) => slotId(target, i));
+  let timer = 0;
+  const done = () => {
+    map.off('sourcedata', check);
+    window.clearTimeout(timer);
+  };
+  const swap = () => {
+    done();
+    if (st.token !== token || overlays.get(map) !== st) return;
+    slotOpacity(map, target, count, st.opacity);
+    slotOpacity(map, 1 - target, count, 0);
+    st.slot = target;
+  };
+  function check() {
+    if (st!.token !== token) return done();
+    if (ids.every((id) => map.getSource(id) && map.isSourceLoaded(id))) swap();
+  }
+  map.on('sourcedata', check);
+  timer = window.setTimeout(swap, SWAP_TIMEOUT_MS);
+}
+
+/**
+ * Capa de clima histórica en una fecha; null la quita. En el lote (zoom alto) va más
  * transparente: a esa escala la capa es casi un solo color y no debe tapar la imagen satelital.
  */
 export function setClimate(
@@ -156,35 +271,9 @@ export function setClimate(
   time: string | null,
   opacity = 0.72,
 ): void {
-  if (!layer || !time) {
-    if (map.getLayer('climate')) map.setLayoutProperty('climate', 'visibility', 'none');
-    return;
-  }
-  const url = tileUrl(layer, time);
-  const source = map.getSource('climate') as RasterTileSource | undefined;
-  if (source && current.get(map) === layer.id) {
-    source.setTiles([url]);
-  } else {
-    if (map.getLayer('climate')) map.removeLayer('climate');
-    if (map.getSource('climate')) map.removeSource('climate');
-    map.addSource('climate', {
-      type: 'raster',
-      tiles: [url],
-      tileSize: 256,
-      maxzoom: layer.maxzoom,
-      attribution: GIBS_ATTRIBUTION,
-    });
-    map.addLayer(
-      {
-        id: 'climate',
-        type: 'raster',
-        source: 'climate',
-        paint: { 'raster-opacity': 0.72, 'raster-fade-duration': 250 },
-      },
-      'field-fill',
-    );
-    current.set(map, layer.id);
-  }
-  map.setPaintProperty('climate', 'raster-opacity', opacity);
-  map.setLayoutProperty('climate', 'visibility', 'visible');
+  setOverlay(
+    map,
+    layer && time ? { key: layer.id, parts: [{ url: tileUrl(layer, time), maxzoom: layer.maxzoom }] } : null,
+    opacity,
+  );
 }

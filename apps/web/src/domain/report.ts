@@ -130,6 +130,12 @@ export interface EnsoState {
   period: string;
 }
 
+/** GET /enso: fase actual y trimestres recientes (globo). */
+export interface EnsoOverview {
+  current: EnsoState;
+  recent: EnsoState[];
+}
+
 export interface EnsoInsight {
   now: EnsoState | null;
   outcomes: {
@@ -155,6 +161,14 @@ export interface SeasonRun {
   flowering_deficit_mm: number;
   flowering_heat_days: number;
   relative_yield: number;
+  /** Lluvia diaria (mm). Opcional: las API anteriores no la envían. */
+  rain_mm?: number[];
+  /** Riego neto diario (mm); 0 en secano. */
+  irrigation_mm?: number[];
+  /** Rendimiento relativo acumulado (100 = sin pérdida); solo baja. */
+  yield_pct?: number[];
+  /** Agua disponible (%) por debajo de la cual empieza el estrés. */
+  stress_pct?: number;
 }
 
 export interface Summary {

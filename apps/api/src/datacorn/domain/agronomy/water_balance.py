@@ -194,3 +194,30 @@ def relative_yield_loss(
     if etm <= 0:
         return 0.0
     return min(1.0, max(0.0, ky.total * (1 - eta / etm)))
+
+
+def running_yield(
+    balance: tuple[WaterBalanceDay, ...], phen: Phenology, ky: YieldResponse
+) -> tuple[float, ...]:
+    """Rendimiento relativo acumulado día a día (1 = sin pérdida), para la película.
+
+    Día i: 1 − Ky · Σ(ETm − ETa) hasta i / ΣETm de la campaña. Solo baja, y en la madurez coincide
+    con `1 − relative_yield_loss`.
+    """
+    maturity = phen.maturity or phen.last_day
+    etm = sum(b.etc_potential_mm for b in balance if b.day <= maturity)
+    if etm <= 0:
+        return tuple(1.0 for _ in balance)
+    out: list[float] = []
+    gap = 0.0
+    for b in balance:
+        if b.day <= maturity:
+            gap += b.etc_potential_mm - b.etc_mm
+        out.append(1 - min(1.0, max(0.0, ky.total * gap / etm)))
+    return tuple(out)
+
+
+def stress_threshold_pct(balance: tuple[WaterBalanceDay, ...]) -> float:
+    """Agua disponible (%) por debajo de la cual empieza el estrés (Ks < 1): mediana de 1 − p."""
+    values = sorted(100 * (1 - b.raw_mm / b.taw_mm) for b in balance if b.taw_mm > 0)
+    return values[len(values) // 2] if values else 50.0

@@ -4,11 +4,13 @@ import { EOX_ATTRIBUTION } from '../../infrastructure/gibs';
 
 const CREDITS = [
   'NASA POWER (MERRA-2)',
-  'NASA GIBS: Blue Marble, SMAP L4, GPM IMERG, MODIS Terra',
+  'NASA GIBS: Blue Marble, SMAP L4, GPM IMERG, MODIS Terra, GHRSST MUR (NASA JPL)',
+  'NOAA GOES-East and GOES-West ABI GeoColor (through NASA GIBS)',
   'NASA MODIS MOD13Q1 (ORNL DAAC)',
   'USDA NRCS SSURGO',
   'USDA NASS Cropland Data Layer',
   'NOAA CPC Oceanic Niño Index',
+  'USGS The National Map: Orthoimagery (USDA NAIP)',
   EOX_ATTRIBUTION,
   'Iowa State University Extension (rotation evidence)',
 ];
