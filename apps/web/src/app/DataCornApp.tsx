@@ -283,6 +283,7 @@ export default function DataCornApp() {
         </button>
       )}
       {dc.mock && <div className="mock-banner">{t(locale, 'results.mock')}</div>}
+      {dc.snapshot && !dc.mock && <div className="mock-banner">{t(locale, 'results.snapshot')}</div>}
 
       {showLayers && !flying && (
         <div className="layerbar">
