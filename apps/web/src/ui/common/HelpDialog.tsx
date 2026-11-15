@@ -4,11 +4,23 @@ import { type Locale, t } from '../../i18n';
 import { RISK_ICON } from './RiskBadge';
 import { type ContactKind, contactChannel, contactHref } from './contact';
 
-const TABS = ['questions', 'suggestions', 'support'] as const;
+const TABS = ['questions', 'suggestions', 'support', 'method'] as const;
 type Tab = (typeof TABS)[number];
 
 // Each answer repeats only what the app already says or does; none adds a claim of its own.
 const FAQ = ['forecast', 'data', 'sample', 'pdf', 'account', 'draw', 'risk'] as const;
+
+// Each row is a results card and the method note the card itself shows, so the two cannot drift apart.
+const METRICS: [title: string, method: string][] = [
+  ['card.planting', 'method.planting_window'],
+  ['card.water', 'method.flowering_water'],
+  ['card.heat', 'method.flowering_heat'],
+  ['card.hybrid', 'method.hybrid_fit'],
+  ['card.irrigation', 'method.irrigation'],
+  ['card.waterlogging', 'method.waterlogging'],
+  ['card.progress', 'method.season_progress'],
+  ['layer.zones', 'method.field_zones'],
+];
 
 /** Button names and symbols quoted in the answers come from their own keys, so the two cannot drift apart. */
 function faqParams(locale: Locale): Record<string, string> {
@@ -57,7 +69,7 @@ function ContactLink({ kind, locale }: { kind: ContactKind; locale: Locale }) {
 }
 
 /**
- * Help: frequent questions, suggestions and support, in three tabs (WAI-ARIA tabs pattern with
+ * Help: frequent questions, suggestions and support, in four tabs (WAI-ARIA tabs pattern with
  * automatic activation). A native <dialog> like About: Esc closes it and the focus stays inside.
  */
 export function HelpDialog({ open, locale, onClose }: { open: boolean; locale: Locale; onClose: () => void }) {
@@ -157,6 +169,26 @@ export function HelpDialog({ open, locale, onClose }: { open: boolean; locale: L
               <p>{t(locale, `help.faq.${q}.a`, params)}</p>
             </details>
           ))}
+        </div>
+
+        <div {...panel('method')}>
+          <p>{t(locale, 'help.method.intro')}</p>
+          <h3 className="help__h">{t(locale, 'help.method.metrics_title')}</h3>
+          <dl className="help__metrics">
+            {METRICS.map(([title, method]) => (
+              <div key={title}>
+                <dt>{t(locale, title)}</dt>
+                <dd>{t(locale, method)}</dd>
+              </div>
+            ))}
+          </dl>
+          <h3 className="help__h">{t(locale, 'help.method.level_title')}</h3>
+          <p>{t(locale, 'help.method.level_text', params)}</p>
+          <h3 className="help__h">{t(locale, 'help.method.support_title')}</h3>
+          <p>{t(locale, 'help.method.support_text', params)}</p>
+          <h3 className="help__h">{t(locale, 'help.method.limits_title')}</h3>
+          <p>{t(locale, 'help.method.limits_text')}</p>
+          <p>{t(locale, 'help.method.check_text')}</p>
         </div>
 
         <div {...panel('suggestions')}>

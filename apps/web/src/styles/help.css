@@ -124,3 +124,23 @@
   text-align: center;
   text-decoration: none;
 }
+
+/* --- How it's calculated: one row per results card ------------------------------------------- */
+.help__h {
+  margin-top: var(--sp-4);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.help__metrics > div {
+  padding: 10px 0;
+  border-top: var(--bw) solid var(--line-soft);
+}
+
+.help__metrics dt {
+  font-weight: 700;
+}
+
+.help__metrics dd {
+  margin: 2px 0 0;
+}
