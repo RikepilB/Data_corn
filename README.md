@@ -238,7 +238,7 @@ Credentials never go in the repository.
 | `apps/web/` | Astro + React web app, the single front end: globe, field drawing, season film, stripes, cards, rotation panel, PDF. |
 | `apps/api/` | The engine: Python 3.12, clean architecture. `domain/agronomy/` is the science, `infrastructure/` the data clients and cache, `application/` the ports and use cases, `interfaces/http/` the live service. YAML region and crop profiles in `resources/`. |
 | `infra/` | Deployment notes for Cloud Run and Firebase Hosting (Spanish). Cloud Run is the stretch goal. |
-| `scripts/` | `sync_readme_outline.py`: keeps the backlog in this README in step with the GitHub issues. |
+| `scripts/` | `sync_readme_outline.py` keeps the backlog in this README in step with the GitHub issues. `compliance_audit.py` checks the submission rules before the deadline. `probe_sources.py` calls each data source live and prints what came back. |
 | `data/raw/` | Downloaded source data (gitignored). |
 | `docs/` | Planning documents (English), architecture, data sources, submission checklist, references, the story outline, and the Data Corn working documents (Spanish). |
 | `firebase.json` | Firebase Hosting of `apps/web/dist`. No Auth, no database: judges must never hit a login. |
@@ -247,7 +247,7 @@ Credentials never go in the repository.
 
 | Source | Role | Priority | Account | In the app today |
 |---|---|---|---|---|
-| NASA POWER daily (incl. `TSOIL1`, `GWETTOP`) | Climate forcing, ET0, year types, planting window | Must | None | Yes |
+| NASA POWER daily (8 parameters, incl. `GWETROOT`, `GWETTOP`) | Climate forcing, ET0, year types, soil wetness. The planting window is simulated from this forcing; soil temperature (`TSOIL1`) is not requested | Must | None | Yes |
 | USDA NRCS SSURGO via Soil Data Access | Soil water-holding capacity | Must | None | Yes |
 | USDA NASS Crop Sequence Boundaries / CDL | Current rotation of the pilot field (read once) | Must | None | Yes, the CDL through CropScape |
 | SMAP `SPL3SMP_E.006` via AppEEARS | Consistency check of simulated soil moisture | Should | Earthdata Login | No: the AppEEARS loader is not built ([#44](https://github.com/RikepilB/Data_corn/issues/44)). SMAP L4 through Earth Engine is written, never run |
@@ -256,7 +256,7 @@ Credentials never go in the repository.
 | GRACE / GRACE-FO | Regional water-storage context (about 300 km, not one field) | Should | Earthdata Login | No ([#47](https://github.com/RikepilB/Data_corn/issues/47)) |
 | OpenET | Field evapotranspiration cross-check | Could | API key | Earth Engine adapter written, never run |
 
-Product versions, access, probes, licences and fallbacks for each source: [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md), which still follows the original plan; reconciling it with what the app calls is [#16](https://github.com/RikepilB/Data_corn/issues/16). Licences and citations: [docs/REFERENCES.md](docs/REFERENCES.md).
+Product versions, access, probes, licences and fallbacks for each source: [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md), reconciled with what the app calls and probed live on 2026-11-15 ([#16](https://github.com/RikepilB/Data_corn/issues/16)); `python scripts/probe_sources.py` repeats the probes. Licences and citations: [docs/REFERENCES.md](docs/REFERENCES.md).
 
 The app also uses sources that were not in the plan: the FCC Census Area API, NOAA CPC ONI (El Niño / La Niña), the NASA GIBS globe layers and ISRIC SoilGrids; they are in the table under [What works today](#what-works-today). The Earth Engine sources (PRISM, ERA5-Land, SMAP L4, HLS, Sentinel-2, OpenET, NASADEM) are written but have never run; [apps/README.md](apps/README.md) lists more.
 
@@ -380,7 +380,13 @@ Milestones (all times PET, UTC-5): M0 Setup, Sat 14:30 · M1 Checkpoint 1, Sat 1
 
 ## Use of Super Intelligence (SI)
 
-The 2026 rules say "SI" where earlier years said "AI". This repository was scaffolded with SI assistance: Claude Code (Anthropic) helped with the project structure, the contract draft, the planning documents and this README. The Data Corn skeleton (`apps/`, `infra/` and the Spanish documents in `docs/`) was also written with Claude Code; its commit credits Claude Opus 5.5 as co-author. The solution idea and the design decisions came from Team DataCorn. SI-assisted source files and documents say so in a header comment, with the name of the team member who reviewed them; the files added with the skeleton are still to be brought in line ([#66](https://github.com/RikepilB/Data_corn/issues/66)). Any SI-generated image or video in the demo carries a visible watermark. Other SI tools, if used, are listed here before submission ([#66](https://github.com/RikepilB/Data_corn/issues/66)).
+The 2026 rules say "SI" where earlier years said "AI". Team DataCorn used SI as a coding and writing assistant, under the team's direction and with human review.
+
+- **Tools.** Claude Code (Anthropic), credited as co-author in the commits it helped write (Claude Fable 5.2, Opus 5.5 and Sonnet 5.5). Codex (OpenAI) helped write the relative erosion index ([#46](https://github.com/RikepilB/Data_corn/issues/46)).
+- **What SI helped with.** Most of the code in `apps/` and `scripts/`, the tests, the planning documents, the GitHub issues, the summaries of the sources we read, and this README. Read every source file and document here as SI-assisted unless its header says otherwise. The header `SI-assisted (<tool>); reviewed by <name>` names a reviewer only after that person has read the file ([#66](https://github.com/RikepilB/Data_corn/issues/66)).
+- **What did not come from SI.** The solution idea, the choice of challenge and the design decisions came from Team DataCorn. Every number in a real report is computed by the engine from public data (NASA POWER, SSURGO, CDL, MODIS, NOAA) with the methods cited in [REFERENCES.md](docs/REFERENCES.md); no SI model writes or estimates those values. The sample report shown without the API, labelled "Sample data", uses illustrative values produced by code written with SI assistance (`apps/web/src/application/mock.ts`). They are not results.
+- **No SI at run time.** The API and the web app call no SI model and have no SI dependency.
+- **Media.** The only image in the app is the favicon, a small SVG written as code with SI assistance. Any SI-generated image, video or audio in the demo or the slides carries a visible watermark and is listed here. No NASA logo or insignia appears anywhere.
 
 ## Licence
 
