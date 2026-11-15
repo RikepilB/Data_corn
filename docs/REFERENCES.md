@@ -71,4 +71,5 @@ Owner: Hildemaro (proposed). Status values: `planned` → `used` → `verified`.
 
 | Tool | What it did | Where labelled |
 |---|---|---|
-| Claude Code (Anthropic) | Repository scaffold, contract draft, planning docs, code assistance | README, file headers |
+| Claude Code (Anthropic) | Repository scaffold, most of the code and tests, planning docs, issues, source summaries; credited in commits as Claude Fable 5.2, Opus 5.5 and Sonnet 5.5 | README "Use of Super Intelligence (SI)", file headers, `Co-Authored-By` commit trailers, package descriptions |
+| Codex (OpenAI) | Relative erosion index code and tests ([#46](https://github.com/RikepilB/Data_corn/issues/46)) | File header of `apps/api/src/datacorn/domain/agronomy/erosion.py`, README |
