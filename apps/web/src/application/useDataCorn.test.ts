@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FieldFormValues } from '../domain/inputs';
 import type { PrecomputedReport } from '../infrastructure/precomputed';
-import { matchesPrecomputed } from './useDataCorn';
+import { matchesPrecomputed, pickPrecomputed } from './useDataCorn';
 
 const inputs = {
   season: 2027,
@@ -32,5 +32,29 @@ describe('matchesPrecomputed', () => {
   it('rejects any other changed value', () => {
     expect(matchesPrecomputed({ ...form, irrigation: 'pivot' }, pre)).toBe(false);
     expect(matchesPrecomputed({ ...form, planting_date: '2027-05-01' }, pre)).toBe(false);
+  });
+});
+
+describe('pickPrecomputed', () => {
+  const variants = ['pivot', 'furrow', 'drip'].map((irrigation) => ({ inputs: { ...inputs, irrigation } }));
+  const withVariants = { analyze: { inputs }, variants } as unknown as PrecomputedReport;
+
+  it('returns the default report for the untouched form', () => {
+    expect(pickPrecomputed(form, withVariants)).toBe(withVariants.analyze);
+  });
+
+  it('picks the variant computed with the chosen irrigation', () => {
+    expect(pickPrecomputed({ ...form, irrigation: 'pivot' }, withVariants)).toBe(variants[0]);
+    expect(pickPrecomputed({ ...form, irrigation: 'drip' }, withVariants)).toBe(variants[2]);
+  });
+
+  it('returns null when another value changed too', () => {
+    expect(pickPrecomputed({ ...form, irrigation: 'pivot', planting_date: '2027-05-01' }, withVariants)).toBeNull();
+    expect(pickPrecomputed({ ...form, irrigation: 'pivot', irrigation_capacity_mm_day: 8 }, withVariants)).toBeNull();
+  });
+
+  it('still works with a file written without variants', () => {
+    expect(pickPrecomputed(form, pre)).toBe(pre.analyze);
+    expect(pickPrecomputed({ ...form, irrigation: 'pivot' }, pre)).toBeNull();
   });
 });
