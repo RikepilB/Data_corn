@@ -3,7 +3,9 @@
 //   npm run chat:stress                             -> offline: request fuzz + grader self-test (no network)
 //   OPENROUTER_API_KEY=... npm run chat:stress -- --live [--model id] [--only id]
 // Live mode sends the shipped example report's questions to the model: about 30 calls.
+// STRESS_BUDGET_USD caps the live run's spending (default 3 dollars); it stops when reached.
 import { writeFileSync } from 'node:fs';
+import { withBudget } from './budget';
 import { handleChat } from './handler';
 import { createRateLimiter } from './limits';
 import { type ChatModel, createOpenRouterModel } from './openrouter';
@@ -107,9 +109,10 @@ async function fuzz(): Promise<{ name: string; ok: boolean; detail: string }[]> 
     ['report id upper', body({ reportId: 'HAMILTON' }), [400, 404]],
     ['unknown report', body({ reportId: 'nowhere' }), [404]],
     ['non-real report', body({ reportId: 'thomas-ks' }), [404]],
-    ['attachment bad base64', body({ messages: [{ role: 'user', text: 'x', attachment: { type: 'image/jpeg', name: 'a.jpg', data: '***' } }] as never }), [400]],
-    ['attachment wrong magic', body({ messages: [{ role: 'user', text: 'x', attachment: { type: 'application/pdf', name: 'a.pdf', data: SAMPLE_FILES.jpeg } }] as never }), [400]],
-    ['attachment exe type', body({ messages: [{ role: 'user', text: 'x', attachment: { type: 'application/x-msdownload', name: 'a.exe', data: SAMPLE_FILES.pdf } }] as never }), [400]],
+    ['attachment bad base64', body({ messages: [{ role: 'user', text: 'x', attachment: { mediaType: 'image/jpeg', data: '***' } }] as never }), [400]],
+    ['attachment wrong magic', body({ messages: [{ role: 'user', text: 'x', attachment: { mediaType: 'application/pdf', data: SAMPLE_FILES.jpeg } }] as never }), [415]],
+    ['attachment exe type', body({ messages: [{ role: 'user', text: 'x', attachment: { mediaType: 'application/x-msdownload', data: SAMPLE_FILES.pdf } }] as never }), [415]],
+    ['attachment old field names', body({ messages: [{ role: 'user', text: 'x', attachment: { type: 'image/jpeg', name: 'a.jpg', data: SAMPLE_FILES.jpeg } }] as never }), [400]],
     ['proto pollution', JSON.parse('{"__proto__":{"admin":true},"reportId":"hamilton-ne","irrigation":"none","locale":"en","units":"imperial","messages":[{"role":"user","text":"hi"}]}'), [200, 400]],
   ];
   for (const [name, payload, want] of payloads) {
@@ -166,8 +169,13 @@ async function live(argv: string[]) {
   const oi = argv.indexOf('--only');
   const only = oi >= 0 ? argv[oi + 1] : undefined;
   const results: { id: string; ok: boolean; failures: string[]; answer: string; ms: number }[] = [];
+  const cap = Number(process.env.STRESS_BUDGET_USD) || 3;
+  const real = withBudget(createOpenRouterModel({ apiKey, model, referer: 'http://localhost' }), cap);
   for (const c of CASES.filter((x) => !only || x.id === only)) {
-    const real = createOpenRouterModel({ apiKey, model, referer: 'http://localhost' });
+    if (real.spentUsd() >= cap) {
+      console.log(`Spending cap of $${cap.toFixed(2)} reached: stopping before ${c.id}.`);
+      break;
+    }
     const toolTexts = new Set<string>();
     const recorder: ChatModel = {
       async *stream(req) {
@@ -197,7 +205,9 @@ async function live(argv: string[]) {
   const out = process.env.STRESS_OUT ?? 'stress-results.json';
   writeFileSync(out, JSON.stringify({ model: model ?? 'default', results }, null, 2));
   const bad = results.filter((r) => !r.ok).length;
-  console.log(`\n${results.length - bad}/${results.length} passed. Details: ${out}`);
+  console.log(
+    `\n${results.length - bad}/${results.length} passed. Spent $${real.spentUsd().toFixed(4)} in ${real.calls()} model calls. Details: ${out}`,
+  );
 }
 
 async function main() {
