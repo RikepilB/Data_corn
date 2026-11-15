@@ -78,6 +78,13 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
     await expect(page.locator('.legend--zones')).toContainText('Greener');
   }
 
+  // The PDF downloads, and a link to the same file stays for browsers that ignore the
+  // download (iPhone Safari, browsers inside apps).
+  const download = page.waitForEvent('download', { timeout: 45_000 });
+  await page.getByRole('button', { name: 'Download full report (PDF)' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^data-corn_.*\.pdf$/);
+  await expect(page.getByRole('link', { name: 'open it here' })).toHaveAttribute('href', /^blob:/);
+
   // "Change details" opens the form; while nothing changed, → shows the same results again
   // without a new run.
   await nav.getByRole('button', { name: 'Change details' }).click();

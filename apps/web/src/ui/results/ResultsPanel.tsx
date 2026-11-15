@@ -9,7 +9,8 @@ import { RiskBadge } from '../common/RiskBadge';
 import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
-import { warmPdf } from '../pdf/download';
+import { type PdfFile, warmPdf } from '../pdf/download';
+import { isInAppBrowser } from '../pdf/inApp';
 import { buildCards } from './cards';
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
   mock: boolean;
   pdfBusy: boolean;
   pdfError: boolean;
+  /** The PDF built for this report, to open by a tap when the browser ignored the download. */
+  pdfFile: PdfFile | null;
   onPdf: () => void;
   onChange: () => void;
   onNew: () => void;
@@ -50,6 +53,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   mock,
   pdfBusy,
   pdfError,
+  pdfFile,
   onPdf,
   onChange,
   onNew,
@@ -60,6 +64,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   const { locale } = ctx;
   const calm = useDisplayPrefs().calm;
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
+  const inApp = useMemo(() => isInAppBrowser(navigator.userAgent), []);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
@@ -176,6 +181,15 @@ export const ResultsPanel = memo(function ResultsPanel({
           {t(locale, 'results.pdf_error')}
         </p>
       )}
+      {pdfFile && !pdfBusy && (
+        <p className="pdf-ready" role="status">
+          {t(locale, 'results.pdf_ready')}{' '}
+          <a className="link" href={pdfFile.url} download={pdfFile.name} target="_blank" rel="noopener">
+            {t(locale, 'results.pdf_open')}
+          </a>
+        </p>
+      )}
+      {inApp && <p className="pdf-ready">{t(locale, 'results.pdf_inapp')}</p>}
       <div className="results__links">
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
