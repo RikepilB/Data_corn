@@ -781,6 +781,23 @@ p {
   color: var(--ink-2);
 }
 
+.search__note svg,
+.search__note .spinner {
+  flex: none;
+  margin-top: 3px;
+}
+
+.search__retry {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .search__row {
   display: flex;
   gap: 8px;
@@ -885,6 +902,19 @@ p {
   border: 1px solid var(--ink);
   border-radius: var(--r-sm);
   font-size: var(--fs-sm);
+}
+
+.draw-bar__note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+
+.draw-bar__note svg {
+  flex: none;
+  margin-top: 2px;
 }
 
 .draw-bar__actions {

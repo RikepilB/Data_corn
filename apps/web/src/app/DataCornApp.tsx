@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBackButton } from '../application/useBackButton';
 import { backDepth, previousStep, useDataCorn } from '../application/useDataCorn';
 import { useDay } from '../application/dayStore';
+import { COARSE_ZOOM, type LocateIssue, isCoarse, locate } from '../application/locate';
 import { mockEnso } from '../application/mock';
 import { type Film, useFilm } from '../application/useFilm';
 import { type FormatContext, dayLabel, frameLabel, messageText, monthYear } from '../domain/format';
@@ -36,7 +37,7 @@ import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '.
 import { FieldTag, tagAnchor } from '../ui/map/FieldTag';
 import { softwareRendering } from '../ui/map/gpu';
 import { MapView } from '../ui/map/MapView';
-import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
+import { cancelFlight, fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
 import { bucketColor, waterBucket } from '../ui/map/fillBucket';
 import { setClimate, setField, setFieldFill, setOverlay, setZones } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
@@ -93,7 +94,7 @@ export default function DataCornApp() {
   const [globeTime, setGlobeTime] = useState<string>('');
   const [flying, setFlying] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [denied, setDenied] = useState(false);
+  const [locateIssue, setLocateIssue] = useState<LocateIssue | null>(null);
   const [drawError, setDrawError] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
@@ -218,8 +219,16 @@ export default function DataCornApp() {
     const bottom = !desktop && onGlobe ? 280 : 0;
     const pad = map.getPadding();
     if (pad.left === left && pad.bottom === bottom) return;
-    const zoom = onGlobe && !desktop && map.getZoom() > 1.15 ? 1.05 : undefined;
-    map.easeTo({ padding: { left, right: 0, top: 0, bottom }, zoom, duration: reducedMotion() ? 0 : 700 });
+    // Back from a field, this ease replaces the one backToGlobe started, so it carries the globe
+    // view too; with the padding alone the first panel stayed over a map zoomed into the field.
+    const far = onGlobe && map.getZoom() > 3.2;
+    const zoom = onGlobe && !desktop && map.getZoom() > 1.15 ? 1.05 : far ? GLOBE_VIEW.zoom : undefined;
+    map.easeTo({
+      padding: { left, right: 0, top: 0, bottom },
+      zoom,
+      ...(far ? { center: GLOBE_VIEW.center } : {}),
+      duration: reducedMotion() ? 0 : far ? 2600 : 700,
+    });
   }, [map, step, desktop]);
 
   // Encuadra el lote al entrar a cada paso (no en cada cambio de puntos)
@@ -240,14 +249,20 @@ export default function DataCornApp() {
     }
   }, [dc]);
   useDrawing(map, step === 'draw', dc.points, dc.setPoints, tryClose);
-  useEffect(() => setDrawError(false), [dc.points.length]);
+  useEffect(() => {
+    setDrawError(false);
+    if (dc.points.length) setLocateIssue(null);
+  }, [dc.points.length]);
 
   // --- Acciones del globo ------------------------------------------------------------------
   // Un toque antes de que el mapa cargue (red lenta en el teléfono) queda en espera y se
   // ejecuta al cargar; antes se perdía sin aviso.
   const pendingFlight = useRef<{ center: LngLat; zoom: number; then: () => void } | null>(null);
+  const flights = useRef(0);
   const flyThen = useCallback(
     async (center: LngLat, zoom: number, then: () => void) => {
+      flights.current += 1;
+      setLocateIssue(null);
       if (!map) {
         pendingFlight.current = { center, zoom, then };
         setFlying(true);
@@ -255,9 +270,10 @@ export default function DataCornApp() {
       }
       stopSpin();
       setFlying(true);
-      await flyToPlace(map, center, zoom);
+      const end = await flyToPlace(map, center, zoom);
+      if (end === 'superseded') return;
       setFlying(false);
-      then();
+      if (end === 'landed') then();
     },
     [map, stopSpin],
   );
@@ -268,23 +284,23 @@ export default function DataCornApp() {
     void flyThen(p.center, p.zoom, p.then);
   }, [map, flyThen]);
 
-  const onLocate = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setDenied(true);
+  const onLocate = useCallback(async () => {
+    const before = flights.current;
+    setLocating(true);
+    setLocateIssue(null);
+    const fix = await locate();
+    setLocating(false);
+    // The person picked a place or the example while waiting: that choice stands.
+    if (flights.current !== before) return;
+    if (!fix.ok) {
+      setLocateIssue(fix.reason);
       return;
     }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        void flyThen([pos.coords.longitude, pos.coords.latitude], FIELD_ZOOM, dc.startDrawing);
-      },
-      () => {
-        setLocating(false);
-        setDenied(true);
-      },
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
-    );
+    // An approximate position (Wi-Fi or IP) is not the field: a wider view, and the person is told.
+    void flyThen(fix.center, fix.coarse ? COARSE_ZOOM : FIELD_ZOOM, () => {
+      if (fix.coarse) setLocateIssue('coarse');
+      dc.startDrawing();
+    });
   }, [flyThen, dc.startDrawing]);
 
   const onPlace = useCallback(
@@ -316,7 +332,12 @@ export default function DataCornApp() {
       return;
     }
     navigator.geolocation?.getCurrentPosition(
-      (pos) => map.easeTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: FIELD_ZOOM, duration }),
+      (pos) =>
+        map.easeTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: isCoarse(pos.coords.accuracy) ? COARSE_ZOOM : FIELD_ZOOM,
+          duration,
+        }),
       () => undefined,
       { timeout: 10_000, maximumAge: 60_000 },
     );
@@ -333,6 +354,7 @@ export default function DataCornApp() {
   const backToGlobe = useCallback(() => {
     dcBackToGlobe();
     if (map) {
+      cancelFlight(map);
       map.stop();
       map.easeTo({ center: GLOBE_VIEW.center, zoom: GLOBE_VIEW.zoom, duration: reducedMotion() ? 0 : 2600 });
     }
@@ -459,7 +481,7 @@ export default function DataCornApp() {
           <GlobePanel
             locale={locale}
             locating={locating}
-            denied={denied}
+            issue={locateIssue}
             onLocate={onLocate}
             onPlace={onPlace}
             onSample={onSample}
@@ -475,6 +497,7 @@ export default function DataCornApp() {
           locale={locale}
           units={units}
           showError={drawError}
+          coarse={locateIssue === 'coarse'}
           onUndo={() => dc.setPoints((p) => p.slice(0, -1))}
           onClose={tryClose}
           onBack={goBack}
