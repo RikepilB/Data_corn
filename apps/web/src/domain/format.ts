@@ -3,6 +3,7 @@
 import { type Locale, numberLocale, t } from '../i18n';
 import type { Message } from './report';
 import { type UnitSystem, depth, format, temperature } from './units';
+import { dateFormat, numberFormat } from './intl';
 
 export interface FormatContext {
   locale: Locale;
@@ -31,13 +32,13 @@ export function daysBetween(fromIso: string, toIso: string): number {
 }
 
 export function shortDate(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(numberLocale(locale), { day: 'numeric', month: 'short' }).format(
+  return dateFormat(numberLocale(locale), { day: 'numeric', month: 'short' }).format(
     parseIsoDate(iso),
   );
 }
 
 export function longDate(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(numberLocale(locale), {
+  return dateFormat(numberLocale(locale), {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -45,14 +46,40 @@ export function longDate(iso: string, locale: Locale): string {
 }
 
 export function monthYear(iso: string, locale: Locale): string {
-  return new Intl.DateTimeFormat(numberLocale(locale), { month: 'short', year: 'numeric' }).format(
+  return dateFormat(numberLocale(locale), { month: 'short', year: 'numeric' }).format(
     parseIsoDate(iso),
+  );
+}
+
+/** Cuadro de una capa en vivo (hora UTC de GIBS) en hora local: «17:40 · hace 2 h». */
+export function frameLabel(isoUtc: string, locale: Locale, now = Date.now()): string {
+  const d = new Date(isoUtc);
+  const today = new Date(now).toDateString() === d.toDateString();
+  // Solo la hora si es de hoy; si no, también el día («vie 23:30»)
+  const clock = dateFormat(numberLocale(locale), {
+    ...(today ? {} : { weekday: 'short' as const }),
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(d);
+  const minutes = Math.max(0, Math.round((now - d.getTime()) / 60_000));
+  const ago =
+    minutes < 60
+      ? t(locale, 'time.ago_min', { n: minutes })
+      : t(locale, 'time.ago_h', { n: Math.round(minutes / 60) });
+  return `${clock} · ${ago}`;
+}
+
+/** «13 nov 2026» (cuadros diarios). */
+export function dayLabel(iso: string, locale: Locale): string {
+  return dateFormat(numberLocale(locale), { day: 'numeric', month: 'short', year: 'numeric' }).format(
+    parseIsoDate(iso.slice(0, 10)),
   );
 }
 
 export function num(value: number, locale: Locale, digits = 0): string {
   // Sin separador de miles: los parámetros son años, días o conteos («2027», no «2,027»)
-  return new Intl.NumberFormat(numberLocale(locale), {
+  return numberFormat(numberLocale(locale), {
     maximumFractionDigits: digits,
     useGrouping: false,
   }).format(value);

@@ -29,6 +29,7 @@ interface Props {
   onLocale: (l: Locale) => void;
   onUnits: (u: UnitSystem) => void;
   onHome: () => void;
+  onHelp: () => void;
 }
 
 function Segmented<T extends string>({
@@ -60,9 +61,10 @@ function Segmented<T extends string>({
   );
 }
 
-export function TopBar({ locale, units, onLocale, onUnits, onHome }: Props) {
+export function TopBar({ locale, units, onLocale, onUnits, onHome, onHelp }: Props) {
   const fs = useFullscreen();
   const fsLabel = t(locale, fs.on ? 'top.fullscreen_exit' : 'top.fullscreen');
+  const helpLabel = t(locale, 'help.link');
   return (
     <header className="topbar">
       <button type="button" className="brand" onClick={onHome} title={t(locale, 'results.restart')}>
@@ -88,6 +90,11 @@ export function TopBar({ locale, units, onLocale, onUnits, onHome }: Props) {
           onChange={onUnits}
         />
         <DisplayMenu locale={locale} />
+        {/* The word shows only on wide screens; on a phone the icon carries the name (aria-label, title) */}
+        <button type="button" className="helpbtn" onClick={onHelp} aria-label={helpLabel} title={helpLabel}>
+          <Icon name="help" size={20} />
+          <span className="helpbtn__label">{helpLabel}</span>
+        </button>
         {fs.supported && (
           <button
             type="button"

@@ -4,6 +4,7 @@ import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
 import type { FieldReport } from '../../domain/report';
 import { t } from '../../i18n';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 import { RiskBadge } from '../common/RiskBadge';
 import { useDisplayPrefs } from '../common/displayPrefs';
@@ -24,11 +25,14 @@ interface Props {
   /** The PDF built for this report, to open by a tap when the browser ignored the download. */
   pdfFile: PdfFile | null;
   onPdf: () => void;
-  onChange: () => void;
+  /** Back, one step: the details, as they were entered. */
+  onBack: () => void;
+  backLabel: string;
   onNew: () => void;
   /** Back to the globe, where the layers, the search and the example are. */
   onRestart: () => void;
   onAbout: () => void;
+  onHelp: () => void;
   /** Opens the chat assistant. Only passed when the chat is on and the report is the real example. */
   onChat?: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
@@ -57,10 +61,12 @@ export const ResultsPanel = memo(function ResultsPanel({
   pdfError,
   pdfFile,
   onPdf,
-  onChange,
+  onBack,
+  backLabel,
   onNew,
   onRestart,
   onAbout,
+  onHelp,
   onChat,
   filmSlot,
 }: Props) {
@@ -72,20 +78,17 @@ export const ResultsPanel = memo(function ResultsPanel({
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
       <div className="sheet__grip" aria-hidden="true" />
-      {/* Siempre a la vista al desplazarse: cambiar datos, otro lote o volver al globo */}
-      <nav className="results__nav" aria-label={t(locale, 'results.nav')}>
-        <button type="button" className="btn btn--secondary" onClick={onChange}>
-          <Icon name="back" size={18} />
-          {t(locale, 'results.change')}
-        </button>
-        <button type="button" className="btn btn--secondary" onClick={onNew}>
-          <Icon name="pin" size={18} />
-          {t(locale, 'results.new')}
-        </button>
-        <button type="button" className="btn btn--secondary" onClick={onRestart}>
-          <Icon name="globe" size={18} />
-          {t(locale, 'results.restart')}
-        </button>
+      {/* Siempre a la vista al desplazarse: atrás (los datos) y, en segundo plano, otro lote o el globo */}
+      <nav className="results__nav stepnav" aria-label={t(locale, 'nav.steps')}>
+        <BackButton locale={locale} label={backLabel} onClick={onBack} />
+        <div className="stepnav__more">
+          <button type="button" className="link" onClick={onNew}>
+            {t(locale, 'results.new')}
+          </button>
+          <button type="button" className="link" onClick={onRestart}>
+            {t(locale, 'results.restart')}
+          </button>
+        </div>
       </nav>
       <div className="results__tags">
         <span className="tag tag--plain">{t(locale, 'results.campaign', { season: report.inputs?.season ?? '' })}</span>
@@ -201,6 +204,9 @@ export const ResultsPanel = memo(function ResultsPanel({
       <div className="results__links">
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
+        </button>
+        <button type="button" className="link" onClick={onHelp}>
+          {t(locale, 'help.link')}
         </button>
       </div>
       <p className="disclaimer">

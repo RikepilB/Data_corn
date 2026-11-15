@@ -170,6 +170,10 @@ class SeasonRun:
     flowering_deficit_mm: float
     flowering_heat_days: int
     relative_yield: float  # 1 = sin pérdida por agua
+    rain_mm: tuple[float, ...] = ()  # lluvia diaria
+    irrigation_mm: tuple[float, ...] = ()  # riego neto diario (0 en secano)
+    yield_pct: tuple[float, ...] = ()  # rendimiento relativo acumulado (100 = sin pérdida)
+    stress_pct: int = 50  # agua disponible (%) por debajo de la cual empieza el estrés
 
 
 @dataclass(frozen=True, slots=True)

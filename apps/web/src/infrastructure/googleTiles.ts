@@ -72,7 +72,7 @@ export async function addGoogleSatellite(
     },
     map.getLayer('field-fill') ? 'field-fill' : undefined,
   );
-  if (map.getLayer('eox')) map.setLayoutProperty('eox', 'visibility', 'none');
+  for (const id of ['eox', 'naip']) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
   const refresh = async () => onCredit(map.getZoom() >= 5 ? await viewportCopyright(map, session) : null);
   map.on('moveend', refresh);
   void refresh();

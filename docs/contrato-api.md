@@ -8,6 +8,7 @@ Los tipos exactos viven en `apps/api/src/datacorn/domain/report.py` (Python) y e
 |---|---|
 | `POST /api/v1/fields/describe` `{geometry, season}` | Al cerrar el lote, en el paso 3 «Calculando». Descarga y deja en caché todos los datos del lote, así que puede tardar de 10 a 40 s. |
 | `POST /api/v1/fields/analyze` `{geometry, season, planting_date, hybrid_rm_days, irrigation, irrigation_capacity_mm_day, tillage, yield_goal_t_ha, previous_crop}` | Al pulsar «Ver resultados». Usa la caché, así que tarda menos de 2 s. |
+| `GET /api/v1/enso` | Al abrir la web: indicador de El Niño del globo. Devuelve `{current, recent}` con el ONI de NOAA (trimestre actual y los últimos 3 años). |
 | `GET /api/v1/health`, `/regions`, `/demo-fields` | Apoyo |
 
 Errores: `422 invalid_geometry {reason}`, `422 data_unavailable {source, reason}`, `501 not_implemented {detail}`.
@@ -57,6 +58,12 @@ Qué revisar en campo (`field_check.key`): `check.soil_probe`, `check.scout_silk
 - `runs[]` trae una campaña por año análogo, ordenadas por año. Si la campaña ya tiene días observados, `observed_days > 0` en todas: esos primeros días son los reales.
 - `typical_year` es el año de la campaña con el rendimiento relativo mediano. Es la que se muestra por defecto.
 - **Película:** el día `i` es `start + i`. Para el lote se usan `water_pct[i]` (0-100) y `tmax_c[i]`. Para el mapa de la zona, se usa la misma fecha de ese año en la capa SMAP de GIBS (hay datos desde 2015-03-31).
+- **Series de la película** (opcionales; la web funciona sin ellas):
+  - `rain_mm[i]`: lluvia del día (mm). `irrigation_mm[i]`: riego neto del día (mm; 0 en secano).
+  - `yield_pct[i]`: rendimiento relativo acumulado (100 = sin pérdida). Solo baja: `100 · (1 − Ky · Σ(ETm − ETa) hasta i / ΣETm)`, y en la madurez coincide con `100 · relative_yield`.
+  - `stress_pct`: agua disponible (%) por debajo de la cual empieza el estrés (mediana de `1 − p` de FAO-56). La web dibuja esa línea y sombrea lo que queda debajo.
+- **Rango de los años:** la banda gris son los percentiles 10 y 90 de `water_pct[i]` de todos los `runs`, alineados por días desde la siembra.
+- **Momentos clave** (los calcula la web, `domain/film.ts`): pérdida de rendimiento ≥ 2 puntos en una etapa, inicio del estrés, ola de calor (≥ 3 días ≥ 35 °C), lluvia ≥ 25 mm en un día e inicio del riego. Como mucho 5, separados al menos 10 días; la película se detiene 1,5 s en cada uno.
 - **Franjas:** cada `run` es una franja. Su color sale de `relative_yield` (1.0 = azul, ≤ 0.7 = rojo) y lleva una marca si `enso_phase` es `el_nino` o `la_nina`.
 - **«Años El Niño»:** en la película es la campaña con el rendimiento relativo mediano entre los años con El Niño.
 

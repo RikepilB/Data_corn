@@ -48,14 +48,16 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   // so the results carry no "Sample data" tag.
   await expect(page.locator('.results .tag--warn')).toHaveCount(0);
 
-  // The results navigation stays at the top of the panel and fits the screen:
-  // change details, new field, start over.
+  // The results navigation stays at the top of the panel and fits the screen on one line:
+  // Back (to the details) first, then the two secondary ways out, new field and start over.
   const nav = page.locator('.results__nav');
   await expect(nav.getByRole('button')).toHaveCount(3);
+  await expect(nav.getByRole('button').first()).toHaveText('Back');
   const box = await nav.boundingBox();
   const width = page.viewportSize()!.width;
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+  expect(box!.height).toBeLessThan(70);
 
   // Rotation panel (#42, #51): three strategies, at most one current, five headings each,
   // and the stated gap about water between crops.
@@ -85,12 +87,20 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   expect((await download).suggestedFilename()).toMatch(/^data-corn_.*\.pdf$/);
   await expect(page.getByRole('link', { name: 'open it here' })).toHaveAttribute('href', /^blob:/);
 
-  // "Change details" opens the form; while nothing changed, → shows the same results again
+  // "Back" opens the form; while nothing changed, → shows the same results again
   // without a new run.
-  await nav.getByRole('button', { name: 'Change details' }).click();
+  await nav.getByRole('button', { name: 'Back to the details' }).click();
   await page.getByRole('button', { name: 'Back to the results' }).click();
   await expect(nav).toBeVisible();
   await expect(page.locator('.results .tag--warn')).toHaveCount(0);
+
+  // The browser's Back button is the same Back: from the results to the details, without
+  // leaving the site or losing ?mock=1.
+  await page.goBack();
+  await expect(page.getByRole('button', { name: 'See results' })).toBeVisible();
+  expect(page.url()).toContain('?mock=1');
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(nav).toBeVisible();
 
   // "Start over" goes back to the globe, where the example can be opened again.
   await nav.getByRole('button', { name: 'Start over' }).click();
@@ -107,4 +117,181 @@ test('the example tapped right away reaches the results', async ({ page }) => {
 // Tapped once the globe has settled: framing the field must fit beside the panel.
 test('the example tapped after the globe settles reaches the results', async ({ page }) => {
   await exampleToResults(page, { waitForGlobe: true });
+});
+
+// Help from the live-demo feedback: questions, suggestions and support in one dialog. The globe card
+// has a Help link too, so the button is looked up inside the top bar.
+test('help opens from the top bar, switches tabs and closes with Escape', async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (err) => pageErrors.push(err.message));
+  await page.goto('/?mock=1');
+
+  const helpButton = page.locator('.topbar').getByRole('button', { name: 'Help', exact: true });
+  await expect(helpButton).toBeInViewport({ ratio: 1 });
+  await helpButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Help', exact: true });
+  await expect(dialog).toBeVisible();
+  const questions = dialog.getByRole('tab', { name: 'Questions', exact: true });
+  await expect(questions).toHaveAttribute('aria-selected', 'true');
+  await expect(dialog.getByRole('tabpanel', { name: 'Questions', exact: true })).toContainText('Is this a forecast?');
+
+  await dialog.getByRole('tab', { name: 'Suggestions', exact: true }).click();
+  const suggestions = dialog.getByRole('tabpanel', { name: 'Suggestions', exact: true });
+  await expect(suggestions).toBeVisible();
+  // GitHub until the team sets SUPPORT_EMAIL (ui/common/contact.ts), then an e-mail
+  const link = suggestions.getByRole('link', { name: /^Send a suggestion (on GitHub|by email)/ });
+  await expect(link).toHaveAttribute('href', /^(https:\/\/github\.com\/RikepilB\/Data_corn\/issues\/new\?title=|mailto:)/);
+  if ((await link.getAttribute('href'))!.startsWith('https:')) {
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+  }
+
+  // Arrow keys move along the tabs (roving tabindex); Home goes back to the first one.
+  await page.keyboard.press('ArrowRight');
+  await expect(dialog.getByRole('tab', { name: 'Support', exact: true })).toBeFocused();
+  await expect(dialog.getByRole('tabpanel', { name: 'Support', exact: true })).toContainText('device and browser');
+  await page.keyboard.press('Home');
+  await expect(questions).toBeFocused();
+  await expect(questions).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+});
+
+// A field drawn by hand: one "Back" on every step, to the screen before, and nothing entered is
+// lost by going back and forward again.
+test('Back goes one step back and keeps the work', async ({ page, context }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (err) => pageErrors.push(err.message));
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 41.2, longitude: -97.5 });
+  await page.goto('/?mock=1');
+
+  const back = page.locator('.backbtn');
+  const example = page.getByRole('button', { name: 'See an example' });
+  const close = page.getByRole('button', { name: 'Close field' });
+  const submit = page.getByRole('button', { name: 'See results' });
+  const corners = page.locator('.draw-bar__info .muted');
+  const rm = page.locator('.stepper output');
+
+  // Draw step, nothing tapped yet: Undo and Close field cannot act, Back returns to the globe.
+  await page.getByRole('button', { name: 'Go to my location' }).click();
+  await expect(corners).toHaveText('0 corners', { timeout: 30_000 });
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  await expect(close).toBeDisabled();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the globe');
+  await back.click();
+  await expect(example).toBeVisible({ timeout: 15_000 });
+
+  // Draw a field and reach the details.
+  await page.getByRole('button', { name: 'Go to my location' }).click();
+  await expect(corners).toHaveText('0 corners', { timeout: 30_000 });
+  const { width, height } = page.viewportSize()!;
+  const [x0, x1, y0, y1] = width >= 900 ? [0.3, 0.5, 0.3, 0.5] : [0.3, 0.7, 0.18, 0.3];
+  for (const [fx, fy] of [
+    [x0, y0],
+    [x1, y0],
+    [x1, y1],
+    [x0, y1],
+  ]) {
+    await page.mouse.click(width * fx!, height * fy!);
+    await page.waitForTimeout(300);
+  }
+  await expect(corners).toHaveText('4 corners');
+  await close.click();
+  await expect(submit).toBeVisible({ timeout: 45_000 });
+
+  // Details: Back returns to the drawing with the corners kept; closing the same field again
+  // returns to the details as they were, without reading the field again.
+  await page.getByRole('button', { name: 'More days' }).click();
+  const chosen = await rm.textContent();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the field');
+  await back.click();
+  await expect(corners).toHaveText('4 corners');
+  await close.click();
+  await expect(submit).toBeVisible({ timeout: 1_000 });
+  await expect(rm).toHaveText(chosen!);
+
+  // Results: Back returns to the details as entered; forward shows the same results at once.
+  await submit.click();
+  const verdict = page.locator('.verdict__text');
+  await expect(verdict).toBeVisible({ timeout: 45_000 });
+  const text = await verdict.textContent();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the details');
+  await back.click();
+  await expect(rm).toHaveText(chosen!);
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(verdict).toHaveText(text!, { timeout: 1_000 });
+
+  // The browser's Back button walks the same steps: details, drawing (corners kept), globe.
+  await page.goBack();
+  await expect(rm).toHaveText(chosen!);
+  await page.goBack();
+  await expect(corners).toHaveText('4 corners');
+  await page.goBack();
+  await expect(example).toBeVisible({ timeout: 15_000 });
+  expect(page.url()).toContain('?mock=1');
+
+  expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+});
+
+// "Go to my location" (the first button of the app). The position only moves the map.
+const NEBRASKA = { latitude: 40.88, longitude: -98 };
+
+test.describe('go to my location, permission granted', () => {
+  test.use({ geolocation: { ...NEBRASKA, accuracy: 20 }, permissions: ['geolocation'] });
+
+  test('a precise position flies to the field and opens the draw step', async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-hint')).toContainText('Tap the corners of your field');
+    await expect(page.locator('.draw-bar__note')).toHaveCount(0);
+
+    // Back to the globe: the first panel returns with its three choices.
+    await page.getByRole('button', { name: 'Back to the globe' }).click();
+    await expect(page.getByRole('button', { name: 'Go to my location' })).toBeEnabled({ timeout: 15_000 });
+    expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+  });
+});
+
+test.describe('go to my location, approximate position', () => {
+  // Desktop browsers locate by Wi-Fi or IP: kilometres off, so it is not shown as the field.
+  test.use({ geolocation: { ...NEBRASKA, accuracy: 5000 }, permissions: ['geolocation'] });
+
+  test('opens the draw step and says the location is approximate', async ({ page }) => {
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-bar__note')).toContainText('approximate location');
+  });
+});
+
+test.describe('go to my location, permission denied', () => {
+  test.use({ permissions: [] });
+
+  test('says why, and the search still reaches the draw step', async ({ page }) => {
+    await page.goto('/?mock=1');
+    await page.getByRole('button', { name: 'Go to my location' }).click();
+
+    await expect(page.locator('.search__note')).toContainText('Location is blocked for this site');
+    // Typed coordinates need no network.
+    await page.getByLabel('Search a place').fill('40.88, -98');
+    await page.getByLabel('Search a place').press('Enter');
+    await page.getByRole('button', { name: '40.8800, -98.0000' }).click();
+
+    await expect(page.locator('.app')).toHaveClass(/step-draw/, { timeout: 20_000 });
+    await expect(page.locator('.draw-bar__note')).toHaveCount(0);
+  });
 });

@@ -5,6 +5,7 @@ import { type LngLat, areaHa, centroid, ringOf } from '../domain/geo';
 import type { FieldFormValues } from '../domain/inputs';
 import type {
   DescribeFieldResult,
+  EnsoOverview,
   EnsoPhase,
   FieldReport,
   Indicator,
@@ -68,6 +69,7 @@ export async function mockDescribe(geometry: PolygonGeometry, season: number): P
 
 const LENGTH = 152;
 const FLOWER = [70, 90] as const;
+const STRESS = 45;
 
 function stagesFor(start: string): StageWindow[] {
   return [
@@ -86,19 +88,40 @@ function makeRun(year: number, start: string, irrigated: boolean): SeasonRun {
   const dryness = irrigated ? 0 : DRY.get(year) ?? rand() * 0.2;
   const water: number[] = [];
   const tmax: number[] = [];
+  const rain: number[] = [];
+  const irrigation: number[] = [];
   let w = 72 + rand() * 10;
   for (let i = 0; i < LENGTH; i++) {
     const summer = Math.sin((Math.PI * i) / LENGTH);
     w -= 0.6 + 1.1 * summer * (1 + dryness);
-    if (rand() < 0.14) w += 6 + rand() * 18 * (1 - dryness);
-    if (irrigated && w < 55) w += 14;
+    let r = 0;
+    if (rand() < 0.14) {
+      r = 6 + rand() * 18 * (1 - dryness);
+      if (rand() < 0.12) r += 22;
+      w += r * 0.8;
+    }
+    let irr = 0;
+    if (irrigated && w < 55) {
+      irr = 25;
+      w += 14;
+    }
     w = Math.max(4, Math.min(100, w));
     water.push(Math.round(w));
+    rain.push(Math.round(r * 10) / 10);
+    irrigation.push(irr);
     tmax.push(Math.round((20 + 11 * summer + dryness * 5 + (rand() - 0.5) * 6) * 10) / 10);
   }
   const flowerWater = water.slice(FLOWER[0], FLOWER[1] + 1);
   const minW = Math.min(...flowerWater);
   const rel = Math.min(1, Math.max(0.58, 0.6 + (0.4 * minW) / 55));
+  // Rendimiento acumulado: la pérdida total se reparte en los días con estrés (la floración pesa 3×)
+  const weight = water.map((v, i) => Math.max(0, STRESS - v) * (i >= FLOWER[0] && i <= FLOWER[1] ? 3 : 1));
+  const total = weight.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const yieldPct = weight.map((v) => {
+    acc += total > 0 ? v / total : 0;
+    return Math.round((100 - 100 * (1 - rel) * acc) * 10) / 10;
+  });
   const heatDays = tmax.slice(FLOWER[0], FLOWER[1] + 1).filter((t) => t >= 35).length;
   const phase: EnsoPhase = EL_NINO.has(year) ? 'el_nino' : LA_NINA.has(year) ? 'la_nina' : 'neutral';
   return {
@@ -112,7 +135,26 @@ function makeRun(year: number, start: string, irrigated: boolean): SeasonRun {
     flowering_deficit_mm: Math.round((1 - rel) * 180),
     flowering_heat_days: heatDays,
     relative_yield: Math.round(rel * 1000) / 1000,
+    rain_mm: rain,
+    irrigation_mm: irrigation,
+    yield_pct: yieldPct,
+    stress_pct: STRESS,
   };
+}
+
+/** GET /enso de ejemplo: El Niño fuerte en curso (valores tipo ONI). */
+export async function mockEnso(): Promise<EnsoOverview> {
+  await sleep(300);
+  const values = [-0.6, -0.4, -0.2, 0.1, 0.4, 0.7, 1.0, 1.3, 1.5, 1.7, 1.8, 1.7, 1.4, 1.0, 0.6, 0.2, -0.1, -0.3,
+    -0.4, -0.3, -0.1, 0.2, 0.5, 0.8, 1.1, 1.4, 1.7, 2.0, 2.2, 2.4, 2.5, 2.5];
+  const seasons = ['DJF', 'JFM', 'FMA', 'MAM', 'AMJ', 'MJJ', 'JJA', 'JAS', 'ASO', 'SON', 'OND', 'NDJ'];
+  const recent = values.map((value, i) => {
+    const k = i + 1; // JFM 2024 … ASO 2026
+    const year = 2024 + Math.floor(k / 12);
+    const phase: EnsoPhase = value >= 0.5 ? 'el_nino' : value <= -0.5 ? 'la_nina' : 'neutral';
+    return { index: 'ONI', value, phase, period: `${seasons[k % 12]} ${year}` };
+  });
+  return { current: recent[recent.length - 1]!, recent };
 }
 
 function indicator(
@@ -185,7 +227,7 @@ function zonesIndicator(zones: ZonesGeoJSON | null): Indicator {
   const params = { low_pct: ZONE_STATS.low.area_pct, high_pct: ZONE_STATS.high.area_pct, seasons: meta.seasons, spread };
   return {
     ...indicator('field_zones', 'medium', 'field_zones.medium', params, spread, 'ndvi', 'check.scout_field', [meta.source]),
-    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones' },
+    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones_sample' },
     confidence: 'high',
   };
 }

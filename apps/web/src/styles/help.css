@@ -1,0 +1,126 @@
+/* SI-assisted (Claude Code); reviewed by <name>
+   The Help dialog (questions, suggestions, support), the Help button of the top bar and the Help link
+   beside About on the globe card. The dialog's box is the About dialog's (.about in global.css). */
+
+/* --- Help button in the top bar: the Display button's look -------------------------------- */
+.helpbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--target);
+  min-height: var(--target);
+  padding: 0 var(--sp-3);
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* The word fits beside "Aa Display" and full screen only from this width (measured in Spanish) */
+@media (max-width: 899px) {
+  .helpbtn {
+    padding: 0;
+  }
+
+  .helpbtn__label {
+    display: none;
+  }
+}
+
+/* Room for the Help button on a phone. With every control at the 44px tap size the bar needs 420px,
+   more with large text. So on a phone the gaps tighten, the brand may stack on two lines, and on the
+   narrowest screens it steps aside: "Start over" and "Back to the globe" in the panels still lead home. */
+@media (max-width: 479px) {
+  .topbar {
+    gap: 8px;
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+  }
+
+  .topbar__tools {
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  /* Free to wrap: the flex row breaks "Data Corn" in two only when one line does not fit */
+  .brand {
+    line-height: 1.05;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .display__button {
+    justify-content: center;
+    min-width: var(--target);
+    padding: 0;
+  }
+}
+
+@media (max-width: 339px) {
+  .brand {
+    display: none;
+  }
+}
+
+/* --- Globe card: About · Help on one row ---------------------------------------------------- */
+.globe-panel__more {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+}
+
+/* --- Dialog: tabs ------------------------------------------------------------------------- */
+.help__tabs {
+  display: flex;
+  flex-wrap: wrap; /* one row from 390px at standard text; on a narrower phone the third tab wraps */
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.help__tabs .chip {
+  padding: 0 10px;
+}
+
+.help__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+/* display: flex above would otherwise win over the hidden attribute */
+.help__panel[hidden] {
+  display: none;
+}
+
+/* --- Questions: one fold per question ------------------------------------------------------- */
+.help__q {
+  border-top: var(--bw) solid var(--line-soft);
+}
+
+.help__q:last-child {
+  border-bottom: var(--bw) solid var(--line-soft);
+}
+
+.help__q > summary {
+  padding: 10px 0; /* 44px with one line of text */
+  font-weight: 700;
+  line-height: var(--lh-body);
+  cursor: pointer;
+}
+
+.help__q > p {
+  padding-bottom: 12px;
+}
+
+/* --- Suggestions and support: one action each ------------------------------------------------ */
+.help__cta {
+  align-self: stretch;
+  padding: 8px var(--sp-4);
+  text-align: center;
+  text-decoration: none;
+}
