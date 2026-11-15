@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 // What must never break in front of judges: the page opens, the example reaches the
 // results, the disclaimer is visible, there is no login, and nothing throws.
 
-test('the example field goes from the globe to the results', async ({ page }) => {
+async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: boolean }) {
   const pageErrors: string[] = [];
   page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -17,7 +17,12 @@ test('the example field goes from the globe to the results', async ({ page }) =>
   const mapBox = await page.locator('.mapwrap .map').boundingBox();
   expect(mapBox?.height).toBe(viewport.height);
 
-  // Tapped right away, before the map has loaded: the flight must wait, not get lost.
+  if (waitForGlobe) {
+    // Let the map load and ease the globe beside the card, as a person would see it.
+    await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+    await page.waitForTimeout(2_000);
+  }
+
   await page.getByRole('button', { name: 'See an example' }).click();
 
   // Mock describe takes about 4 s after the camera flight.
@@ -31,4 +36,14 @@ test('the example field goes from the globe to the results', async ({ page }) =>
   await expect(page.locator('input[type=password]')).toHaveCount(0);
 
   expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+}
+
+// Tapped right away, before the map has loaded: the flight must wait, not get lost.
+test('the example tapped right away reaches the results', async ({ page }) => {
+  await exampleToResults(page, { waitForGlobe: false });
+});
+
+// Tapped once the globe has settled: framing the field must fit beside the panel.
+test('the example tapped after the globe settles reaches the results', async ({ page }) => {
+  await exampleToResults(page, { waitForGlobe: true });
 });
