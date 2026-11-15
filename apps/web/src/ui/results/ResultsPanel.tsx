@@ -52,7 +52,6 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
         {mock && <span className="tag tag--warn">{t(locale, 'results.mock')}</span>}
       </div>
-      {filmSlot}
 
       <section className={`verdict verdict--${report.summary.risk}`} aria-labelledby="verdict-title">
         <div className="verdict__top">
@@ -78,6 +77,8 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
           </p>
         )}
       </section>
+
+      {filmSlot}
 
       <RotationPanel rotation={report.rotation} locale={locale} />
 

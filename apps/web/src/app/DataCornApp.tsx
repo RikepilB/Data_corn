@@ -113,7 +113,7 @@ export default function DataCornApp() {
     () =>
       desktop
         ? { top: 100, bottom: step === 'results' ? 250 : 90, left: 60, right: 480 }
-        : { top: 120, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
+        : { top: 136, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
     [desktop, step],
   );
 

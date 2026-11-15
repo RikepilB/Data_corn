@@ -134,12 +134,33 @@ p {
 
 .maplibregl-ctrl-attrib {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
 }
 
 .maplibregl-ctrl-attrib.maplibregl-compact {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
   background: var(--paper);
   border-radius: var(--r-sm);
+}
+
+/* Opened: the credit wraps inside the screen, to the right of the 44px (i) button */
+.maplibregl-ctrl-attrib.maplibregl-compact-show {
+  max-width: min(90vw, 28rem);
+  padding: 8px 10px 8px 52px;
+}
+
+/* 44px touch target with a 24px icon, centred */
+.maplibregl-ctrl-attrib-button {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background-size: 24px 24px;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* La atribución va arriba a la derecha cuando hay paneles abajo */
@@ -160,7 +181,8 @@ p {
   background: rgba(255, 255, 255, 0.85);
   color: var(--ink);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
   pointer-events: none;
 }
 
@@ -168,7 +190,7 @@ p {
 .mapbtn {
   position: absolute;
   z-index: 16;
-  top: calc(var(--top) + 60px);
+  top: calc(var(--top) + 64px);
   right: 12px;
   display: inline-flex;
   align-items: center;
@@ -291,6 +313,7 @@ p {
 }
 
 .link {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -518,7 +541,7 @@ p {
   }
 
   .app:has(.mock-banner) .mapbtn {
-    top: calc(var(--top) + 88px);
+    top: calc(var(--top) + 96px);
   }
 }
 
@@ -526,6 +549,10 @@ p {
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Phone: one scrolling row. The fade says there is more; the end padding lets the last chip scroll clear of it */
+  padding-inline-end: 32px;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
 }
 
 .legend {
@@ -649,6 +676,7 @@ p {
 
 .globe-panel__links {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   color: var(--muted);
@@ -1192,6 +1220,7 @@ fieldset.field > legend {
 .stripes__col {
   flex: 1;
   min-width: 0;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1229,6 +1258,29 @@ fieldset.field > legend {
 .stripes__bar.is-poor,
 .sw--hatch {
   background-image: repeating-linear-gradient(-45deg, rgba(17, 17, 19, 0.55) 0 2px, transparent 2px 6px);
+}
+
+.stripes__bar {
+  position: relative;
+}
+
+/* Taller hit area than the narrow bar: 44px high, tap anywhere in the column */
+.stripes__bar::after {
+  content: '';
+  position: absolute;
+  inset: -22px 0;
+}
+
+.stripes__step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.stripes__year {
+  font-family: var(--mono);
+  font-weight: 700;
 }
 
 .stripes__bar:hover {
@@ -1791,6 +1843,25 @@ fieldset.field > legend {
   display: none;
 }
 
+/* Large text: the two globe-card links stack, left-aligned, so no label wraps mid-word */
+html[data-text='large'] .globe-panel__links,
+html[data-text='xlarge'] .globe-panel__links {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+html[data-text='large'] .globe-panel__links > [aria-hidden='true'],
+html[data-text='xlarge'] .globe-panel__links > [aria-hidden='true'] {
+  display: none;
+}
+
+html[data-text='large'] .globe-panel__links .link,
+html[data-text='xlarge'] .globe-panel__links .link {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 /* --- Escritorio ------------------------------------------------------------------------ */
 @media (min-width: 900px) {
   :root {
@@ -1806,6 +1877,9 @@ fieldset.field > legend {
 
   .layerbar .chips {
     flex-wrap: wrap;
+    padding-inline-end: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .step-globe .layerbar {
