@@ -17,7 +17,7 @@ The register of every data source, API and account behind Field Shift. It is the
 | # | Source | Role in the solution | Tier | NASA data | Account | Status |
 |---|---|---|---|---|---|---|
 | S1 | NASA POWER daily point API | Climate forcing, ET0, soil wetness, year types | Must | Yes (NASA LaRC) | None | Verified 2026-11-15: 1981-2025 complete; solar radiation missing for 1981-1983 |
-| S2 | USDA NRCS SSURGO through Soil Data Access | Soil available water, texture | Must | No | None | Verified 2026-11-15: horizons to 200 cm without gaps at the pilot point |
+| S2 | USDA NRCS SSURGO through Soil Data Access | Soil available water, texture | Must | No | None | Verified 2026-11-15 with the app's own query: TAW 209.5 mm/m at the pilot point |
 | S3 | USDA NASS Crop Sequence Boundaries and CDL | Crop history and current rotation | Must | No | None | CDL through CropScape verified 2026-11-15; Crop Sequence Boundaries to verify |
 | S4 | SMAP `SPL3SMP_E.006` through AppEEARS | Consistency check of simulated moisture | Should | Yes (NSIDC DAAC) | Earthdata Login | No adapter; product listed in the CMR on 2026-11-15 |
 | S5 | MODIS `MOD13Q1.061` NDVI, read through the ORNL DAAC service | NDVI crop calendar and bare windows | Should | Yes (LP DAAC, ORNL DAAC) | None | Adapter wired; the service failed on 2026-11-15 (503 and 502) |
@@ -26,14 +26,14 @@ The register of every data source, API and account behind Field Shift. It is the
 | S8 | OpenET | Field evapotranspiration cross-check | Could | Consortium product (Landsat-based) | API key, or Earth Engine | Earth Engine adapter written, never run; decision at Checkpoint 3 |
 | S9 | Microsoft Planetary Computer STAC | NDVI fallback | Fallback | Hosts NASA products | None to read | Root verified 2026-11-14 and 2026-11-15; no adapter |
 | S10 | GPM IMERG, HLS, Copernicus Sentinel-2, Google Earth Engine | Map layer (IMERG); Earth Engine adapters (the rest) | Not in the plan | Partly | Varies | IMERG is on the map; the rest is written and never run; open decision for IMERG ([#16](https://github.com/RikepilB/Data_corn/issues/16)) |
-| S11 | Meteomatics, GLDAS, ICEN | None | Not used | No | None | Not used; the ICEN adapter is a stub |
+| S11 | Meteomatics, GLDAS, ICEN, Earth Engine SoilGrids, ECOSTRESS | None | Not used | No | None | Not used; the ICEN, Earth Engine SoilGrids and ECOSTRESS adapters are stubs |
 | S12 | NASA GIBS map tiles | Map layers on the globe and the field map | In the code | Yes (NASA ESDIS) | None | Verified 2026-11-15: a tile of each of the five layers |
 | S13 | FCC Census Area API | State and county of a US field | In the code | No | None | Verified 2026-11-15 |
 | S14 | USDA NASS QuickStats | County corn-yield history | In the code | No | Free API key | Not probed: no key |
 | S15 | NOAA CPC Oceanic Niño Index | ENSO chip on the verdict | In the code | No | None | Verified 2026-11-15: seasons to ASO 2026 |
 | S16 | ISRIC SoilGrids REST | Soil outside the US, and the fallback inside it | In the code | No | None | Verified 2026-11-15 |
 | S17 | Basemaps, place search and fonts in the browser | Satellite basemap, place search, type | In the code | No | None, or a Google key | EOX and Nominatim verified 2026-11-15 |
-| S18 | Google Earth Engine datasets | SMAP L4, NASADEM, HLS, Sentinel-2, PRISM, ERA5-Land, CDL, OpenET | In the code | Partly | Earth Engine account | Written 2026-11-15, never run |
+| S18 | Google Earth Engine datasets | SMAP L4, NASADEM, HLS, Sentinel-2, MODIS, PRISM, ERA5-Land, CDL, OpenET; NLDAS, TIGER and GAUL stubs | In the code | Partly | Earth Engine account | Written 2026-11-15, never run |
 
 ## 3. Sources in detail
 
@@ -73,27 +73,28 @@ Expected: HTTP 200, `GWETROOT` and `GWETTOP` unitless between 0 and 1 (2026-11-1
 
 | Field | Value |
 |---|---|
-| Role | Soil horizons at the field point give total available water (TAW, mm of water per m of soil) for the twin, and sand, clay and organic matter for `site.soil` in the ficha. TAW is the mean `awc_r` (cm/cm) × 1000 mm/m, depth-weighted to 150 cm and weighted by component percentage. |
-| Product and endpoint | USDA NRCS Soil Data Access, tabular service: `https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest`. POST a JSON body `{"query": <SQL>, "format": "JSON+COLUMNNAME"}`. The query joins `mapunit`, `component` (major components only) and `chorizon` for the map unit at the point. The SSURGO survey version is to be recorded in the provenance (to verify). |
+| Role | Soil at the field point: total available water (TAW, mm of water per m of soil) for the twin, and sand, clay and organic matter of the top horizon for `site.soil` in the ficha. The same row gives the mean slope (`slopegradwta`) to `SsurgoPowerTerrain`. |
+| Product and endpoint | USDA NRCS Soil Data Access, tabular service: `https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest`. The adapter (`infrastructure/ssurgo.py`) posts a JSON body `{"query": <POINT_QUERY>, "format": "JSON+COLUMNNAME"}` with the HTTP client's `post()`. `POINT_QUERY` is one `SELECT TOP 1` row: the map unit at the point (`mapunit`) joined to its aggregated attributes (`muaggatt`: `aws0150wta`, `slopegradwta`) and to its major components (`component`, `majcompflag = 'Yes'`), ordered by `comppct_r` descending, so the row is the **dominant major component**. The texture comes from that component's **top horizon only** (`chorizon` with `hzdept_r = 0`: `sandtotal_r`, `claytotal_r`, `om_r`), left-joined. The row is cached per point. The SSURGO survey version is not read (to verify). |
+| TAW | `aws0150wta` is the area-weighted available water in the top 150 cm of the map unit, in cm. TAW = `aws0150wta` × 10 / 1.5 mm/m. Only when `aws0150wta` is null does the adapter use the texture pedotransfer (Saxton and Rawls 2006) from the top horizon's sand, clay and organic matter. With neither, it raises `DataUnavailable`. No point returns no row: outside coverage, also `DataUnavailable`. |
 | Access and registration | None. |
 | Auth | None. |
-| Coverage | The pilot point is covered. **Verified 2026-11-15** (section 7): one major component, Keith (98 percent), with 5 horizons from 0 to 200 cm, no gaps and `awc_r` in every horizon. Depth-weighted to 150 cm, TAW is 210 mm/m. Other points are not checked. |
+| Coverage | The pilot point is covered. **Verified 2026-11-15** (section 7) with the app's own query: Keith silt loam, 1 to 3 percent slopes, south; dominant component 98 percent; `aws0150wta` 31.42 cm, so TAW 209.5 mm/m; top horizon sand 22 percent, clay 22 percent, organic matter 2.6 percent; slope 2.0 percent. Other points are not checked. |
 | Licence and citation | Public domain, U.S. Government work (verify), per REFERENCES. |
-| Fallback | Cache the response. If the service is slow or down, use a typed texture class with the Saxton and Rawls (2006) estimate, labelled `assumed`. |
-| Status | Access verified 2026-11-14 at 39.36, -100.44: HTTP 200, Keith silt loam, 1 to 3 percent slopes, `awc_r` 0.21, about 210 mm/m. Horizon completeness verified at the pilot point on 2026-11-15 (section 7, [#38](https://github.com/RikepilB/Data_corn/issues/38)). |
+| Fallback | Cache the response. If the service is slow or down, the region profile uses SoilGrids REST (S16); the texture pedotransfer applies only when `aws0150wta` is null. |
+| Status | Verified 2026-11-15 with the app's `POINT_QUERY` at 39.36, -100.44 (`python scripts/probe_sources.py ssurgo`). The earlier probe of 2026-11-14 and the first run of 2026-11-15 used a different, horizon-level query that the app does not run; it stays in the probe only as a completeness cross-check (section 7, [#38](https://github.com/RikepilB/Data_corn/issues/38)). |
 
-The query of Task 4, at the probe point (sketch for a Windows machine; the adapter's `post_json` sends the same body):
+The query the app runs, at the probe point (sketch for a Windows machine; `scripts/probe_sources.py` holds the same SQL, marked to keep in sync with `POINT_QUERY`):
 
 ```powershell
-$sql = "SELECT mu.mukey, mu.muname, c.compname, c.comppct_r, ch.hzdept_r, ch.hzdepb_r, " +
-       "ch.sandtotal_r, ch.claytotal_r, ch.om_r, ch.awc_r " +
+$sql = "SELECT TOP 1 mu.muname, ma.aws0150wta, ma.slopegradwta, c.comppct_r, c.hydgrp, c.drainagecl, " +
+       "h.sandtotal_r, h.claytotal_r, h.om_r " +
        "FROM mapunit mu " +
-       "INNER JOIN component c ON c.mukey = mu.mukey " +
-       "INNER JOIN chorizon ch ON ch.cokey = c.cokey " +
-       "WHERE mu.mukey IN (SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point(-100.44 39.36)')) " +
-       "AND c.majcompflag = 'Yes' " +
-       "ORDER BY c.comppct_r DESC, ch.hzdept_r"
-$body = '{"query": "' + $sql + '", "format": "JSON+COLUMNNAME"}'
+       "INNER JOIN muaggatt ma ON ma.mukey = mu.mukey " +
+       "INNER JOIN component c ON c.mukey = mu.mukey AND c.majcompflag = 'Yes' " +
+       "LEFT JOIN chorizon h ON h.cokey = c.cokey AND h.hzdept_r = 0 " +
+       "WHERE mu.mukey IN (SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point(-100.440000 39.360000)')) " +
+       "ORDER BY c.comppct_r DESC"
+$body = @{ query = $sql; format = "JSON+COLUMNNAME" } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest" -ContentType "application/json" -Body $body
 ```
 
@@ -211,6 +212,8 @@ SoilGrids (S16) and the Oceanic Niño Index (S15) were listed here after the piv
 
 | Source | Why it is not used |
 |---|---|
+| ISRIC SoilGrids through Earth Engine (`projects/soilgrids-isric/sand_mean`, `clay_mean`, `soc_mean`) | The adapter `earthengine/soilgrids.py` (`SoilGridsSoil`) is registered as `soilgrids` but its `profile()` raises `NotImplementedError`, and no region profile lists it. Soil outside the US comes from the REST service (S16). Not probed |
+| ECOSTRESS evapotranspiration (70 m) | The adapter `infrastructure/ecostress.py` is a stub (`NotImplementedError`) registered as `ecostress` and in no region profile; it is not called. Its comment says the product is not in the Earth Engine catalogue and would be read through AppEEARS, which needs an Earthdata account (see section 6). Not probed |
 | Índice Costero El Niño (ENFEN and IGP) | The adapter `enso/enfen_icen.py` is a stub (`NotImplementedError`) and the Peru profile lists it before ONI. Not probed |
 | Meteomatics weather API | An optional sign-up of the global offers. Not on the Must path and not used. |
 | GLDAS | Named in ACCOUNTS as an Earthdata use, but no task uses it |
@@ -268,7 +271,7 @@ SoilGrids (S16) and the Oceanic Niño Index (S15) were listed here after the piv
 | Field | Value |
 |---|---|
 | Role | Sand, clay and soil organic carbon for fields outside the US (Argentina, Brazil, Peru and the global profile), and the fallback after SSURGO in the US. |
-| Product and endpoint | `https://rest.isric.org/soilgrids/v2.0/properties/query` with `property=sand,clay,soc`, depths 0-5, 5-15 and 15-30 cm and `value=mean` (`infrastructure/soilgrids_rest.py`). An Earth Engine adapter for the same product is written (S18). |
+| Product and endpoint | `https://rest.isric.org/soilgrids/v2.0/properties/query` with `property=sand,clay,soc`, depths 0-5, 5-15 and 15-30 cm and `value=mean` (`infrastructure/soilgrids_rest.py`). The Earth Engine adapter for the same product is a stub that raises `NotImplementedError` and is in no region profile (S11). |
 | Access and registration | None. |
 | Coverage | Global; the request reads the three upper layers, 0 to 30 cm. |
 | Licence and citation | CC BY 4.0, per REFERENCES. |
@@ -290,11 +293,12 @@ The browser calls these hosts directly. It sends them tile numbers, a typed plac
 
 | Field | Value |
 |---|---|
-| Role | The Earth Engine adapters written on 2026-11-15 and listed in the region profiles next to the no-account sources. They run only with `DATACORN_EARTH_ENGINE_ENABLED` on (default off), and none has run against Earth Engine yet. |
-| Datasets | SMAP L4 `NASA/SMAP/SPL4SMGP/008` (root-zone wetness and the drought layer, `GET /api/v1/layers/drought/tiles`); NASADEM `NASA/NASADEM_HGT/001` (elevation, slope, low spots); HLS `NASA/HLS/HLSL30/v002` and `NASA/HLS/HLSS30/v002` (field NDVI at 30 m); Sentinel-2 `COPERNICUS/S2_SR_HARMONIZED` with Cloud Score+ `GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED` (in-field zones); PRISM `OREGONSTATE/PRISM/ANd` (US daily temperature and rain); ERA5-Land `ECMWF/ERA5_LAND/DAILY_AGGR` (global backup climate); USDA CDL `USDA/NASS/CDL` (crop of each year); OpenET ensemble `projects/openet/assets/ensemble/conus/gridmet/monthly/v2_0` (monthly ET); SoilGrids (`earthengine/soilgrids.py`). |
+| Role | The Earth Engine adapters written on 2026-11-15. Those the US and global region profiles list (PRISM, HLS, SMAP L4, OpenET, CDL, NASADEM) sit next to the no-account sources. They run only with `DATACORN_EARTH_ENGINE_ENABLED` on (default off), and none has run against Earth Engine yet. |
+| Datasets | SMAP L4 `NASA/SMAP/SPL4SMGP/008` (root-zone wetness and the drought layer, `GET /api/v1/layers/drought/tiles`); NASADEM `NASA/NASADEM_HGT/001` (elevation, slope, low spots); HLS `NASA/HLS/HLSL30/v002` and `NASA/HLS/HLSS30/v002` (field NDVI at 30 m); Sentinel-2 `COPERNICUS/S2_SR_HARMONIZED` with Cloud Score+ `GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED` (in-field zones); PRISM `OREGONSTATE/PRISM/ANd` (US daily temperature and rain); ERA5-Land `ECMWF/ERA5_LAND/DAILY_AGGR` (global backup climate); USDA CDL `USDA/NASS/CDL` (crop of each year); OpenET ensemble `projects/openet/assets/ensemble/conus/gridmet/monthly/v2_0` (monthly ET); MODIS `MODIS/061/MOD13Q1` (`ModisVegetation`: NDVI at 250 m, written, in no region profile; its in-field zone map raises `DataUnavailable` because 250 m is too coarse). |
+| Registered stubs | NLDAS `NASA/NLDAS/FORA0125_H002` (`NldasSoilMoisture`): the adapter always raises `DataUnavailable` because that catalogue product holds forcing fields (rain, temperature, radiation) and no soil moisture. TIGER `TIGER/2018/Counties` (`TigerCounties`), FAO GAUL `FAO/GAUL/2015/level2` (`GaulAdmin`) and the GAUL country locator (`GaulCountryLocator`, level 0): all raise `NotImplementedError`. None is in a region profile; the state and county come from the FCC (S13). SoilGrids and ECOSTRESS stubs are in S11. |
 | Access and registration | A Google Cloud project registered for Earth Engine noncommercial use, set as `DATACORN_GCP_PROJECT`. Registration review can take time. |
 | Licence and citation | Per dataset, in REFERENCES. |
-| Fallback | The region profiles list a no-account adapter after each Earth Engine one (S1, S2, S3, S5, S16). |
+| Fallback | The region profiles list a no-account adapter after each Earth Engine one (S1, S3, S5; the soil-moisture chain falls back to POWER's wetness, S1). |
 | Status | Written 2026-11-15, never run against Earth Engine. Not probed: this session has no account. |
 
 ## 4. Gaps in the register
@@ -377,11 +381,11 @@ The Google Cloud trial is not available on the owner's account (already used). T
 | Date | Source | Probe | Result | Not yet checked |
 |---|---|---|---|---|
 | 2026-11-14 | POWER daily | Point request at 39.36, -100.44 with the plan's 8 parameters (`TSOIL1` and `GWETTOP`, not `GWETROOT`) | HTTP 200. `TSOIL1` in °C, `GWETTOP` between 0 and 1. | Coverage and NaN counts ([#36](https://github.com/RikepilB/Data_corn/issues/36)) |
-| 2026-11-14 | Soil Data Access | The SQL of Task 4 at the same point | HTTP 200. Keith silt loam, 1 to 3 percent slopes, `awc_r` 0.21. | Horizon completeness to 150 cm |
+| 2026-11-14 | Soil Data Access | A horizon-level SQL (the plan's Task 4 draft, not the query the app runs) at the same point | HTTP 200. Keith silt loam, 1 to 3 percent slopes, `awc_r` 0.21. | Not the app's query: see the 2026-11-15 row |
 | 2026-11-14 | Planetary Computer | `GET /api/stac/v1` | HTTP 200 | Collections and asset access |
 | 2026-11-14 | POWER documentation | One web search restricted to `power.larc.nasa.gov` for the data-sources page. The first attempt, with another search tool, failed because that tool's API key was invalid. | The summary names MERRA-2, SRB Release 4-IP, CERES SYN1deg, FLASHFlux and the grids in section 3. | It is a search summary, not the page. It did not mention `PRECTOTCORR`. Open the page to confirm. |
 | 2026-11-15 | POWER daily | `python scripts/probe_sources.py power`: the app's 8 parameters and `TSOIL1`, 1981-01-01 to 2025-12-31 | HTTP 200 in 2 s. API v2.10.3, sources MERRA2, SRB, SYN1DEG, POWER. 16 436 days. `ALLSKY_SFC_SW_DWN` has 1 095 fill values (1981-1983); the other parameters have none. Elevation 866.83 m. Ranges: `T2M_MAX` -18.4 to 46.17 °C, `T2M_MIN` -26.91 to 27.95 °C, `PRECTOTCORR` 0 to 61.19 mm/day, `ALLSKY_SFC_SW_DWN` 0.06 to 32.91 MJ/m²/day, `RH2M` 15.31 to 97.35 %, `WS2M` 0.81 to 11.02 m/s, `GWETROOT` 0.33 to 0.54, `GWETTOP` 0.21 to 0.71, `TSOIL1` -16.03 to 35.3 °C | The documentation page |
-| 2026-11-15 | Soil Data Access | `... probe_sources.py ssurgo`: the SQL of Task 4 at the pilot point | HTTP 200. Keith silt loam, 1 to 3 percent slopes, south. Keith (98 percent): 5 horizons, 0 to 200 cm, no gaps, `awc_r` in all; TAW 210 mm/m over 150 cm | Other points; the survey version |
+| 2026-11-15 | Soil Data Access | `... probe_sources.py ssurgo`: the app's `POINT_QUERY` (copied from `ssurgo.py`) at the pilot point, then the horizon query as a cross-check | HTTP 200 in 1.5 s. App query: Keith silt loam, 1 to 3 percent slopes, south; dominant component 98 percent, hydrologic group C, well drained; `aws0150wta` 31.42 cm, so TAW 209.5 mm/m; slope 2.0 percent; top horizon sand 22, clay 22, organic matter 2.6 percent. Cross-check (not run by the app): Keith (98 percent), 5 horizons to 200 cm, no gaps, `awc_r` in all, depth-weighted TAW 210 mm/m over 150 cm. The two agree within 1 mm/m. A first run earlier the same day used only the horizon query and was logged as the app's result; that was wrong | Other points; the survey version |
 | 2026-11-15 | CropScape | `... cropscape`: `GetCDLValue` for 2023 and 2024 | HTTP 200. Value 121, "Developed/Open Space", both years | A cropped point |
 | 2026-11-15 | FCC Census Area | `... fcc` | HTTP 200. State KS, Sheridan County | Outside the US |
 | 2026-11-15 | NOAA CPC ONI | `... oni` | 921 seasons, DJF 1950 to ASO 2026, last anomaly +2.5 | — |

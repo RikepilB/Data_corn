@@ -61,6 +61,18 @@ CMR_PRODUCTS = (
     ("HLSS30", "2.0"),
     ("TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06.3_V4", "4.0"),
 )
+# The query the app runs. Keep in sync with apps/api/src/datacorn/infrastructure/ssurgo.py POINT_QUERY
+SSURGO_POINT_QUERY = """
+SELECT TOP 1 mu.muname, ma.aws0150wta, ma.slopegradwta, c.comppct_r, c.hydgrp, c.drainagecl,
+       h.sandtotal_r, h.claytotal_r, h.om_r
+FROM mapunit mu
+INNER JOIN muaggatt ma ON ma.mukey = mu.mukey
+INNER JOIN component c ON c.mukey = mu.mukey AND c.majcompflag = 'Yes'
+LEFT JOIN chorizon h ON h.cokey = c.cokey AND h.hzdept_r = 0
+WHERE mu.mukey IN (SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point({lon} {lat})'))
+ORDER BY c.comppct_r DESC
+"""
+# Completeness cross-check only: the horizons of every major component. The app does not run it.
 SSURGO_SQL = (
     "SELECT mu.mukey, mu.muname, c.compname, c.comppct_r, ch.hzdept_r, ch.hzdepb_r, "
     "ch.sandtotal_r, ch.claytotal_r, ch.om_r, ch.awc_r "
@@ -152,6 +164,30 @@ def ssurgo_report(table: list[list]) -> list[str]:
     return lines
 
 
+def ssurgo_point_report(table: list[list]) -> list[str]:
+    """What the app reads at the point: the first row of POINT_QUERY and the TAW it gives."""
+    if len(table) < 2:
+        return ["no row: the point is outside SSURGO coverage (the app raises DataUnavailable)"]
+    row = dict(zip(table[0], table[1], strict=False))
+
+    def number(name: str) -> float | None:
+        raw = row.get(name)
+        return None if raw in (None, "") else float(raw)
+
+    aws = number("aws0150wta")
+    taw = f"{aws * 10 / 1.5:.1f} mm/m (aws0150wta * 10 / 1.5)" if aws is not None else (
+        "none: aws0150wta is null, the app falls back to the texture pedotransfer"
+    )
+    return [
+        f"map unit: {row.get('muname')}; dominant major component {row.get('comppct_r')}%, "
+        f"hydrologic group {row.get('hydgrp')}, drainage {row.get('drainagecl')}",
+        f"aws0150wta {aws} cm in 0-150 cm, slopegradwta {number('slopegradwta')} %",
+        f"top horizon: sand {number('sandtotal_r')} %, clay {number('claytotal_r')} %, "
+        f"organic matter {number('om_r')} %",
+        f"TAW {taw}",
+    ]
+
+
 def parse_oni(text: str) -> list[tuple[str, int, float]]:
     """(season, year, anomaly) rows of NOAA's oni.ascii.txt."""
     rows = []
@@ -224,8 +260,17 @@ def probe_power() -> Outcome:
 
 def probe_ssurgo() -> Outcome:
     url = "https://sdmdataaccess.sc.egov.usda.gov/Tabular/post.rest"
-    table = get_json(url, body={"query": SSURGO_SQL, "format": "JSON+COLUMNNAME"}).get("Table", [])
-    return Outcome(bool(table), ssurgo_report(table) if table else ["empty answer"])
+    point_sql = SSURGO_POINT_QUERY.format(lon=f"{LON:.6f}", lat=f"{LAT:.6f}")
+    point = get_json(url, body={"query": point_sql, "format": "JSON+COLUMNNAME"}).get("Table", [])
+    lines = ["app query (POINT_QUERY):", *ssurgo_point_report(point)]
+    # The horizon query is a completeness cross-check; its failure does not fail the probe.
+    try:
+        table = get_json(url, body={"query": SSURGO_SQL, "format": "JSON+COLUMNNAME"}).get("Table", [])
+        lines += ["cross-check, all horizons of the major components (not run by the app):"]
+        lines += ssurgo_report(table) if table else ["empty answer"]
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as error:
+        lines.append(f"cross-check not available: {type(error).__name__}: {error}")
+    return Outcome(len(point) >= 2, lines)
 
 
 def probe_cropscape() -> Outcome:
@@ -341,7 +386,7 @@ def probe_cmr() -> Outcome:
 
 PROBES: dict[str, tuple[str, Callable[[], Outcome]]] = {
     "power": ("NASA POWER daily point, 1981-2025, the app's 8 parameters and TSOIL1", probe_power),
-    "ssurgo": ("USDA Soil Data Access, SSURGO horizons at the point", probe_ssurgo),
+    "ssurgo": ("USDA Soil Data Access: the app's POINT_QUERY, plus a horizon cross-check", probe_ssurgo),
     "cropscape": ("USDA NASS CropScape, crop of two years at the point", probe_cropscape),
     "fcc": ("FCC Census Area API, state and county", probe_fcc),
     "oni": ("NOAA CPC Oceanic Nino Index", probe_oni),

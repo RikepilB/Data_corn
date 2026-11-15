@@ -80,6 +80,28 @@ def test_ssurgo_report_says_when_the_point_is_not_covered() -> None:
     assert probe.ssurgo_report([["mukey"]]) == ["no rows: the point is not covered"]
 
 
+def test_ssurgo_point_report_gives_the_taw_the_app_computes() -> None:
+    header = [
+        "muname", "aws0150wta", "slopegradwta", "comppct_r", "hydgrp", "drainagecl",
+        "sandtotal_r", "claytotal_r", "om_r",
+    ]
+    row = ["Keith silt loam", "31.42", "2.0", "98", "C", "Well drained", "22", "22", "2.6"]
+    lines = probe.ssurgo_point_report([header, row])
+    assert any("TAW 209.5 mm/m" in line for line in lines)
+
+
+def test_ssurgo_point_report_flags_null_aws_and_no_row() -> None:
+    header = ["muname", "aws0150wta"]
+    assert any("pedotransfer" in line for line in probe.ssurgo_point_report([header, ["X", None]]))
+    assert "outside SSURGO coverage" in probe.ssurgo_point_report([header])[0]
+
+
+def test_ssurgo_point_query_matches_the_adapter() -> None:
+    from datacorn.infrastructure import ssurgo
+
+    assert probe.SSURGO_POINT_QUERY == ssurgo.POINT_QUERY
+
+
 def test_parse_oni_skips_the_header_and_reads_the_anomaly() -> None:
     text = "SEAS  YR   TOTAL  ANOM\nDJF 2025  26.0 -0.5\nJFM 2025  26.2 -0.3\n"
     assert probe.parse_oni(text) == [("DJF", 2025, -0.5), ("JFM", 2025, -0.3)]
