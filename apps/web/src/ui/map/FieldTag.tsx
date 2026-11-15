@@ -24,6 +24,17 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
   const [dx, setDx] = useState(0);
   const [below, setBelow] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  // Tamaño de la etiqueta: su texto cambia con el día (p. ej. «En estrés»), y al cambiar de ancho
+  // hay que volver a ubicarla. ResizeObserver solo avisa cuando el tamaño cambia, no en cada cuadro.
+  const [size, setSize] = useState('');
+  const shown = xy != null && film.run != null;
+  useEffect(() => {
+    const el = box.current;
+    if (!shown || !el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setSize(`${el.offsetWidth}x${el.offsetHeight}`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [shown]);
 
   useEffect(() => {
     const place = () => {
@@ -51,7 +62,8 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
     const top = xy.y - h - 14;
     let maxRight = map.getContainer().clientWidth - 8;
     const btn = document.querySelector('.mapbtn')?.getBoundingClientRect();
-    if (btn && btn.bottom > top && btn.top < xy.y) maxRight = Math.min(maxRight, btn.left - 8);
+    // el botón cuenta tanto arriba del borde del lote como debajo (cuando la etiqueta baja)
+    if (btn && btn.bottom > top && btn.top < xy.y + h + 14) maxRight = Math.min(maxRight, btn.left - 8);
     let shift = 0;
     if (left + w > maxRight) shift = maxRight - (left + w);
     if (left + shift < 8) shift = 8 - left;
@@ -61,8 +73,8 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
       .some((r) => r && r.width > 0 && r.left < l + w && r.right > l && r.top < xy.y && r.bottom > top);
     if (Math.abs(shift - dx) > 0.5) setDx(shift);
     if (blocked !== below) setBelow(blocked);
-    // Solo al moverse el mapa o cambiar de año: medir en cada día de la película frena la animación
-  }, [xy, film.run]);
+    // Al moverse el mapa, cambiar de año o cambiar de tamaño: medir en cada día de la película frena la animación
+  }, [xy, film.run, size]);
 
   const { run, day } = film;
   if (!xy || !run) return null;

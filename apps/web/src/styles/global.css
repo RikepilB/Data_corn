@@ -2271,8 +2271,9 @@ fieldset.field > legend {
 /* En el teléfono la etiqueta se parte en dos líneas antes que salirse de la pantalla */
 @media (max-width: 899px) {
   .fieldtag {
+    width: max-content;
     white-space: normal;
-    max-width: min(300px, calc(100vw - 24px));
+    max-width: min(250px, calc(100vw - 24px));
   }
 
   .fieldtag__row {
