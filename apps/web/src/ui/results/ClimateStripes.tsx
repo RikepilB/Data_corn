@@ -55,10 +55,10 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
       </div>
       <div className="stripes__legend">
         <span>
-          <i className="sw" style={{ background: '#2f80ed' }} /> {t(locale, 'stripes.good')}
+          <i className="sw" style={{ background: yieldColor(1) }} /> {t(locale, 'stripes.good')}
         </span>
         <span>
-          <i className="sw" style={{ background: '#d64545' }} /> {t(locale, 'stripes.bad')}
+          <i className="sw" style={{ background: yieldColor(0.7) }} /> {t(locale, 'stripes.bad')}
         </span>
         <span>
           <i className="dot is-el_nino" /> {t(locale, 'stripes.el_nino')}

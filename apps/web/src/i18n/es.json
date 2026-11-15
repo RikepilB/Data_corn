@@ -51,6 +51,8 @@
   "time.pause": "Pausar",
   "time.month": "Mes",
 
+  "map.center": "Centrar",
+  "map.center_hint": "Centrar el mapa en el lote, o en su ubicación si aún no hay lote",
   "draw.hint": "Toque las esquinas de su lote",
   "draw.hint_more": "Siga marcando. Toque el primer punto para cerrar.",
   "draw.undo": "Deshacer",
@@ -141,6 +143,8 @@
   "film.scrub": "Día de la campaña",
   "film.legend": "Agua en el lote",
   "film.heat_tick": "Día de calor extremo",
+  "film.risk": "Tramo de riesgo",
+  "rotation.history": "Cultivo por año (CDL)",
 
   "gauge.label": "Agua en el suelo",
 
@@ -251,10 +255,10 @@
   "check.scout_field": "Compare en campo las partes más claras y más verdes del lote.",
   "summary.good": "Buena campaña esperada. Siembre entre el {start_date} y el {end_date}.",
   "summary.watch": "Siembre entre el {start_date} y el {end_date}. Atención: {main_indicator}.",
-  "rotation.soy_first": "Aquí conviene maíz después de soya. Historial: {pattern} ({after_soy} años tras soya, {after_corn} tras maíz).",
+  "rotation.soy_first": "Aquí conviene maíz después de soya. En el historial del lote: {after_soy} años tras soya y {after_corn} tras maíz.",
   "rotation.note.rootworm": "Rotar corta el ciclo del gusano de la raíz.",
   "rotation.note.residue": "Tras maíz queda más rastrojo: protege el suelo, pero lo enfría en la siembra.",
-  "rotation.corn_on_slopes": "Con esta pendiente y labranza convencional, el poco rastrojo de la soya sube la erosión: maíz tras maíz protege mejor el suelo. Historial: {pattern}.",
+  "rotation.corn_on_slopes": "Con esta pendiente y labranza convencional, el poco rastrojo de la soya sube la erosión. Aquí maíz tras maíz protege mejor el suelo.",
   "msg.no_data": "Sin datos suficientes.",
   "texture.sand": "arena",
   "texture.loamy_sand": "arena franca",
