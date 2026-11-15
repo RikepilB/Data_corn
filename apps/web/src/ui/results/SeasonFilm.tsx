@@ -5,6 +5,7 @@ import type { FieldReport, SeasonRun, Stage } from '../../domain/report';
 import { SEVERITY, filmDate, hasPhase, positionOf, stageAt } from '../../domain/season';
 import { type Locale, t } from '../../i18n';
 import { Icon, type IconName } from '../common/Icon';
+import { motionAllowed } from '../common/displayPrefs';
 import { RISK_COLOR, waterColor } from '../common/palette';
 import { SoilGauge } from './SoilGauge';
 
@@ -105,7 +106,7 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
               aria-checked={film.mode.kind === m.kind}
               disabled={!m.ok}
               className={`chip${film.mode.kind === m.kind ? ' is-on' : ''}`}
-              onClick={() => film.setMode({ kind: m.kind }, true)}
+              onClick={() => film.setMode({ kind: m.kind }, motionAllowed())}
             >
               {t(locale, m.key)}
             </button>

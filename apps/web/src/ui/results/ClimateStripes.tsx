@@ -1,5 +1,6 @@
 import type { Film } from '../../application/useFilm';
 import type { FieldReport } from '../../domain/report';
+import { motionAllowed } from '../common/displayPrefs';
 import { yieldColor } from '../common/palette';
 import { type Locale, t } from '../../i18n';
 
@@ -40,10 +41,10 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
                 title={label}
                 aria-pressed={film.mode.kind === 'year' && film.mode.year === r.year}
                 onClick={(e) => {
-                  film.setMode({ kind: 'year', year: r.year }, true);
+                  film.setMode({ kind: 'year', year: r.year }, motionAllowed());
                   // En celular la película está arriba del mismo panel: subir para verla
                   if (!window.matchMedia('(min-width: 900px)').matches) {
-                    e.currentTarget.closest('.results')?.scrollTo({ top: 0, behavior: 'smooth' });
+                    e.currentTarget.closest('.results')?.scrollTo({ top: 0, behavior: motionAllowed() ? 'smooth' : 'auto' });
                   }
                 }}
               />

@@ -1,6 +1,7 @@
 ---
 import '../styles/tokens.css';
 import '../styles/global.css';
+import '../styles/display.css';
 
 interface Props {
   title: string;
@@ -26,6 +27,27 @@ const { title } = Astro.props;
       href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <!-- Display preferences (text size, contrast, calm), applied before first paint so the page does not
+         jump. Same key and shape as ui/common/displayPrefs.ts; the page works if storage is blocked. -->
+    <script is:inline>
+      (function () {
+        var el = document.documentElement;
+        var p = { text: 'standard', contrast: 'standard', calm: false };
+        try {
+          if (window.matchMedia('(prefers-contrast: more)').matches) p.contrast = 'high';
+          var raw = window.localStorage.getItem('datacorn.display');
+          if (raw) {
+            var v = JSON.parse(raw);
+            if (['standard', 'large', 'xlarge'].indexOf(v.text) > -1) p.text = v.text;
+            if (['standard', 'high'].indexOf(v.contrast) > -1) p.contrast = v.contrast;
+            if (typeof v.calm === 'boolean') p.calm = v.calm;
+          }
+        } catch (e) {}
+        el.dataset.text = p.text;
+        el.dataset.contrast = p.contrast;
+        el.dataset.calm = String(p.calm);
+      })();
+    </script>
     <title>{title}</title>
   </head>
   <body>
