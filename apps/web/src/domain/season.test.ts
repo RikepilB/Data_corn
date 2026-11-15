@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FieldReport, SeasonRun } from './report';
-import { analogDate, pickRun, positionOf, stageAt, waterColor, worstRisk } from './season';
+import { DRY, NEUTRAL, WET, analogDate, pickRun, positionOf, stageAt, waterColor, worstRisk } from './season';
 
 function run(year: number, relative_yield: number, enso_phase: SeasonRun['enso_phase'] = null): SeasonRun {
   return {
@@ -65,11 +65,12 @@ describe('film helpers', () => {
 });
 
 describe('colours and risk', () => {
-  it('ramps water from red to amber to blue', () => {
-    expect(waterColor(0)).toBe('#d64545');
-    expect(waterColor(50)).toBe('#f2b632');
-    expect(waterColor(100)).toBe('#2f80ed');
-    expect(waterColor(150)).toBe('#2f80ed');
+  // The palette lives in season.ts (rust, neutral, blue); the test checks the ramp, not the hex.
+  it('ramps water from dry to neutral to wet, and clamps above 100', () => {
+    expect(waterColor(0)).toBe(DRY);
+    expect(waterColor(50)).toBe(NEUTRAL);
+    expect(waterColor(100)).toBe(WET);
+    expect(waterColor(150)).toBe(WET);
   });
 
   it('picks the worst risk and treats missing as no data', () => {
