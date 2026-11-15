@@ -40,6 +40,7 @@ def _container() -> Container:
         describe_field=describe,
         analyze_field=analyze,
         drought_layer=None,  # type: ignore[arg-type]
+        enso_now=None,  # type: ignore[arg-type]
     )
 
 
