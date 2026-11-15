@@ -248,7 +248,7 @@ export default function DataCornApp() {
         cards: buildCards(dc.report, ctx),
         mapImage,
         isSample: dc.isSample,
-        mock: dc.mock,
+        mock: dc.mock && !dc.precomputedAt,
       });
     } catch (e) {
       console.error(e);
@@ -256,7 +256,7 @@ export default function DataCornApp() {
     } finally {
       setPdfBusy(false);
     }
-  }, [dc.report, dc.isSample, dc.mock, map, ctx]);
+  }, [dc.report, dc.isSample, dc.mock, dc.precomputedAt, map, ctx]);
 
   const showLayers = step === 'globe' || step === 'results';
   const filmView = dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null;
@@ -280,7 +280,13 @@ export default function DataCornApp() {
           <span>{t(locale, 'map.center')}</span>
         </button>
       )}
-      {dc.mock && <div className="mock-banner">{t(locale, 'results.mock')}</div>}
+      {dc.mock && (
+        <div className="mock-banner">
+          {dc.precomputedAt
+            ? t(locale, 'results.precomputed', { date: dc.precomputedAt.slice(0, 10) })
+            : t(locale, 'results.mock')}
+        </div>
+      )}
 
       {showLayers && !flying && (
         <div className="layerbar">
@@ -353,7 +359,7 @@ export default function DataCornApp() {
             film={film}
             ctx={ctx}
             isSample={dc.isSample}
-            mock={dc.mock}
+            mock={dc.mock && !dc.precomputedAt}
             pdfBusy={pdfBusy}
             pdfError={pdfError}
             onPdf={onPdf}

@@ -18,8 +18,10 @@ def test_regions_lists_us(client: TestClient) -> None:
     assert "us" in {r["id"] for r in response.json()}
 
 
-def test_demo_fields_empty_until_f9(client: TestClient) -> None:
-    assert client.get("/api/v1/demo-fields").json() == []
+def test_demo_fields_lists_the_packaged_fields(client: TestClient) -> None:
+    fields = client.get("/api/v1/demo-fields").json()
+    assert [f["id"] for f in fields] == ["hamilton-ne", "thomas-ks", "story-ia"]
+    assert all(f["region_id"] == "us" and f["geometry"]["type"] == "Polygon" for f in fields)
 
 
 def test_describe_rejects_crossing_sides(client: TestClient) -> None:

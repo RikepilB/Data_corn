@@ -20,6 +20,7 @@
   "globe.search": "Buscar un lugar",
   "globe.sample": "Ver ejemplo",
   "sample.name": "Lote de ejemplo · Nebraska",
+  "results.precomputed": "Datos reales, calculados por adelantado el {date}. No son en vivo: si cambias un valor, el ejemplo vuelve a cifras de muestra.",
 
   "search.label": "Buscar un lugar",
   "search.placeholder": "Ciudad, condado o «lat, lon»",

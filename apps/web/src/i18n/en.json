@@ -20,6 +20,7 @@
   "globe.search": "Search a place",
   "globe.sample": "See an example",
   "sample.name": "Sample field · Nebraska",
+  "results.precomputed": "Real data, computed in advance on {date}. Not live: change a value and the example falls back to sample numbers.",
 
   "search.label": "Search a place",
   "search.placeholder": "City, county or “lat, lon”",
