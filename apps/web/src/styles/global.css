@@ -1119,8 +1119,8 @@ fieldset.field > legend {
 }
 
 .verdict--high {
-  border-width: 2px;
-  padding: 15px;
+  border-width: 3px;
+  padding: 14px;
 }
 
 .verdict__top {
@@ -1215,12 +1215,20 @@ fieldset.field > legend {
 }
 
 .stripes__bar {
-  flex: 1;
+  flex: none;
+  margin-top: auto;
+  min-height: 24px;
   width: 100%;
   padding: 0;
   border: 0;
   border-radius: 1px;
   cursor: pointer;
+}
+
+/* Años flojos: rayas además del color */
+.stripes__bar.is-poor,
+.sw--hatch {
+  background-image: repeating-linear-gradient(-45deg, rgba(17, 17, 19, 0.55) 0 2px, transparent 2px 6px);
 }
 
 .stripes__bar:hover {
@@ -1484,58 +1492,75 @@ fieldset.field > legend {
   background: var(--ink);
 }
 
-/* Etiqueta de riesgo: color de estado + ícono + palabra (nunca solo el color) */
+/* Etiqueta de riesgo: palabra + ícono con forma propia + color Okabe-Ito en la celda del ícono.
+   Borde y texto siempre en tinta (contraste), así que el color solo refuerza. El riesgo alto
+   lleva borde grueso; «sin datos» va discontinuo. */
 .risk {
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   align-self: flex-start;
-  gap: 5px;
-  height: 22px;
-  padding: 0 7px;
-  border: 1px solid var(--ink);
+  min-height: 28px;
+  border: 2px solid var(--ink);
   border-radius: var(--r-sm);
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
   white-space: nowrap;
 }
 
+.risk__text {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px 2px 8px;
+}
+
+.risk__icon {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
 .risk--high {
-  border-color: var(--bad);
-  background: var(--bad);
-  color: var(--paper);
+  border-width: 3px;
 }
 
-.risk--medium {
-  border-color: var(--warn);
-  background: var(--warn);
-  color: var(--ink);
+.risk--high .risk__icon {
+  background: var(--risk-high);
+  color: var(--risk-high-ink);
 }
 
-.risk--low {
-  border-color: var(--good);
-  background: var(--good);
-  color: var(--paper);
+.risk--medium .risk__icon {
+  background: var(--risk-medium);
+  color: var(--risk-medium-ink);
+}
+
+.risk--low .risk__icon {
+  background: var(--risk-low);
+  color: var(--risk-low-ink);
 }
 
 .risk--no_data {
   border-style: dashed;
-  border-color: var(--nodata);
   color: var(--muted);
 }
 
-.risk--large {
-  height: 28px;
-  padding: 0 10px;
-  font-size: var(--fs-xs);
+.risk--no_data .risk__icon {
+  background: var(--paper-2);
+  color: var(--ink-2);
 }
 
-.risk__icon {
-  font-family: var(--font);
+.risk--large {
+  min-height: 36px;
+  font-size: var(--fs-base);
+}
+
+.risk--large .risk__icon {
+  min-width: 36px;
 }
 
 .results__links {
@@ -1738,7 +1763,9 @@ fieldset.field > legend {
 }
 
 .film__legend i.is-hatch {
-  background: linear-gradient(90deg, var(--warn) 50%, var(--bad) 50%);
+  background:
+    repeating-linear-gradient(-45deg, rgba(17, 17, 19, 0.7) 0 2px, transparent 2px 5px) right / 50% 100% no-repeat,
+    linear-gradient(90deg, var(--warn) 50%, var(--bad) 50%);
 }
 
 .gauge {

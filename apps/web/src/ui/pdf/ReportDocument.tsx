@@ -5,7 +5,8 @@ import type { ReactNode } from 'react';
 import { type FormatContext, formatParams, longDate, messageText, num, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
 import { strategyViews } from '../../domain/rotation';
-import { RISK_COLOR, SEVERITY, pickRun, yieldColor } from '../../domain/season';
+import { SEVERITY, pickRun } from '../../domain/season';
+import { RISK_COLOR, RISK_INK, yieldColor } from '../common/palette';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
 import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
 import { numberLocale, t } from '../../i18n';
@@ -78,7 +79,7 @@ const st = StyleSheet.create({
 });
 
 function Badge({ risk, ctx }: { risk: RiskLevel; ctx: FormatContext }) {
-  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk], color: risk === 'medium' || risk === 'no_data' ? '#111113' : '#ffffff', borderRadius: 2 }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
+  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk], color: RISK_INK[risk], borderRadius: 2 }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
 }
 
 function KV({ k, v }: { k: string; v: string }) {

@@ -1,7 +1,9 @@
 import type { Film } from '../../application/useFilm';
 import type { FieldReport } from '../../domain/report';
-import { yieldColor } from '../../domain/season';
+import { yieldColor } from '../common/palette';
 import { type Locale, t } from '../../i18n';
+
+const barHeight = (rel: number) => `${Math.round(24 + 43 * Math.min(1, Math.max(0, (rel - 0.6) / 0.4)))}px`;
 
 /** Franjas de 25 campañas (RF-38): una por año, color por rendimiento relativo, marca ENSO. */
 export function ClimateStripes({ report, film, locale }: { report: FieldReport; film: Film; locale: Locale }) {
@@ -31,8 +33,9 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
               <span className={`stripes__mark${phase ? ` is-${phase}` : ''}`} aria-hidden="true" />
               <button
                 type="button"
-                className={`stripes__bar${selected === r.year ? ' is-selected' : ''}`}
-                style={{ background: yieldColor(r.relative_yield) }}
+                className={`stripes__bar${selected === r.year ? ' is-selected' : ''}${r.relative_yield < 0.85 ? ' is-poor' : ''}`}
+                // Altura = rendimiento relativo; los años flojos además llevan rayas: no solo color
+                style={{ backgroundColor: yieldColor(r.relative_yield), height: barHeight(r.relative_yield) }}
                 aria-label={label}
                 title={label}
                 aria-pressed={film.mode.kind === 'year' && film.mode.year === r.year}
@@ -55,10 +58,10 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
       </div>
       <div className="stripes__legend">
         <span>
-          <i className="sw" style={{ background: yieldColor(1) }} /> {t(locale, 'stripes.good')}
+          <i className="sw" style={{ backgroundColor: yieldColor(1) }} /> {t(locale, 'stripes.good')}
         </span>
         <span>
-          <i className="sw" style={{ background: yieldColor(0.7) }} /> {t(locale, 'stripes.bad')}
+          <i className="sw sw--hatch" style={{ backgroundColor: yieldColor(0.7) }} /> {t(locale, 'stripes.bad')}
         </span>
         <span>
           <i className="dot is-el_nino" /> {t(locale, 'stripes.el_nino')}
