@@ -238,7 +238,7 @@ Credentials never go in the repository.
 | `apps/web/` | Astro + React web app, the single front end: globe, field drawing, season film, stripes, cards, rotation panel, PDF. |
 | `apps/api/` | The engine: Python 3.12, clean architecture. `domain/agronomy/` is the science, `infrastructure/` the data clients and cache, `application/` the ports and use cases, `interfaces/http/` the live service. YAML region and crop profiles in `resources/`. |
 | `infra/` | Deployment notes for Cloud Run and Firebase Hosting (Spanish). Cloud Run is the stretch goal. |
-| `scripts/` | `sync_readme_outline.py`: keeps the backlog in this README in step with the GitHub issues. |
+| `scripts/` | `sync_readme_outline.py` keeps the backlog in this README in step with the GitHub issues. `compliance_audit.py` checks the submission rules before the deadline. `probe_sources.py` calls each data source live and prints what came back. |
 | `data/raw/` | Downloaded source data (gitignored). |
 | `docs/` | Planning documents (English), architecture, data sources, submission checklist, references, the story outline, and the Data Corn working documents (Spanish). |
 | `firebase.json` | Firebase Hosting of `apps/web/dist`. No Auth, no database: judges must never hit a login. |
@@ -247,7 +247,7 @@ Credentials never go in the repository.
 
 | Source | Role | Priority | Account | In the app today |
 |---|---|---|---|---|
-| NASA POWER daily (incl. `TSOIL1`, `GWETTOP`) | Climate forcing, ET0, year types, planting window | Must | None | Yes |
+| NASA POWER daily (8 parameters, incl. `GWETROOT`, `GWETTOP`) | Climate forcing, ET0, year types, soil wetness. The planting window is simulated from this forcing; soil temperature (`TSOIL1`) is not requested | Must | None | Yes |
 | USDA NRCS SSURGO via Soil Data Access | Soil water-holding capacity | Must | None | Yes |
 | USDA NASS Crop Sequence Boundaries / CDL | Current rotation of the pilot field (read once) | Must | None | Yes, the CDL through CropScape |
 | SMAP `SPL3SMP_E.006` via AppEEARS | Consistency check of simulated soil moisture | Should | Earthdata Login | No: the AppEEARS loader is not built ([#44](https://github.com/RikepilB/Data_corn/issues/44)). SMAP L4 through Earth Engine is written, never run |
@@ -256,7 +256,7 @@ Credentials never go in the repository.
 | GRACE / GRACE-FO | Regional water-storage context (about 300 km, not one field) | Should | Earthdata Login | No ([#47](https://github.com/RikepilB/Data_corn/issues/47)) |
 | OpenET | Field evapotranspiration cross-check | Could | API key | Earth Engine adapter written, never run |
 
-Product versions, access, probes, licences and fallbacks for each source: [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md), which still follows the original plan; reconciling it with what the app calls is [#16](https://github.com/RikepilB/Data_corn/issues/16). Licences and citations: [docs/REFERENCES.md](docs/REFERENCES.md).
+Product versions, access, probes, licences and fallbacks for each source: [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md), reconciled with what the app calls and probed live on 2026-11-15 ([#16](https://github.com/RikepilB/Data_corn/issues/16)); `python scripts/probe_sources.py` repeats the probes. Licences and citations: [docs/REFERENCES.md](docs/REFERENCES.md).
 
 The app also uses sources that were not in the plan: the FCC Census Area API, NOAA CPC ONI (El Niño / La Niña), the NASA GIBS globe layers and ISRIC SoilGrids; they are in the table under [What works today](#what-works-today). The Earth Engine sources (PRISM, ERA5-Land, SMAP L4, HLS, Sentinel-2, OpenET, NASADEM) are written but have never run; [apps/README.md](apps/README.md) lists more.
 
