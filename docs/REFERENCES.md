@@ -48,6 +48,8 @@ Owner: Hildemaro (proposed). Status values: `planned` → `used` → `verified`.
 | FAO-56: Allen, Pereira, Raes, Smith (1998), *Crop evapotranspiration*, FAO Irrigation and Drainage Paper 56 | FAO | ET0 equation, Kc, p, root depth tables | Citation | planned |
 | *Arquitectura Clean: principios y ejemplo práctico* (`createam.io/blog/arquitectura-clean.html`, Spanish) | CREATEAM | Reading shared by the team behind the layering rule in `docs/architecture/ARCHITECTURE.md` §3. No text or code copied | Citation | used |
 | Saxton & Rawls (2006), *Soil water characteristic estimates by texture and organic matter*, SSSAJ 70:1569 | — | Pedotransfer for field capacity / wilting point | Citation | planned |
+| McCool, Brown, Foster, Mutchler & Meyer (1987), *Revised slope steepness factor for the Universal Soil Loss Equation*, Transactions of the ASAE 30(5):1387-1396, doi:10.13031/2013.30576 | ASABE | Slope steepness factor S of the relative erosion index (`domain/agronomy/erosion.py`, #46) | Citation | planned |
+| Wischmeier & Smith (1978), *Predicting rainfall erosion losses: a guide to conservation planning*, USDA Agriculture Handbook 537 | USDA | Erosive-rain cutoff of 12.7 mm (0.5 in), applied to daily totals in the erosion index (#46). The 1.5 rain exponent and the default K of 0.03 are assumptions, not from a source | U.S. Government work | planned |
 
 ## Code libraries
 
