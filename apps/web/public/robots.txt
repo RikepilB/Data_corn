@@ -1,0 +1,3 @@
+# SI-assisted (Claude Code); reviewed by <name>
+User-agent: *
+Allow: /

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { filmEvents } from '../domain/film';
 import type { FieldReport, SeasonRun } from '../domain/report';
 import { type FilmMode, filmLength, pickRun } from '../domain/season';
+import { createDayStore } from './dayStore';
 
 const DAYS_PER_SECOND = 11;
 /** Pausa en cada momento clave para que se pueda leer la leyenda. */
@@ -10,13 +11,12 @@ const HOLD_MS = 1500;
 /** Estado de la película de la campaña: qué año, qué día y si está corriendo (RF-31). */
 export function useFilm(report: FieldReport | null) {
   const [mode, setModeState] = useState<FilmMode>({ kind: 'typical' });
-  const [day, setDayState] = useState(0);
+  // The day lives in an external store: see dayStore.ts for why it is not React state.
+  const [dayStore] = useState(() => createDayStore(0));
   const [playing, setPlaying] = useState(false);
   const run: SeasonRun | null = useMemo(() => (report ? pickRun(report, mode) : null), [report, mode]);
   const length = run ? filmLength(run) : 0;
   const events = useMemo(() => (run ? filmEvents(run) : []), [run]);
-  const dayRef = useRef(0);
-  dayRef.current = day;
 
   // Al llegar un reporte nuevo: año típico, día de floración visible y en pausa
   useEffect(() => {
@@ -26,14 +26,14 @@ export function useFilm(report: FieldReport | null) {
     const typical = pickRun(report, { kind: 'typical' });
     const flower = typical?.stages.find((s) => s.stage === 'flowering');
     const i = typical && flower ? Math.max(0, daysFrom(typical.start, flower.start)) : 0;
-    setDayState(i);
-  }, [report]);
+    dayStore.set(i);
+  }, [report, dayStore]);
 
   useEffect(() => {
     if (!playing || length === 0) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let last = performance.now();
-    let acc = dayRef.current;
+    let acc = dayStore.get();
     let raf = 0;
     let timer = 0;
     let holdUntil = 0;
@@ -52,18 +52,18 @@ export function useFilm(report: FieldReport | null) {
         next = next + 1 < events.length ? next + 1 : -1;
       }
       if (acc >= length - 1) {
-        setDayState(length - 1);
+        dayStore.set(length - 1);
         setPlaying(false);
         return false;
       }
-      setDayState(Math.floor(acc));
+      dayStore.set(Math.floor(acc));
       return true;
     };
     if (reduce) {
       // Movimiento reducido: avanza por semanas, sin animación continua
       timer = window.setInterval(() => {
         acc = Math.min(acc + 7, length - 1);
-        setDayState(Math.floor(acc));
+        dayStore.set(Math.floor(acc));
         if (acc >= length - 1) setPlaying(false);
       }, 700);
     } else {
@@ -76,27 +76,34 @@ export function useFilm(report: FieldReport | null) {
       cancelAnimationFrame(raf);
       window.clearInterval(timer);
     };
-  }, [playing, length, events]);
+  }, [playing, length, events, dayStore]);
 
   const setDay = useCallback(
-    (i: number) => setDayState(Math.max(0, Math.min(Math.round(i), Math.max(length - 1, 0)))),
-    [length],
+    (i: number) => dayStore.set(Math.max(0, Math.min(Math.round(i), Math.max(length - 1, 0)))),
+    [length, dayStore],
   );
 
   const toggle = useCallback(() => {
     setPlaying((p) => {
-      if (!p && dayRef.current >= length - 1) setDayState(0);
+      if (!p && dayStore.get() >= length - 1) dayStore.set(0);
       return !p;
     });
-  }, [length]);
+  }, [length, dayStore]);
 
-  const setMode = useCallback((m: FilmMode, autoplay = false) => {
-    setModeState(m);
-    setDayState(0);
-    setPlaying(autoplay);
-  }, []);
+  const setMode = useCallback(
+    (m: FilmMode, autoplay = false) => {
+      setModeState(m);
+      dayStore.set(0);
+      setPlaying(autoplay);
+    },
+    [dayStore],
+  );
 
-  return { mode, setMode, run, day, setDay, playing, toggle, setPlaying, length, events };
+  // Stable identity between ticks, so memoised children skip renders the film did not cause
+  return useMemo(
+    () => ({ mode, setMode, run, dayStore, setDay, playing, toggle, setPlaying, length, events }),
+    [mode, setMode, run, dayStore, setDay, playing, toggle, length, events],
+  );
 }
 
 function daysFrom(a: string, b: string): number {

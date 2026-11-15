@@ -98,6 +98,33 @@ def test_field_json_matches_the_api_response_shape(tmp_path: Path) -> None:
     assert saved["analyze"]["inputs"]["irrigation"] == "none"
 
 
+def test_variants_match_the_api_response_for_each_irrigation(tmp_path: Path) -> None:
+    container = _container()
+    precompute(container, tmp_path, now=NOW, commit=None, only=["hamilton-ne"])
+    saved = json.loads((tmp_path / "hamilton-ne.json").read_text(encoding="utf-8"))
+    irrigations = ["pivot", "furrow", "drip"]
+    assert [v["inputs"]["irrigation"] for v in saved["variants"]] == irrigations
+
+    geometry = next(f.geometry for f in container.list_demo_fields.execute() if f.id == "hamilton-ne")
+    client = TestClient(create_app(container))
+    described = client.post("/api/v1/fields/describe", json={"geometry": geometry, "season": 2027}).json()
+    defaults = described["defaults"]
+    for irrigation, variant in zip(irrigations, saved["variants"], strict=True):
+        analyzed = client.post(
+            "/api/v1/fields/analyze",
+            json={
+                "geometry": geometry,
+                "season": 2027,
+                "planting_date": f"2027-{defaults['planting_date'][5:]}",
+                "hybrid_rm_days": defaults["hybrid_rm_days"],
+                "irrigation": irrigation,
+                "yield_goal_t_ha": defaults["yield_goal_t_ha"],
+            },
+        ).json()
+        assert variant == analyzed
+        assert variant["inputs"]["irrigation_capacity_mm_day"] is None
+
+
 def test_a_failing_field_is_reported_not_fatal(tmp_path: Path) -> None:
     container = _container()
 

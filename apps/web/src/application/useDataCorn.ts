@@ -9,9 +9,9 @@ import { isMock, mockDescribe, mockReport } from './mock';
 // Pasos de la pantalla (docs/flujo.md §4)
 export type Step = 'globe' | 'draw' | 'calculating' | 'form' | 'results';
 
-/** True when the form still holds the values the precomputed report was computed with. */
-export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedReport): boolean {
-  const i = pre.analyze.inputs;
+/** True when the form holds the values a saved report was computed with. */
+function matchesReport(values: FieldFormValues, report: FieldReport): boolean {
+  const i = report.inputs;
   return (
     values.season === i.season &&
     values.planting_date === i.planting_date &&
@@ -25,7 +25,22 @@ export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedRepo
   );
 }
 
+/** True when the form still holds the values the default precomputed report was computed with. */
+export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedReport): boolean {
+  return matchesReport(values, pre.analyze);
+}
+
+/** The saved report computed with the form's values (the default or an irrigation variant), or null. */
+export function pickPrecomputed(values: FieldFormValues, pre: PrecomputedReport): FieldReport | null {
+  return [pre.analyze, ...(pre.variants ?? [])].find((r) => matchesReport(values, r)) ?? null;
+}
+
 export const STEPS: Step[] = ['globe', 'draw', 'calculating', 'form', 'results'];
+
+/** True when the form still holds the inputs of the report on screen, so → can show it again without a new run. */
+export function formMatchesReport(values: FieldFormValues | null, report: FieldReport | null): boolean {
+  return values !== null && report?.inputs != null && matchesReport(values, report);
+}
 
 export function useDataCorn() {
   const mock = useMemo(isMock, []);
@@ -95,13 +110,10 @@ export function useDataCorn() {
     setAnalyzing(true);
     setError(null);
     try {
-      const real = mock && precomputed !== null && matchesPrecomputed(values, precomputed);
-      const r = real
-        ? precomputed.analyze
-        : mock
-          ? await mockReport(geometry, values, described)
-          : await api.analyze(geometry, values);
-      setReportIsReal(real);
+      const saved = mock && precomputed !== null ? pickPrecomputed(values, precomputed) : null;
+      const r =
+        saved ?? (mock ? await mockReport(geometry, values, described) : await api.analyze(geometry, values));
+      setReportIsReal(saved !== null);
       setReport(r);
       setStep('results');
     } catch (e) {
@@ -133,6 +145,19 @@ export function useDataCorn() {
 
   const editData = useCallback(() => setStep('form'), []);
 
+  /** ← from the details: back to drawing with the same points, to adjust the field and close it again. */
+  const backToField = useCallback(() => {
+    run.current++;
+    setError(null);
+    setStep('draw');
+  }, []);
+
+  const canShowResults = formMatchesReport(values, report);
+  /** → from the details: the results on screen still match the form, so no new run. */
+  const showResults = useCallback(() => {
+    if (formMatchesReport(values, report)) setStep('results');
+  }, [values, report]);
+
   return {
     mock,
     /** Generation date (ISO) when the report on screen is a real result computed in advance. */
@@ -155,6 +180,9 @@ export function useDataCorn() {
     startDrawing,
     backToGlobe,
     editData,
+    backToField,
+    canShowResults,
+    showResults,
   };
 }
 

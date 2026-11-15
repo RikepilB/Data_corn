@@ -58,8 +58,10 @@ export function useGlobeSpin(map: MapLibreMap | null, active: boolean): () => vo
       return;
     }
     let stopped = false;
+    // A hidden tab keeps no spin going (it would re-arm itself on every moveend for nothing)
+    let paused = document.hidden;
     const spin = () => {
-      if (stopped || reducedMotion() || map.getZoom() > 3.2) return;
+      if (stopped || paused || reducedMotion() || map.getZoom() > 3.2) return;
       const c = map.getCenter();
       c.lng -= 7;
       map.easeTo({ center: c, duration: 2200, easing: (x) => x });
@@ -74,6 +76,16 @@ export function useGlobeSpin(map: MapLibreMap | null, active: boolean): () => vo
       stopped = true;
       map.off('moveend', spin);
     };
+    const onVisibility = () => {
+      if (document.hidden) {
+        paused = true;
+        map.stop();
+      } else if (paused) {
+        paused = false;
+        spin();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
     map.on('moveend', spin);
     map.on('mousedown', interact);
     map.on('touchstart', interact);
@@ -82,6 +94,7 @@ export function useGlobeSpin(map: MapLibreMap | null, active: boolean): () => vo
     spin();
     return () => {
       stopped = true;
+      document.removeEventListener('visibilitychange', onVisibility);
       map.off('moveend', spin);
       map.off('mousedown', interact);
       map.off('touchstart', interact);

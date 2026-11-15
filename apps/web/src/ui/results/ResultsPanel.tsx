@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -9,6 +9,8 @@ import { RiskBadge } from '../common/RiskBadge';
 import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
+import { type PdfFile, warmPdf } from '../pdf/download';
+import { isInAppBrowser } from '../pdf/inApp';
 import { buildCards } from './cards';
 
 interface Props {
@@ -19,9 +21,13 @@ interface Props {
   mock: boolean;
   pdfBusy: boolean;
   pdfError: boolean;
+  /** The PDF built for this report, to open by a tap when the browser ignored the download. */
+  pdfFile: PdfFile | null;
   onPdf: () => void;
   onChange: () => void;
   onNew: () => void;
+  /** Back to the globe, where the layers, the search and the example are. */
+  onRestart: () => void;
   onAbout: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
@@ -39,15 +45,45 @@ function Secondary({ calm, label, children }: { calm: boolean; label: string; ch
 }
 
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, onAbout, filmSlot }: Props) {
+export const ResultsPanel = memo(function ResultsPanel({
+  report,
+  film,
+  ctx,
+  isSample,
+  mock,
+  pdfBusy,
+  pdfError,
+  pdfFile,
+  onPdf,
+  onChange,
+  onNew,
+  onRestart,
+  onAbout,
+  filmSlot,
+}: Props) {
   const { locale } = ctx;
   const calm = useDisplayPrefs().calm;
-  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
+  const inApp = useMemo(() => isInAppBrowser(navigator.userAgent), []);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
       <div className="sheet__grip" aria-hidden="true" />
+      {/* Siempre a la vista al desplazarse: cambiar datos, otro lote o volver al globo */}
+      <nav className="results__nav" aria-label={t(locale, 'results.nav')}>
+        <button type="button" className="btn btn--secondary" onClick={onChange}>
+          <Icon name="back" size={18} />
+          {t(locale, 'results.change')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onNew}>
+          <Icon name="pin" size={18} />
+          {t(locale, 'results.new')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onRestart}>
+          <Icon name="globe" size={18} />
+          {t(locale, 'results.restart')}
+        </button>
+      </nav>
       <div className="results__tags">
         <span className="tag tag--plain">{t(locale, 'results.campaign', { season: report.inputs?.season ?? '' })}</span>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
@@ -128,7 +164,15 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary btn--xl" onClick={onPdf} disabled={pdfBusy}>
+      <button
+        type="button"
+        className="btn btn--primary btn--xl"
+        onClick={onPdf}
+        disabled={pdfBusy}
+        onPointerEnter={warmPdf}
+        onFocus={warmPdf}
+        onTouchStart={warmPdf}
+      >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
       </button>
@@ -137,15 +181,16 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
           {t(locale, 'results.pdf_error')}
         </p>
       )}
+      {pdfFile && !pdfBusy && (
+        <p className="pdf-ready" role="status">
+          {t(locale, 'results.pdf_ready')}{' '}
+          <a className="link" href={pdfFile.url} download={pdfFile.name} target="_blank" rel="noopener">
+            {t(locale, 'results.pdf_open')}
+          </a>
+        </p>
+      )}
+      {inApp && <p className="pdf-ready">{t(locale, 'results.pdf_inapp')}</p>}
       <div className="results__links">
-        <button type="button" className="link" onClick={onChange}>
-          {t(locale, 'results.change')}
-        </button>
-        <span aria-hidden="true">·</span>
-        <button type="button" className="link" onClick={onNew}>
-          {t(locale, 'results.new')}
-        </button>
-        <span aria-hidden="true">·</span>
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
         </button>
@@ -156,4 +201,4 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
       <p className="sources">{t(locale, 'results.sources', { list: report.sources.join(' · ') })}</p>
     </aside>
   );
-}
+});

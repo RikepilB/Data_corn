@@ -45,10 +45,14 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   await expect(page.locator('input[type=password]')).toHaveCount(0);
 
   // The example shows the real report computed in advance, not the invented sample numbers,
-  // and its banner fits the screen (it once did not on a phone).
-  const banner = page.locator('.mock-banner');
-  await expect(banner).toContainText('Real data');
-  const box = await banner.boundingBox();
+  // so the results carry no "Sample data" tag.
+  await expect(page.locator('.results .tag--warn')).toHaveCount(0);
+
+  // The results navigation stays at the top of the panel and fits the screen:
+  // change details, new field, start over.
+  const nav = page.locator('.results__nav');
+  await expect(nav.getByRole('button')).toHaveCount(3);
+  const box = await nav.boundingBox();
   const width = page.viewportSize()!.width;
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(width);
@@ -73,6 +77,24 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
     await expect(page.locator('.legend--zones')).toContainText('Less green');
     await expect(page.locator('.legend--zones')).toContainText('Greener');
   }
+
+  // The PDF downloads, and a link to the same file stays for browsers that ignore the
+  // download (iPhone Safari, browsers inside apps).
+  const download = page.waitForEvent('download', { timeout: 45_000 });
+  await page.getByRole('button', { name: 'Download full report (PDF)' }).click();
+  expect((await download).suggestedFilename()).toMatch(/^data-corn_.*\.pdf$/);
+  await expect(page.getByRole('link', { name: 'open it here' })).toHaveAttribute('href', /^blob:/);
+
+  // "Change details" opens the form; while nothing changed, → shows the same results again
+  // without a new run.
+  await nav.getByRole('button', { name: 'Change details' }).click();
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(nav).toBeVisible();
+  await expect(page.locator('.results .tag--warn')).toHaveCount(0);
+
+  // "Start over" goes back to the globe, where the example can be opened again.
+  await nav.getByRole('button', { name: 'Start over' }).click();
+  await expect(page.getByRole('button', { name: 'See an example' })).toBeVisible({ timeout: 15_000 });
 
   expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
 }
