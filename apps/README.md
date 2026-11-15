@@ -36,10 +36,8 @@ See [docs/arquitectura.md](../docs/arquitectura.md) for the architecture and
 
 ## Status
 
-This is the project skeleton: architecture, API contract, region profiles and the screen flow.
-- **Works now:** `GET /api/v1/health`, `/regions` and `/demo-fields`.
-- **Not built yet:** field analysis returns `501` naming the missing build step (`F1` … `F9`).
-- **Tests:** domain rules and the clean-architecture dependency rule run with `pytest`.
+The API runs the engine: `POST /api/v1/fields/analyze` returns a field report, and `/describe`, `/health`, `/regions`, `/demo-fields` and the layer routes work. Some adapters are still stubs that raise `NotImplementedError`, which the API turns into a `501` (for example the Earth Engine admin lookups); the data sources and their status are listed in [docs/REFERENCES.md](../docs/REFERENCES.md).
+- **Tests:** engine and web tests run with `pytest` (`apps/api`) and `pnpm test` (`apps/web`).
 
 ## Pending tasks
 
