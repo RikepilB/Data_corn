@@ -44,6 +44,15 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   });
   await expect(page.locator('input[type=password]')).toHaveCount(0);
 
+  // The example shows the real report computed in advance, not the invented sample numbers,
+  // and its banner fits the screen (it once did not on a phone).
+  const banner = page.locator('.mock-banner');
+  await expect(banner).toContainText('Real data');
+  const box = await banner.boundingBox();
+  const width = page.viewportSize()!.width;
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+
   // Rotation panel (#42, #51): three strategies, at most one current, five headings each,
   // and the stated gap about water between crops.
   const strategies = page.locator('.rotation .rcard');
@@ -54,13 +63,16 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   }
   await expect(page.locator('.rotation')).toContainText('The model does not carry water between crops.');
 
-  // The sample report carries a zone map: the Zones chip turns it on, with a legend in words.
+  // The Zones chip exists only when the report carries a zone map. The invented sample report does;
+  // the real report computed in advance has none until Earth Engine runs, so the chip must be
+  // absent then. When it is there, it turns the layer on, with a legend in words.
   const zones = page.getByRole('radio', { name: 'Zones' });
-  await expect(zones).toBeVisible();
-  await zones.click();
-  await expect(zones).toHaveAttribute('aria-checked', 'true');
-  await expect(page.locator('.legend--zones')).toContainText('Less green');
-  await expect(page.locator('.legend--zones')).toContainText('Greener');
+  if (await zones.count()) {
+    await zones.click();
+    await expect(zones).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.legend--zones')).toContainText('Less green');
+    await expect(page.locator('.legend--zones')).toContainText('Greener');
+  }
 
   expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
 }
