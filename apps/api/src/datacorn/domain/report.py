@@ -103,6 +103,14 @@ class Timeline:
     today: date | None
 
 
+class RotationStrategy(StrEnum):
+    """Las tres rotaciones explicadas (#42); los mismos ids que `RotationStrategy` en la web."""
+
+    CONTINUOUS_CORN = "continuous_corn"
+    CORN_SOYBEAN = "corn_soybean"
+    CORN_SOYBEAN_RYE = "corn_soybean_rye"
+
+
 @dataclass(frozen=True, slots=True)
 class RotationOption:
     previous_crop: Crop
@@ -110,6 +118,9 @@ class RotationOption:
     planting_soil_water_mm: float | None
     residue_erosion_risk: RiskLevel
     notes: tuple[Message, ...] = ()
+    # Opcionales: los consumidores viejos siguen leyendo `previous_crop`.
+    strategy: RotationStrategy | None = None
+    current: bool | None = None  # True solo en la que coincide con el historial CDL
 
 
 @dataclass(frozen=True, slots=True)
