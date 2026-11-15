@@ -33,6 +33,11 @@ interface Props {
   onChange: (v: FieldFormValues) => void;
   onSubmit: () => void;
   onRedraw: () => void;
+  /** ← one step back: the drawn field (to adjust it) or, for the example, the globe. */
+  onBack: () => void;
+  backLabel: string;
+  /** → back to the results, only when they still match the form. */
+  onForward?: () => void;
 }
 
 /** Una línea con lo detectado del lote. */
@@ -54,7 +59,21 @@ const signed = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
 const optionalNumber = (raw: string): number | null => (raw === '' ? null : Number(raw));
 
 /** Paso 4 · Sus datos (RF-06): 4 ya llenos y 3 opcionales. */
-export function FieldForm({ context, values, locale, units, busy, error, isSample, onChange, onSubmit, onRedraw }: Props) {
+export function FieldForm({
+  context,
+  values,
+  locale,
+  units,
+  busy,
+  error,
+  isSample,
+  onChange,
+  onSubmit,
+  onRedraw,
+  onBack,
+  backLabel,
+  onForward,
+}: Props) {
   const [optOpen, setOptOpen] = useState(false);
   const set = (patch: Partial<FieldFormValues>) => onChange({ ...values, ...patch });
   const next = defaultSeason();
@@ -66,8 +85,22 @@ export function FieldForm({ context, values, locale, units, busy, error, isSampl
     <section className="sheet glass" aria-labelledby="form-title">
       <div className="sheet__grip" aria-hidden="true" />
       <header className="sheet__head">
+        <button type="button" className="iconbtn" onClick={onBack} aria-label={backLabel} title={backLabel}>
+          <Icon name="back" size={20} />
+        </button>
         <h2 id="form-title">{t(locale, 'form.title')}</h2>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
+        {onForward && (
+          <button
+            type="button"
+            className="iconbtn"
+            onClick={onForward}
+            aria-label={t(locale, 'nav.to_results')}
+            title={t(locale, 'nav.to_results')}
+          >
+            <Icon name="forward" size={20} />
+          </button>
+        )}
       </header>
       <p className="detected">
         <Icon name="pin" size={16} />

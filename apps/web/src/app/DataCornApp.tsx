@@ -378,6 +378,9 @@ export default function DataCornApp() {
           onChange={dc.setValues}
           onSubmit={dc.analyze}
           onRedraw={dc.startDrawing}
+          onBack={dc.isSample ? backToGlobe : dc.backToField}
+          backLabel={t(locale, dc.isSample ? 'draw.back' : 'nav.back_field')}
+          onForward={dc.canShowResults ? dc.showResults : undefined}
         />
       )}
 
