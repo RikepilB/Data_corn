@@ -76,7 +76,7 @@ Six panels for a comic-style deck, as the team proposed: simple panels, little t
 | Panel | Scene | Caption |
 |---|---|---|
 | 1 | Dawn over a corn field. Juan, a farmer in a cap, holds a seed bag and looks at a dry patch beside green rows. | Juan has to choose before he knows the summer. |
-| 2 | Juan at the kitchen table, a calendar and three question marks: planting date, water, rotation. | When to plant? How much water? Corn after corn, or soybeans? |
+| 2 | Juan at the kitchen table, a calendar and three question marks: planting date, water, rotation. | When to plant? How much water? Which way to rotate? |
 | 3 | A real screenshot: the 3D globe, then Juan's field outlined on the map. | He outlines his field. No login. |
 | 4 | Simple arrows: NASA POWER weather and USDA soil flow into a soil-water model, then into 25 season stripes. | The tool replays 25 real seasons on his soil. |
 | 5 | A real screenshot: the season stripes, the "Water at silking" card and the "Three ways to rotate" panel. Juan taps one option. | He compares the seasons and reads what we don't know. |
