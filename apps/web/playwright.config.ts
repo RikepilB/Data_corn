@@ -17,6 +17,8 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'phone', use: { ...devices['Pixel 7'] } },
+    // 1000 px is where the globe padding plus the panel padding used to fill the window (#79).
+    { name: 'desktop-1000', use: { ...devices['Desktop Chrome'], viewport: { width: 1000, height: 700 } } },
   ],
   // `vite preview` serves the static dist/ in the foreground. `astro preview` 7.2+ moves
   // itself to the background when it detects an AI agent, which Playwright reads as a crash.
