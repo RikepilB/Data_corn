@@ -26,6 +26,12 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
     await page.waitForTimeout(2_000);
   }
 
+  // About: how it works, limits and credits open in a dialog and close with Escape (#60).
+  await page.getByRole('button', { name: 'About' }).click();
+  await expect(page.getByRole('dialog', { name: 'About Data Corn' })).toContainText('scenarios, not forecasts');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
   await page.getByRole('button', { name: 'See an example' }).click();
 
   // Mock describe takes about 4 s after the camera flight.

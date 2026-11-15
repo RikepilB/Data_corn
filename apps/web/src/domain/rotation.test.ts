@@ -72,6 +72,16 @@ describe('strategyViews', () => {
     expect(views.some((v) => v.current)).toBe(false);
   });
 
+  it('derives current when the engine sends null for every option', () => {
+    const views = strategyViews(
+      comparison(
+        [option({ strategy: 'continuous_corn', current: null }), option({ previous_crop: 'soybean', strategy: 'corn_soybean', current: null })],
+        years(['maize', 'soybean', 'maize', 'soybean']),
+      ),
+    );
+    expect(views[0]).toMatchObject({ strategy: 'corn_soybean', current: true });
+  });
+
   it('derives strategy and current from the old two-option shape', () => {
     const views = strategyViews(
       comparison(

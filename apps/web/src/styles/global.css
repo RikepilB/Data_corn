@@ -661,6 +661,63 @@ p {
   color: var(--muted);
 }
 
+.globe-panel__about {
+  align-self: flex-start;
+}
+
+/* --- Acerca de: <dialog> nativo --------------------------------------------------------- */
+.about {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  color: var(--ink);
+}
+
+.about::backdrop {
+  background: rgb(17 17 19 / 0.55);
+}
+
+.about__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+}
+
+.about__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.about__head h2 {
+  font-size: 1.125rem;
+}
+
+.about h3 {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about p,
+.about li {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.about ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 18px;
+}
+
 .timeslider {
   display: flex;
   flex-wrap: wrap;
