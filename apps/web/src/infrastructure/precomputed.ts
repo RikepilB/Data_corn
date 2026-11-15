@@ -13,10 +13,21 @@ export interface PrecomputedReport {
   engine_commit: string | null;
   season: number;
   describe: DescribeFieldResult;
+  /** The report for the untouched form (rainfed: irrigation 'none'). */
   analyze: FieldReport;
+  /**
+   * The same form with each other irrigation system (pivot, furrow, drip), so switching the
+   * irrigation still shows real numbers. Missing in files written before variants existed.
+   */
+  variants?: FieldReport[];
 }
 
 const BASE = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/data/reports`;
+
+function isReport(value: unknown): value is FieldReport {
+  const v = value as Partial<FieldReport> | null;
+  return !!v && typeof v === 'object' && !!v.summary && !!v.inputs;
+}
 
 function isPrecomputed(value: unknown): value is PrecomputedReport {
   const v = value as Partial<PrecomputedReport> | null;
@@ -26,8 +37,8 @@ function isPrecomputed(value: unknown): value is PrecomputedReport {
     typeof v.season === 'number' &&
     !!v.describe?.context &&
     !!v.describe.defaults &&
-    !!v.analyze?.summary &&
-    !!v.analyze.inputs
+    isReport(v.analyze) &&
+    (v.variants === undefined || (Array.isArray(v.variants) && v.variants.every(isReport)))
   );
 }
 

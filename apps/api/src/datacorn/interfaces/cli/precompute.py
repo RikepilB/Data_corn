@@ -5,7 +5,9 @@
 
 Por cada lote de `resources/demo/fields.json` llama a los mismos casos de uso que la API
 (describe y analyze) con los valores por defecto del formulario y escribe `<id>.json` con las
-dos respuestas tal como las devuelve la API, más `index.json`. No calcula nada propio.
+respuestas tal como las devuelve la API, más `index.json`. `analyze` es el formulario sin tocar
+(secano); `variants` repite el análisis con cada otro sistema de riego (pivote, surco, goteo),
+así cambiar el riego en la web estática también muestra números reales. No calcula nada propio.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ from datacorn.application.dto import DescribeFieldResult
 from datacorn.application.ports import DemoField
 from datacorn.bootstrap import Container, build_container
 from datacorn.config import Settings
-from datacorn.domain.models import IrrigationSystem
+from datacorn.domain.models import FieldDefaults, IrrigationSystem
 from datacorn.domain.report import FieldReport
 from datacorn.interfaces.http.schemas import AnalyzeFieldRequest, PolygonGeometry
 
@@ -67,22 +69,39 @@ def _write(path: Path, payload: Any) -> None:
     path.write_bytes((text + "\n").encode("utf-8"))
 
 
-def _compute(container: Container, field: DemoField, season: int) -> dict[str, Any]:
-    polygon = PolygonGeometry.model_validate(dict(field.geometry))
-    described = container.describe_field.execute(polygon.to_domain(), season=season)
-    defaults = described.defaults
+def _analyze(
+    container: Container,
+    polygon: PolygonGeometry,
+    defaults: FieldDefaults,
+    season: int,
+    irrigation: IrrigationSystem,
+) -> dict[str, Any]:
+    """El formulario por defecto con ese riego: sin capacidad, labranza y cultivo previo por defecto."""
     request = AnalyzeFieldRequest(
         geometry=polygon,
         season=season,
         planting_date=date.fromisoformat(_with_year(defaults.planting_date.isoformat(), season)),
         hybrid_rm_days=defaults.hybrid_rm_days,
-        irrigation=IrrigationSystem.NONE,
+        irrigation=irrigation,
         yield_goal_t_ha=defaults.yield_goal_t_ha,
     )
     report = container.analyze_field.execute(request.to_command())
+    return _REPORT.dump_python(report, mode="json")
+
+
+def _compute(container: Container, field: DemoField, season: int) -> dict[str, Any]:
+    polygon = PolygonGeometry.model_validate(dict(field.geometry))
+    described = container.describe_field.execute(polygon.to_domain(), season=season)
+    defaults = described.defaults
     return {
         "describe": _DESCRIBE.dump_python(described, mode="json"),
-        "analyze": _REPORT.dump_python(report, mode="json"),
+        "analyze": _analyze(container, polygon, defaults, season, IrrigationSystem.NONE),
+        # Un reporte por cada otro riego, en el orden del enum (pivote, surco, goteo)
+        "variants": [
+            _analyze(container, polygon, defaults, season, system)
+            for system in IrrigationSystem
+            if system is not IrrigationSystem.NONE
+        ],
     }
 
 

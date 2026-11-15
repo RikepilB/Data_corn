@@ -9,9 +9,9 @@ import { isMock, mockDescribe, mockReport } from './mock';
 // Pasos de la pantalla (docs/flujo.md §4)
 export type Step = 'globe' | 'draw' | 'calculating' | 'form' | 'results';
 
-/** True when the form still holds the values the precomputed report was computed with. */
-export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedReport): boolean {
-  const i = pre.analyze.inputs;
+/** True when the form holds the values a saved report was computed with. */
+function matchesReport(values: FieldFormValues, report: FieldReport): boolean {
+  const i = report.inputs;
   return (
     values.season === i.season &&
     values.planting_date === i.planting_date &&
@@ -23,6 +23,16 @@ export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedRepo
     // null means "let the engine read it from the crop history"; the report records what it chose
     (values.previous_crop === null || values.previous_crop === i.previous_crop)
   );
+}
+
+/** True when the form still holds the values the default precomputed report was computed with. */
+export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedReport): boolean {
+  return matchesReport(values, pre.analyze);
+}
+
+/** The saved report computed with the form's values (the default or an irrigation variant), or null. */
+export function pickPrecomputed(values: FieldFormValues, pre: PrecomputedReport): FieldReport | null {
+  return [pre.analyze, ...(pre.variants ?? [])].find((r) => matchesReport(values, r)) ?? null;
 }
 
 export const STEPS: Step[] = ['globe', 'draw', 'calculating', 'form', 'results'];
@@ -95,13 +105,10 @@ export function useDataCorn() {
     setAnalyzing(true);
     setError(null);
     try {
-      const real = mock && precomputed !== null && matchesPrecomputed(values, precomputed);
-      const r = real
-        ? precomputed.analyze
-        : mock
-          ? await mockReport(geometry, values, described)
-          : await api.analyze(geometry, values);
-      setReportIsReal(real);
+      const saved = mock && precomputed !== null ? pickPrecomputed(values, precomputed) : null;
+      const r =
+        saved ?? (mock ? await mockReport(geometry, values, described) : await api.analyze(geometry, values));
+      setReportIsReal(saved !== null);
       setReport(r);
       setStep('results');
     } catch (e) {
