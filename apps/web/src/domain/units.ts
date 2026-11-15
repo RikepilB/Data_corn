@@ -1,4 +1,5 @@
 // Conversión de unidades solo para mostrar (RF-41). La API siempre trabaja en métrico.
+import { numberFormat } from './intl';
 
 export type UnitSystem = 'imperial' | 'metric';
 
@@ -38,6 +39,6 @@ export const cornYieldToMetric = (value: number, u: UnitSystem): number =>
   u === 'metric' ? value : value / CORN_BU_AC_PER_T_HA;
 
 export function format(q: Quantity, locale: string, digits = 1): string {
-  const n = new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(q.value);
+  const n = numberFormat(locale, { maximumFractionDigits: digits }).format(q.value);
   return `${n} ${q.unit}`;
 }

@@ -49,3 +49,9 @@ def test_drought_tiles_reject_a_date_that_is_not_a_month(client: TestClient) -> 
         response = client.get("/api/v1/layers/drought/tiles", params={"date": bad})
         assert response.status_code == 422
         assert "error" not in response.json()  # lo rechaza la validación, no el caso de uso
+
+
+def test_enso_now(client: TestClient) -> None:
+    body = client.get("/api/v1/enso").json()
+    assert body["current"]["phase"] == "el_nino"
+    assert body["recent"]

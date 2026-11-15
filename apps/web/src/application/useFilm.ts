@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { filmEvents } from '../domain/film';
 import type { FieldReport, SeasonRun } from '../domain/report';
 import { type FilmMode, filmLength, pickRun } from '../domain/season';
 
-const DAYS_PER_SECOND = 10;
+const DAYS_PER_SECOND = 11;
+/** Pausa en cada momento clave para que se pueda leer la leyenda. */
+const HOLD_MS = 1500;
 
 /** Estado de la película de la campaña: qué año, qué día y si está corriendo (RF-31). */
 export function useFilm(report: FieldReport | null) {
@@ -11,6 +14,7 @@ export function useFilm(report: FieldReport | null) {
   const [playing, setPlaying] = useState(false);
   const run: SeasonRun | null = useMemo(() => (report ? pickRun(report, mode) : null), [report, mode]);
   const length = run ? filmLength(run) : 0;
+  const events = useMemo(() => (run ? filmEvents(run) : []), [run]);
   const dayRef = useRef(0);
   dayRef.current = day;
 
@@ -32,9 +36,21 @@ export function useFilm(report: FieldReport | null) {
     let acc = dayRef.current;
     let raf = 0;
     let timer = 0;
+    let holdUntil = 0;
+    let next = events.findIndex((e) => e.day > acc);
     const stepOnce = (now: number) => {
+      if (now < holdUntil) {
+        last = now;
+        return true;
+      }
       acc += ((now - last) / 1000) * DAYS_PER_SECOND;
       last = now;
+      const e = next >= 0 ? events[next] : undefined;
+      if (e && acc >= e.day) {
+        acc = e.day;
+        holdUntil = now + HOLD_MS;
+        next = next + 1 < events.length ? next + 1 : -1;
+      }
       if (acc >= length - 1) {
         setDayState(length - 1);
         setPlaying(false);
@@ -60,7 +76,7 @@ export function useFilm(report: FieldReport | null) {
       cancelAnimationFrame(raf);
       window.clearInterval(timer);
     };
-  }, [playing, length]);
+  }, [playing, length, events]);
 
   const setDay = useCallback(
     (i: number) => setDayState(Math.max(0, Math.min(Math.round(i), Math.max(length - 1, 0)))),
@@ -80,7 +96,7 @@ export function useFilm(report: FieldReport | null) {
     setPlaying(autoplay);
   }, []);
 
-  return { mode, setMode, run, day, setDay, playing, toggle, setPlaying, length };
+  return { mode, setMode, run, day, setDay, playing, toggle, setPlaying, length, events };
 }
 
 function daysFrom(a: string, b: string): number {

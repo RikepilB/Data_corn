@@ -5,12 +5,12 @@ from __future__ import annotations
 from datetime import date
 
 from datacorn.application.dto import AnalyzeFieldCommand
-from datacorn.application.use_cases import AnalyzeField, DescribeField
+from datacorn.application.use_cases import AnalyzeField, DescribeField, EnsoNow
 from datacorn.domain.models import FieldInputs, IrrigationSystem
 from datacorn.domain.report import IndicatorId, RiskLevel
 from datacorn.infrastructure.cache import MemoryCache
 from datacorn.infrastructure.crop_catalog import YamlCropCatalog
-from tests.fakes import SQUARE, FakeRegions, FixedClock
+from tests.fakes import SQUARE, FakeEnso, FakeRegions, FixedClock
 
 
 def _use_cases() -> tuple[DescribeField, AnalyzeField]:
@@ -57,6 +57,15 @@ def test_analyze_planning_season() -> None:
     wet = [r.relative_yield for r in report.runs if r.year % 4 != 0]
     assert sum(dry) / len(dry) < sum(wet) / len(wet)
     assert report.rotation.message.key in {"rotation.soy_first", "rotation.corn_on_slopes"}
+    # Series de la película: mismas longitudes; el rendimiento acumulado solo baja y termina
+    # en el rendimiento relativo del año
+    for run in report.runs:
+        n = len(run.water_pct)
+        assert len(run.rain_mm) == len(run.irrigation_mm) == len(run.yield_pct) == n
+        assert all(a >= b for a, b in zip(run.yield_pct, run.yield_pct[1:], strict=False))
+        assert abs(run.yield_pct[-1] - 100 * run.relative_yield) <= 0.15
+        assert 20 <= run.stress_pct <= 80
+        assert sum(run.irrigation_mm) == 0  # secano
 
 
 def test_irrigated_field_gets_irrigation_card() -> None:
@@ -85,3 +94,10 @@ def test_past_season_uses_observed_days() -> None:
     )
     assert report.observed_until is not None
     assert all(r.observed_days > 100 for r in report.runs)
+
+
+def test_enso_now_returns_current_and_recent() -> None:
+    overview = EnsoNow(FakeEnso(), FixedClock()).execute()
+    assert overview.current.phase.value == "el_nino"
+    years = {int(s.period.split()[1]) for s in overview.recent}
+    assert min(years) >= FixedClock().today().year - 3
