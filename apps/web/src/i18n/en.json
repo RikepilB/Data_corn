@@ -59,6 +59,7 @@
   "chat.error.bad_attachment_type": "Attach a photo (JPEG, PNG or WebP) or a PDF.",
   "chat.error.attachment_too_large": "The file is larger than 2.5 MB, even after shrinking. Try a smaller one.",
   "chat.error.model_error": "The assistant could not answer. Try again.",
+  "chat.error.model_busy": "The AI service is busy right now. Wait a minute and try again.",
   "chat.error.too_many_tool_rounds": "The assistant took too many steps. Ask a simpler question.",
   "chat.error.network": "The connection dropped. Check it and try again.",
   "chat.error.generic": "Something went wrong. Try again.",

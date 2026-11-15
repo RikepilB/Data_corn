@@ -65,6 +65,8 @@ export interface OpenRouterOptions {
   /** The site's origin, sent as HTTP-Referer so OpenRouter can attribute the traffic. */
   referer?: string;
   fetcher?: typeof fetch;
+  /** Waits between retries; tests pass one that does not wait. */
+  sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
 }
 
 /**
@@ -133,31 +135,63 @@ interface WireChunk {
   }[];
 }
 
+/** Statuses worth one more try: rate limited by the service or the model provider, or briefly down. */
+const RETRY_STATUS = new Set([429, 502, 503]);
+/** Waits before the second and third try, unless the service asks for a (short) Retry-After. */
+export const RETRY_DELAYS_MS = [1500, 4000] as const;
+const MAX_RETRY_AFTER_MS = 8000;
+
+function retryDelay(response: Response, attempt: number): number {
+  const seconds = Number(response.headers.get('retry-after'));
+  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
+  return RETRY_DELAYS_MS[attempt] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]!;
+}
+
+function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason);
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    }, { once: true });
+  });
+}
+
 export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
   const fetcher = options.fetcher ?? fetch;
+  const sleep = options.sleep ?? defaultSleep;
   const model = options.model || DEFAULT_OPENROUTER_MODEL;
   return {
     async *stream({ messages, tools, maxTokens, signal }) {
-      const response = await fetcher(ENDPOINT, {
-        method: 'POST',
-        signal,
-        headers: {
-          authorization: `Bearer ${options.apiKey}`,
-          'content-type': 'application/json',
-          ...(options.referer ? { 'http-referer': options.referer } : {}),
-          'x-title': 'Data Corn',
-        },
-        body: JSON.stringify({
-          model,
-          stream: true,
-          max_tokens: maxTokens,
-          messages: messages.map(toWire),
-          tools: tools.map((t) => ({ type: 'function', function: t })),
-          tool_choice: 'auto',
-          // Adds the call's cost to the last chunk, so the dev server can keep a spending cap.
-          usage: { include: true },
-        }),
+      const body = JSON.stringify({
+        model,
+        stream: true,
+        max_tokens: maxTokens,
+        messages: messages.map(toWire),
+        tools: tools.map((t) => ({ type: 'function', function: t })),
+        tool_choice: 'auto',
+        // Adds the call's cost to the last chunk, so the dev server can keep a spending cap.
+        usage: { include: true },
       });
+      let response: Response;
+      for (let attempt = 0; ; attempt++) {
+        response = await fetcher(ENDPOINT, {
+          method: 'POST',
+          signal,
+          headers: {
+            authorization: `Bearer ${options.apiKey}`,
+            'content-type': 'application/json',
+            ...(options.referer ? { 'http-referer': options.referer } : {}),
+            'x-title': 'Data Corn',
+          },
+          body,
+        });
+        // Busy or briefly down: nothing has streamed yet, so the same call can be sent again.
+        if (!RETRY_STATUS.has(response.status) || attempt >= RETRY_DELAYS_MS.length) break;
+        await response.body?.cancel();
+        await sleep(retryDelay(response, attempt), signal);
+      }
       if (!response.ok || !response.body) {
         throw new ModelHttpError(response.status);
       }

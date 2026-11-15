@@ -3,7 +3,7 @@
 // model's answer back as newline-delimited JSON:
 //   {"type":"text","delta":"..."}   part of the answer
 //   {"type":"done","truncated":true?} the end (truncated: the answer hit the length cap)
-//   {"type":"error","code":"model_error"|"too_many_tool_rounds"}
+//   {"type":"error","code":"model_error"|"model_busy"|"too_many_tool_rounds"}
 // Refusals before the stream starts are plain JSON {code, message} with an HTTP error status.
 // Nothing a person types or uploads is logged or stored: it lives only for this request.
 import type { FormatContext } from '../../src/domain/format';
@@ -44,7 +44,7 @@ export function modelErrorReason(e: unknown): string {
 export type StreamEvent =
   | { type: 'text'; delta: string }
   | { type: 'done'; truncated?: true }
-  | { type: 'error'; code: 'model_error' | 'too_many_tool_rounds' };
+  | { type: 'error'; code: 'model_error' | 'model_busy' | 'too_many_tool_rounds' };
 
 const MESSAGES: Partial<Record<ChatErrorCode, string>> = {
   method_not_allowed: 'Use POST.',
@@ -174,7 +174,9 @@ function ndjson(events: AsyncGenerator<StreamEvent>, onError?: (reason: string) 
       } catch (e) {
         // Only a safe reason leaves here (modelErrorReason); the page gets the code alone.
         onError?.(modelErrorReason(e));
-        controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'error', code: 'model_error' })}\n`));
+        // Still rate limited after the retries: say so, so the person knows waiting helps.
+        const code = e instanceof ModelHttpError && e.status === 429 ? 'model_busy' : 'model_error';
+        controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'error', code })}\n`));
         controller.close();
       }
     },

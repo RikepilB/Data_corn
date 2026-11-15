@@ -59,6 +59,7 @@
   "chat.error.bad_attachment_type": "Adjunta una foto (JPEG, PNG o WebP) o un PDF.",
   "chat.error.attachment_too_large": "El archivo pesa más de 2,5 MB incluso reducido. Prueba con uno más pequeño.",
   "chat.error.model_error": "El asistente no pudo responder. Vuelve a intentarlo.",
+  "chat.error.model_busy": "El servicio de IA está ocupado ahora. Espera un minuto y vuelve a intentarlo.",
   "chat.error.too_many_tool_rounds": "El asistente dio demasiados pasos. Haz una pregunta más simple.",
   "chat.error.network": "Se cortó la conexión. Revísala y vuelve a intentarlo.",
   "chat.error.generic": "Algo salió mal. Vuelve a intentarlo.",

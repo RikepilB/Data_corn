@@ -35,6 +35,7 @@ export const KNOWN_ERRORS = [
   'bad_attachment_type',
   'attachment_too_large',
   'model_error',
+  'model_busy',
   'too_many_tool_rounds',
   'network',
 ] as const;
