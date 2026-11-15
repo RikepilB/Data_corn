@@ -34,6 +34,7 @@
   "about.ai.text": "Parte del código y de los textos se escribió con un asistente de IA (Claude Code) y fue revisada por el equipo. La idea y las decisiones son del equipo.",
   "globe.sample": "Ver ejemplo",
   "sample.name": "Lote de ejemplo · Nebraska",
+  "results.precomputed": "Datos reales, calculados por adelantado el {date}. No son en vivo: si cambias un valor, el ejemplo vuelve a cifras de muestra.",
 
   "search.label": "Buscar un lugar",
   "search.placeholder": "Ciudad, condado o «lat, lon»",
