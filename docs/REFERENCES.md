@@ -46,7 +46,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Cloud Score+ for Sentinel-2 (Earth Engine `GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED`) | Google | Cloud mask for the in-field zones | verify | planned |
 | Google Earth Engine | Google | Runs the queries above through the `earthengine-api` client (sign-in scope on `www.googleapis.com`). Needs a Cloud project registered for noncommercial use | Earth Engine terms of service (verify) | planned |
 | USDA NASS Crop Sequence Boundaries (CSB) | USDA NASS + ERS | Current rotation of the pilot field (read once by hand) | Public domain, provided "as is" (verify) | planned |
-| Penn State and K-State Extension planting guidance (2-inch soil ≥ 50 °F, no freeze in forecast) | Penn State / Kansas State University | Planting-window rule | Citation | planned |
+| Penn State and K-State Extension planting guidance (2-inch soil ≥ 50 °F, no freeze in forecast) | Penn State / Kansas State University | Background for the planting window. The app does not apply this soil-temperature rule: it simulates the window with the FAO-56 water balance and growing degree days (`docs/DATA-SOURCES.md` section 4) | Citation | not used |
 | Iowa State / UW Extension, corn drought yield loss by stage (Claassen & Shaw 1970; Shaw 1988) | ISU / UW | Cited ranges for critical-stage stress (never a prediction) | Citation | planned |
 | SoilGrids 2.0 (sand, clay, SOC), REST API `rest.isric.org` | ISRIC | Soil outside the US (Argentina, Brazil, Peru and the global profile) and the fallback in the US; inside the US the soil comes from SSURGO | CC BY 4.0 | used |
 | Oceanic Niño Index (ONI), `www.cpc.ncep.noaa.gov` | NOAA CPC | ENSO phase chip on the verdict: the background of the season, not a forecast | U.S. Government work | used |
