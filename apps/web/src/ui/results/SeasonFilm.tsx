@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type PointerEvent, memo, useMemo, useRef } from 'react';
+import { useDay } from '../../application/dayStore';
 import type { Film } from '../../application/useFilm';
 import {
   type FilmEvent,
@@ -88,7 +89,9 @@ const monthLabel = (iso: string, locale: Locale) =>
 
 /** Película de la campaña (RF-31): agua del año contra el rango de 25 años, lluvia, estrés y rendimiento. */
 export function SeasonFilm({ film, report, ctx }: { film: Film; report: FieldReport; ctx: FormatContext }) {
-  const { run, day, length, events } = film;
+  const { run, length, events } = film;
+  // Solo la película se vuelve a dibujar con cada día; el resto de la app no (dayStore.ts)
+  const day = useDay(film.dayStore, (d) => d);
   const { locale } = ctx;
   const track = useRef<HTMLDivElement>(null);
   const runs = report.runs ?? [];

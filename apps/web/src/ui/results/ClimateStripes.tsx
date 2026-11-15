@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FieldReport } from '../../domain/report';
 import { motionAllowed } from '../common/displayPrefs';
@@ -7,8 +8,8 @@ import { type Locale, t } from '../../i18n';
 const barHeight = (rel: number) => `${Math.round(24 + 43 * Math.min(1, Math.max(0, (rel - 0.6) / 0.4)))}px`;
 
 /** Franjas de 25 campañas (RF-38): una por año, color por rendimiento relativo, marca ENSO. */
-export function ClimateStripes({ report, film, locale }: { report: FieldReport; film: Film; locale: Locale }) {
-  const runs = [...(report.runs ?? [])].sort((a, b) => a.year - b.year);
+export const ClimateStripes = memo(function ClimateStripes({ report, film, locale }: { report: FieldReport; film: Film; locale: Locale }) {
+  const runs = useMemo(() => [...(report.runs ?? [])].sort((a, b) => a.year - b.year), [report.runs]);
   if (runs.length === 0) return null;
   const selected = film.run?.year;
   const first = runs[0]!.year;
@@ -86,4 +87,4 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
       </div>
     </section>
   );
-}
+});

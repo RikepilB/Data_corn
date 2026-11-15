@@ -1,6 +1,7 @@
 // SI-assisted (Claude Code); reviewed by <name>
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useDay } from '../../application/dayStore';
 import type { Film } from '../../application/useFilm';
 import { yieldAt } from '../../domain/film';
 import { BATTERY_MAX_DAYS } from '../../domain/outlook';
@@ -76,7 +77,8 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
     // Al moverse el mapa, cambiar de año o cambiar de tamaño: medir en cada día de la película frena la animación
   }, [xy, film.run, size]);
 
-  const { run, day } = film;
+  const { run } = film;
+  const day = useDay(film.dayStore, (d) => d);
   if (!xy || !run) return null;
   const { locale, units } = ctx;
   const lang = numberLocale(locale);

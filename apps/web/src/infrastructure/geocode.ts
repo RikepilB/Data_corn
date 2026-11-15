@@ -5,6 +5,10 @@ export interface Place {
   lat: number;
 }
 
+// La licencia ODbL y la política de uso de Nominatim piden mostrar este crédito con los resultados.
+export const NOMINATIM_ATTRIBUTION = '© OpenStreetMap contributors';
+export const NOMINATIM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';
+
 const COORDS = /^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/;
 
 export function parseCoordinates(text: string): Place | null {
