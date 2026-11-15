@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 
 from datacorn.application.dto import AnalyzeFieldCommand
 from datacorn.application.use_cases import AnalyzeField, DescribeField
-from datacorn.domain.models import FieldInputs, IrrigationSystem
+from datacorn.domain.models import FieldInputs, IrrigationSystem, Terrain
 from datacorn.domain.report import IndicatorId, RiskLevel
 from datacorn.infrastructure.cache import MemoryCache
 from datacorn.infrastructure.crop_catalog import YamlCropCatalog
@@ -85,3 +86,40 @@ def test_past_season_uses_observed_days() -> None:
     )
     assert report.observed_until is not None
     assert all(r.observed_days > 100 for r in report.runs)
+
+
+class _NoSoil:
+    def profile(self, geometry):  # noqa: ANN001, ANN201
+        return None
+
+
+class _SlopelessTerrain:
+    def terrain(self, geometry):  # noqa: ANN001, ANN201
+        return Terrain(550.0, None, None, "NASA POWER (altura)")
+
+
+class _SparseRegions(FakeRegions):
+    def resolve(self, point):  # noqa: ANN001, ANN201
+        return replace(super().resolve(point), soil=_NoSoil(), elevation=_SlopelessTerrain())
+
+
+def test_missing_soil_and_slope_are_declared_in_sources() -> None:
+    """#104: sin suelo y con terreno de POWER (sin pendiente) el informe lo declara."""
+    regions, cache, clock = _SparseRegions(), MemoryCache(), FixedClock()
+    describe = DescribeField(
+        regions=regions, cache=cache, clock=clock, min_area_ha=1, max_area_ha=2000,
+        max_vertices=500, history_start_year=2001,
+    )
+    analyze = AnalyzeField(
+        regions=regions, crops=YamlCropCatalog(), cache=cache, clock=clock, describe=describe,
+        history_start_year=2001,
+    )
+    defaults = describe.execute(SQUARE, season=2027).defaults
+    report = analyze.execute(
+        AnalyzeFieldCommand(
+            SQUARE,
+            FieldInputs(season=2027, planting_date=defaults.planting_date, hybrid_rm_days=105),
+        )
+    )
+    assert "Generic loam soil (no soil data; assumed)" in report.sources
+    assert "Slope not available (assumed flat)" in report.sources
