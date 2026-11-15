@@ -308,26 +308,26 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [ ] [#33](https://github.com/RikepilB/Data_corn/issues/33) Contract-first workflow and PR template · Must · M1
   - [ ] [#34](https://github.com/RikepilB/Data_corn/issues/34) GitHub Actions: tests and build on every PR · Should · M2
 - [ ] [#6](https://github.com/RikepilB/Data_corn/issues/6) **EPIC 6 · Pipeline: adapters → domain → usecases (Python)**
-  - [ ] [#35](https://github.com/RikepilB/Data_corn/issues/35) Task 1 · Contract semantic validator · Must · M1
-  - [ ] [#36](https://github.com/RikepilB/Data_corn/issues/36) Task 2 · Cached HTTP + NASA POWER adapter · Must · M1
-  - [ ] [#37](https://github.com/RikepilB/Data_corn/issues/37) Task 3 · FAO-56 reference evapotranspiration · Must · M1
-  - [ ] [#38](https://github.com/RikepilB/Data_corn/issues/38) Task 4 · SSURGO soil profile -> available water · Must · M2
-  - [ ] [#39](https://github.com/RikepilB/Data_corn/issues/39) Task 5 · Crop parameters and site config · Must · M2
-  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily soil-water balance and campaign metrics · Must · M2
-  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Year types (dry / normal / wet) and corn planting window · Must · M1
+  - [x] [#35](https://github.com/RikepilB/Data_corn/issues/35) Task 1 · Contract semantic validator · Must · M1
+  - [x] [#36](https://github.com/RikepilB/Data_corn/issues/36) Task 2 · Cached HTTP + NASA POWER adapter · Must · M1
+  - [x] [#37](https://github.com/RikepilB/Data_corn/issues/37) Task 3 · FAO-56 reference evapotranspiration · Must · M1
+  - [x] [#38](https://github.com/RikepilB/Data_corn/issues/38) Task 4 · SSURGO soil profile -> available water · Must · M2
+  - [x] [#39](https://github.com/RikepilB/Data_corn/issues/39) Task 5 · Crop parameters and site config · Must · M2
+  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Soil water at planting after the previous crop (rotation schedule) · Must · M2
+  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet year types (the planting window exists) · Must · M1
   - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Rotation x year-type matrix with confidence · Must · M2
-  - [ ] [#43](https://github.com/RikepilB/Data_corn/issues/43) Task 9 · `build_site_ficha` use case and CLI (first real ficha) · Must · M2
+  - [x] [#43](https://github.com/RikepilB/Data_corn/issues/43) Task 9 · `build_site_ficha` use case and CLI (first real ficha) · Must · M2
   - [ ] [#44](https://github.com/RikepilB/Data_corn/issues/44) Task 10 · AppEEARS loader + SMAP consistency check · Should · M3
-  - [ ] [#45](https://github.com/RikepilB/Data_corn/issues/45) Task 11 · NDVI crop calendar and bare windows · Should · M3
+  - [ ] [#45](https://github.com/RikepilB/Data_corn/issues/45) Task 11 · NDVI harvest and bare-soil windows (green-up exists) · Should · M3
   - [ ] [#46](https://github.com/RikepilB/Data_corn/issues/46) Task 12 · Relative erosion index · Should · M3
   - [ ] [#47](https://github.com/RikepilB/Data_corn/issues/47) Task 15 · GRACE regional water context · Should · M3
 - [ ] [#7](https://github.com/RikepilB/Data_corn/issues/7) **EPIC 7 · Web (Astro) and Firebase Hosting**
-  - [ ] [#48](https://github.com/RikepilB/Data_corn/issues/48) Task 13a · ficha types and helpers (Vitest) · Must · M1
-  - [ ] [#49](https://github.com/RikepilB/Data_corn/issues/49) Task 13b · Tool page: planting strip, matrix, rotation cards · Must · M1
-  - [ ] [#50](https://github.com/RikepilB/Data_corn/issues/50) Task 13c · Field map (MapLibre island) · Should · M3
+  - [ ] [#48](https://github.com/RikepilB/Data_corn/issues/48) Task 13a · Vitest and unit tests for the web helpers (ficha types wait on #7) · Must · M1
+  - [x] [#49](https://github.com/RikepilB/Data_corn/issues/49) Task 13b · Tool page: planting strip, matrix, rotation cards · Must · M1
+  - [x] [#50](https://github.com/RikepilB/Data_corn/issues/50) Task 13c · Field map (MapLibre island) · Should · M3
   - [ ] [#51](https://github.com/RikepilB/Data_corn/issues/51) Task 13d · End-to-end smoke test (Playwright) · Must · M2
   - [ ] [#52](https://github.com/RikepilB/Data_corn/issues/52) Task 14a · Deploy v0 (synthetic example) to Firebase Hosting · Must · M1
-  - [ ] [#53](https://github.com/RikepilB/Data_corn/issues/53) Task 14b · Redeploy with the real ficha and check public access · Must · M2
+  - [ ] [#53](https://github.com/RikepilB/Data_corn/issues/53) Task 14b · Serve real results (precomputed reports or API) and check public access · Must · M2
 - [ ] [#8](https://github.com/RikepilB/Data_corn/issues/8) **EPIC 8 · UI/UX and brand**
   - [ ] [#54](https://github.com/RikepilB/Data_corn/issues/54) Decide the name and the tagline · Must · M1
   - [ ] [#55](https://github.com/RikepilB/Data_corn/issues/55) Design tokens, fonts and accessibility baseline · Must · M1
