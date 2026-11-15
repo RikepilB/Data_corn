@@ -1,6 +1,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDataCorn } from '../application/useDataCorn';
+import { useBackButton } from '../application/useBackButton';
+import { backDepth, previousStep, useDataCorn } from '../application/useDataCorn';
 import { useDay } from '../application/dayStore';
 import { type Film, useFilm } from '../application/useFilm';
 import { type FormatContext, messageText } from '../domain/format';
@@ -259,6 +260,18 @@ export default function DataCornApp() {
     }
   }, [dcBackToGlobe, map]);
 
+  // One Back for every step, also behind the browser's and the phone's Back button
+  const backTo = previousStep(step, dc.isSample);
+  const backLabel = t(locale, backTo === 'form' ? 'nav.back_form' : backTo === 'draw' ? 'nav.back_field' : 'nav.back_globe');
+  const { editData, backToField } = dc;
+  const goBack = useCallback(() => {
+    if (step === 'globe') return;
+    if (backTo === 'form') editData();
+    else if (backTo === 'draw') backToField();
+    else backToGlobe();
+  }, [step, backTo, editData, backToField, backToGlobe]);
+  useBackButton(backDepth(step, dc.isSample), goBack);
+
   const onPdf = useCallback(async () => {
     if (!dc.report) return;
     setPdfBusy(true);
@@ -355,7 +368,8 @@ export default function DataCornApp() {
           showError={drawError}
           onUndo={() => dc.setPoints((p) => p.slice(0, -1))}
           onClose={tryClose}
-          onBack={backToGlobe}
+          onBack={goBack}
+          backLabel={backLabel}
         />
       )}
 
@@ -367,6 +381,8 @@ export default function DataCornApp() {
             error={dc.error}
             onRetry={dc.retry}
             onRedraw={dc.startDrawing}
+            onBack={goBack}
+            backLabel={backLabel}
           />
         </div>
       )}
@@ -383,8 +399,8 @@ export default function DataCornApp() {
           onChange={dc.setValues}
           onSubmit={dc.analyze}
           onRedraw={dc.startDrawing}
-          onBack={dc.isSample ? backToGlobe : dc.backToField}
-          backLabel={t(locale, dc.isSample ? 'draw.back' : 'nav.back_field')}
+          onBack={goBack}
+          backLabel={backLabel}
           onForward={dc.canShowResults ? dc.showResults : undefined}
         />
       )}
@@ -402,7 +418,8 @@ export default function DataCornApp() {
             pdfError={pdfError}
             pdfFile={pdfFile}
             onPdf={onPdf}
-            onChange={dc.editData}
+            onBack={goBack}
+            backLabel={backLabel}
             onNew={dc.startDrawing}
             onRestart={backToGlobe}
             onAbout={openAbout}

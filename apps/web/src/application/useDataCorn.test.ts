@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest';
 import type { FieldFormValues } from '../domain/inputs';
 import type { FieldReport } from '../domain/report';
 import type { PrecomputedReport } from '../infrastructure/precomputed';
-import { formMatchesReport, matchesPrecomputed, pickPrecomputed } from './useDataCorn';
+import { type LngLat, toPolygon } from '../domain/geo';
+import {
+  type Step,
+  backDepth,
+  formMatchesReport,
+  matchesPrecomputed,
+  pickPrecomputed,
+  previousStep,
+  sameField,
+} from './useDataCorn';
 
 const inputs = {
   season: 2027,
@@ -75,5 +84,57 @@ describe('formMatchesReport', () => {
     expect(formMatchesReport(null, report)).toBe(false);
     expect(formMatchesReport(form, null)).toBe(false);
     expect(formMatchesReport(form, {} as unknown as FieldReport)).toBe(false);
+  });
+});
+
+describe('previousStep', () => {
+  it('goes one screen back for a drawn field: results, details, corners, globe', () => {
+    const path: Step[] = [];
+    for (let s: Step = 'results'; s !== 'globe'; s = previousStep(s, false)) path.push(s);
+    expect(path).toEqual(['results', 'form', 'draw']);
+  });
+
+  it('skips the drawing for the example, which was never drawn', () => {
+    expect(previousStep('results', true)).toBe('form');
+    expect(previousStep('form', true)).toBe('globe');
+    expect(previousStep('calculating', true)).toBe('globe');
+  });
+
+  it('goes back to the corners while a drawn field is being read', () => {
+    expect(previousStep('calculating', false)).toBe('draw');
+  });
+});
+
+describe('backDepth', () => {
+  it('counts the Back presses that reach the globe', () => {
+    expect(backDepth('globe', false)).toBe(0);
+    expect(backDepth('draw', false)).toBe(1);
+    expect(backDepth('calculating', false)).toBe(2);
+    expect(backDepth('form', false)).toBe(2);
+    expect(backDepth('results', false)).toBe(3);
+    expect(backDepth('form', true)).toBe(1);
+    expect(backDepth('results', true)).toBe(2);
+  });
+});
+
+describe('sameField', () => {
+  const ring: LngLat[] = [
+    [-97.5, 41.2],
+    [-97.49, 41.2],
+    [-97.49, 41.21],
+  ];
+
+  it('recognises the corners of the field already read, so closing it again keeps the work', () => {
+    expect(sameField(ring, toPolygon(ring))).toBe(true);
+  });
+
+  it('rejects a moved, added or removed corner', () => {
+    expect(sameField([ring[0]!, ring[1]!, [-97.49, 41.22]], toPolygon(ring))).toBe(false);
+    expect(sameField([...ring, [-97.5, 41.21]], toPolygon(ring))).toBe(false);
+    expect(sameField(ring.slice(0, 2), toPolygon(ring))).toBe(false);
+  });
+
+  it('rejects when no field has been read yet', () => {
+    expect(sameField(ring, null)).toBe(false);
   });
 });

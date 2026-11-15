@@ -48,14 +48,16 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   // so the results carry no "Sample data" tag.
   await expect(page.locator('.results .tag--warn')).toHaveCount(0);
 
-  // The results navigation stays at the top of the panel and fits the screen:
-  // change details, new field, start over.
+  // The results navigation stays at the top of the panel and fits the screen on one line:
+  // Back (to the details) first, then the two secondary ways out, new field and start over.
   const nav = page.locator('.results__nav');
   await expect(nav.getByRole('button')).toHaveCount(3);
+  await expect(nav.getByRole('button').first()).toHaveText('Back');
   const box = await nav.boundingBox();
   const width = page.viewportSize()!.width;
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+  expect(box!.height).toBeLessThan(70);
 
   // Rotation panel (#42, #51): three strategies, at most one current, five headings each,
   // and the stated gap about water between crops.
@@ -85,12 +87,20 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   expect((await download).suggestedFilename()).toMatch(/^data-corn_.*\.pdf$/);
   await expect(page.getByRole('link', { name: 'open it here' })).toHaveAttribute('href', /^blob:/);
 
-  // "Change details" opens the form; while nothing changed, → shows the same results again
+  // "Back" opens the form; while nothing changed, → shows the same results again
   // without a new run.
-  await nav.getByRole('button', { name: 'Change details' }).click();
+  await nav.getByRole('button', { name: 'Back to the details' }).click();
   await page.getByRole('button', { name: 'Back to the results' }).click();
   await expect(nav).toBeVisible();
   await expect(page.locator('.results .tag--warn')).toHaveCount(0);
+
+  // The browser's Back button is the same Back: from the results to the details, without
+  // leaving the site or losing ?mock=1.
+  await page.goBack();
+  await expect(page.getByRole('button', { name: 'See results' })).toBeVisible();
+  expect(page.url()).toContain('?mock=1');
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(nav).toBeVisible();
 
   // "Start over" goes back to the globe, where the example can be opened again.
   await nav.getByRole('button', { name: 'Start over' }).click();
@@ -107,4 +117,87 @@ test('the example tapped right away reaches the results', async ({ page }) => {
 // Tapped once the globe has settled: framing the field must fit beside the panel.
 test('the example tapped after the globe settles reaches the results', async ({ page }) => {
   await exampleToResults(page, { waitForGlobe: true });
+});
+
+// A field drawn by hand: one "Back" on every step, to the screen before, and nothing entered is
+// lost by going back and forward again.
+test('Back goes one step back and keeps the work', async ({ page, context }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (err) => pageErrors.push(err.message));
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 41.2, longitude: -97.5 });
+  await page.goto('/?mock=1');
+
+  const back = page.locator('.backbtn');
+  const example = page.getByRole('button', { name: 'See an example' });
+  const close = page.getByRole('button', { name: 'Close field' });
+  const submit = page.getByRole('button', { name: 'See results' });
+  const corners = page.locator('.draw-bar__info .muted');
+  const rm = page.locator('.stepper output');
+
+  // Draw step, nothing tapped yet: Undo and Close field cannot act, Back returns to the globe.
+  await page.getByRole('button', { name: 'Go to my location' }).click();
+  await expect(corners).toHaveText('0 corners', { timeout: 30_000 });
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  await expect(close).toBeDisabled();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the globe');
+  await back.click();
+  await expect(example).toBeVisible({ timeout: 15_000 });
+
+  // Draw a field and reach the details.
+  await page.getByRole('button', { name: 'Go to my location' }).click();
+  await expect(corners).toHaveText('0 corners', { timeout: 30_000 });
+  const { width, height } = page.viewportSize()!;
+  const [x0, x1, y0, y1] = width >= 900 ? [0.3, 0.5, 0.3, 0.5] : [0.3, 0.7, 0.18, 0.3];
+  for (const [fx, fy] of [
+    [x0, y0],
+    [x1, y0],
+    [x1, y1],
+    [x0, y1],
+  ]) {
+    await page.mouse.click(width * fx!, height * fy!);
+    await page.waitForTimeout(300);
+  }
+  await expect(corners).toHaveText('4 corners');
+  await close.click();
+  await expect(submit).toBeVisible({ timeout: 45_000 });
+
+  // Details: Back returns to the drawing with the corners kept; closing the same field again
+  // returns to the details as they were, without reading the field again.
+  await page.getByRole('button', { name: 'More days' }).click();
+  const chosen = await rm.textContent();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the field');
+  await back.click();
+  await expect(corners).toHaveText('4 corners');
+  await close.click();
+  await expect(submit).toBeVisible({ timeout: 1_000 });
+  await expect(rm).toHaveText(chosen!);
+
+  // Results: Back returns to the details as entered; forward shows the same results at once.
+  await submit.click();
+  const verdict = page.locator('.verdict__text');
+  await expect(verdict).toBeVisible({ timeout: 45_000 });
+  const text = await verdict.textContent();
+  await expect(back).toHaveCount(1);
+  await expect(back).toHaveText('Back');
+  await expect(back).toHaveAccessibleName('Back to the details');
+  await back.click();
+  await expect(rm).toHaveText(chosen!);
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(verdict).toHaveText(text!, { timeout: 1_000 });
+
+  // The browser's Back button walks the same steps: details, drawing (corners kept), globe.
+  await page.goBack();
+  await expect(rm).toHaveText(chosen!);
+  await page.goBack();
+  await expect(corners).toHaveText('4 corners');
+  await page.goBack();
+  await expect(example).toBeVisible({ timeout: 15_000 });
+  expect(page.url()).toContain('?mock=1');
+
+  expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
 });

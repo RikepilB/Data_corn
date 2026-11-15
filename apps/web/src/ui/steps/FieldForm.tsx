@@ -19,6 +19,7 @@ import {
 } from '../../domain/units';
 import { type Locale, numberLocale, t } from '../../i18n';
 import type { ApiError } from '../../infrastructure/apiClient';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 import { errorText } from './errors';
 
@@ -33,7 +34,7 @@ interface Props {
   onChange: (v: FieldFormValues) => void;
   onSubmit: () => void;
   onRedraw: () => void;
-  /** ← one step back: the drawn field (to adjust it) or, for the example, the globe. */
+  /** Back, one step: the drawn field (to adjust it) or, for the example, the globe. */
   onBack: () => void;
   backLabel: string;
   /** → back to the results, only when they still match the form. */
@@ -84,23 +85,28 @@ export function FieldForm({
   return (
     <section className="sheet glass" aria-labelledby="form-title">
       <div className="sheet__grip" aria-hidden="true" />
+      <nav className="stepnav" aria-label={t(locale, 'nav.steps')}>
+        <BackButton locale={locale} label={backLabel} onClick={onBack} />
+        <div className="stepnav__more">
+          <button type="button" className="link" onClick={onRedraw}>
+            {t(locale, 'results.new')}
+          </button>
+          {onForward && (
+            <button
+              type="button"
+              className="iconbtn"
+              onClick={onForward}
+              aria-label={t(locale, 'nav.to_results')}
+              title={t(locale, 'nav.to_results')}
+            >
+              <Icon name="forward" size={20} />
+            </button>
+          )}
+        </div>
+      </nav>
       <header className="sheet__head">
-        <button type="button" className="iconbtn" onClick={onBack} aria-label={backLabel} title={backLabel}>
-          <Icon name="back" size={20} />
-        </button>
         <h2 id="form-title">{t(locale, 'form.title')}</h2>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
-        {onForward && (
-          <button
-            type="button"
-            className="iconbtn"
-            onClick={onForward}
-            aria-label={t(locale, 'nav.to_results')}
-            title={t(locale, 'nav.to_results')}
-          >
-            <Icon name="forward" size={20} />
-          </button>
-        )}
       </header>
       <p className="detected">
         <Icon name="pin" size={16} />
@@ -258,9 +264,6 @@ export function FieldForm({
         <button type="submit" className="btn btn--primary btn--xl" disabled={busy}>
           {busy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="check" />}
           {t(locale, busy ? 'form.analyzing' : 'form.submit')}
-        </button>
-        <button type="button" className="link link--small center" onClick={onRedraw}>
-          {t(locale, 'form.back')}
         </button>
       </form>
     </section>
