@@ -24,7 +24,6 @@ export function LayerChips({
           className={`chip${value === id ? ' is-on' : ''}`}
           onClick={() => onChange(value === id ? null : id)}
         >
-          <span className="chip__swatch" style={{ background: gradient(id) }} aria-hidden="true" />
           {t(locale, `layer.${id}`)}
         </button>
       ))}

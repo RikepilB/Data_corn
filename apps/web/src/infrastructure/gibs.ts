@@ -94,7 +94,8 @@ export function tileUrl(layer: ClimateLayer, time: string): string {
   return `${GIBS}/${layer.gibs}/default/${time}/${layer.tms}/{z}/{y}/{x}.${layer.ext}`;
 }
 
-export const BLUE_MARBLE_TILES = `${GIBS}/BlueMarble_NextGeneration/default/2004-08-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg`;
+// Variante con relieve y océanos azules: la NextGeneration tiene los océanos casi negros
+export const BLUE_MARBLE_TILES = `${GIBS}/BlueMarble_ShadedRelief_Bathymetry/default/2004-08-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg`;
 export const EOX_TILES =
   'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';
 export const EOX_ATTRIBUTION =
