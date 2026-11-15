@@ -27,7 +27,7 @@ The profile above is a working assumption from the team documents, not a survey.
 Three linked questions, asked about one field:
 
 1. **Which rotation?** Compare the current rotation with at least two alternatives. The four proposed (to be reviewed by a mentor or agronomist): continuous corn with irrigation (current); corn then soybean; corn then cereal rye cover then soybean; dryland wheat then corn then sorghum then fallow.
-2. **When to plant corn?** The planting window: soil wet enough, season long enough for the hybrid, and the last spring frost passed.
+2. **When to plant corn?** The planting window: the dates whose replayed seasons give the best median yield with the least frost risk, from a late spring frost to a killing frost before the hybrid matures.
 3. **At which growth stage does water run short?** For corn, the sensitive window is around tasseling and silking (VT-R1).
 
 What "better" means depends on the producer's priorities: water use, forage, nitrogen fixing, erosion, organic matter, market. The tool lets the producer rank them and shows fit by level (better, similar, worse, unknown), not by score, to avoid false precision.
@@ -48,7 +48,7 @@ What "better" means depends on the producer's priorities: water use, forage, nit
 - **No replacement for local advice.** Every rotation lists risks that someone local must review, and information gaps.
 - **No validation of the alternatives.** The SMAP comparison is a consistency check of the simulated moisture of the current rotation (rainfed run, monthly anomalies, 9 km pixel). It never validates the other rotations. GRACE is regional context only.
 - **Generic crop parameters.** Crop coefficients, root depths and stage lengths come from FAO-56 tables until a local agronomist corrects them. Cereal rye has no FAO-56 row, so winter-wheat values stand in, and the card says so.
-- **Simulated planting dates.** The engine simulates planting dates with the FAO-56 water balance and growing degree days, using NASA POWER `GWETROOT` and `GWETTOP` (MERRA-2 soil wetness on a grid of about half a degree) and not a soil-temperature rule; it is not a probe reading.
+- **Simulated planting dates.** The engine replays each candidate planting date through the FAO-56 water balance and growing degree days on NASA POWER weather, and scores it by median yield and frost risk. It reads no soil temperature and no soil moisture, so it is not a probe reading.
 - **A relative erosion index, not tonnes per hectare.** (Should.)
 - **One precomputed field.** The method could be applied to other counties; this submission does not demonstrate that.
 

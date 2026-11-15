@@ -125,7 +125,7 @@ From the team plan, section 9.
 
 | Gate | When | Question | Proof | Issues |
 |---|---|---|---|---|
-| Data | Sat 17:00 | Do we have the full record for the field? | NaN days in POWER, including `GWETROOT` and `GWETTOP`; the SSURGO profile; years per year type; corn years per cell (5 or more, otherwise low confidence) | [#36](https://github.com/RikepilB/Data_corn/issues/36), [#38](https://github.com/RikepilB/Data_corn/issues/38), [#41](https://github.com/RikepilB/Data_corn/issues/41) |
+| Data | Sat 17:00 | Do we have the full record for the field? | NaN days in POWER; the SSURGO profile; years per year type; corn years per cell (5 or more, otherwise low confidence) | [#36](https://github.com/RikepilB/Data_corn/issues/36), [#38](https://github.com/RikepilB/Data_corn/issues/38), [#41](https://github.com/RikepilB/Data_corn/issues/41) |
 | Science | Sat 21:00 | Is the twin credible? | FAO-56 Example 18 test green; annual crop ET against rain looks plausible; nothing is zero because of missing data; the irrigated baseline does not show 0 stress | [#30](https://github.com/RikepilB/Data_corn/issues/30), [#37](https://github.com/RikepilB/Data_corn/issues/37) |
 | Validation | Sun 09:00 | What can we claim? | The SMAP status (`consistent`, `weak`, `inconsistent` or `not-available`) is written as it is in the ficha and on the page. It is never said to validate the alternatives. | [#44](https://github.com/RikepilB/Data_corn/issues/44), [#31](https://github.com/RikepilB/Data_corn/issues/31) |
 | Product | Sun 14:00 | Does a producer understand it? | Someone outside the team explains the matrix in 2 minutes on a phone | [#58](https://github.com/RikepilB/Data_corn/issues/58) |
