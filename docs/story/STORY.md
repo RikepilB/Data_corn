@@ -1,7 +1,7 @@
 <!-- SI-assisted (Claude Code) draft of the team's story idea (docs/TEAM-ACTION-PLAN.es.md §7); reviewed by <name> -->
 # Story: the orbital observer
 
-**Status: draft for #59.** The narrator and the message come from the team plan (§7). The numbers below come from one real run of the API on the sample field (Hamilton County, Nebraska, rainfed corn, planted Apr 20, 105-day hybrid) on 2026-11-14. Re-run them before the demo, and replace them if the demo field changes.
+**Status: draft for #59.** The narrator and the message come from the team plan (§7). The numbers below come from one real run of the API on the sample field (Hamilton County, Nebraska, rainfed corn, planted Apr 20, 105-day hybrid) on 2026-11-14. They match the report computed in advance on 2026-11-15 that the live demo shows for this field. Re-run them if the demo field changes.
 
 One narrator. One message: **the tool supports the farmer, it does not replace them.**
 
@@ -25,7 +25,7 @@ It sees patterns. It does not know what the farmer cares about. So it does not g
 
 ## 3. What it saw (sample field, 25 seasons, 2001 to 2025)
 
-- **Planting.** In most years the soil was ready between **Apr 17 and May 7**. A late frost after planting happened in about **1 year in 25**.
+- **Planting.** With a planting date tried every 7 days in each past season, the best window was **Apr 17 to May 7**. A late frost after planting happened in about **1 year in 25**.
 - **Water at silking.** In **13 of 25 seasons**, rainfed corn on this field would have run short of water around silking, the stage that matters most for yield.
 - **The bad years were very bad.** In 2002 and 2012 the water balance gives about **half** of the field's potential yield.
 - **El Niño.** NOAA's index says a strong El Niño is under way now (ONI +2.5, Aug to Oct 2026). In the El Niño years we have (2002, 2015, 2023), the water shortfall at silking was larger than in other years.
