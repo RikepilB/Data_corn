@@ -84,3 +84,10 @@ Funciona sin claves, con estas fuentes:
 - **Suelo fuera de EE. UU.:** ISRIC SoilGrids.
 
 Con cuentas se suman Earth Engine (PRISM, HLS/Sentinel-2, SMAP, zonas del lote, sequía) y NASS QuickStats (rendimiento por condado).
+
+## 8. Con Earth Engine (`DATACORN_EARTH_ENGINE_ENABLED=true`)
+
+Los adaptadores están escritos y probados sin red, pero **todavía no se han corrido contra Earth Engine**. Van primero en la cadena de cada región; si Earth Engine está apagado o falla, responde la fuente sin cuenta de la sección 7.
+
+- **Zonas del lote:** `zones_geojson` deja de ser `null`. Es un `FeatureCollection` con `meta` (`source`, `first_year`, `last_year`, `seasons`, `resolution_m`) y un polígono por parche, con `properties.zone` (`low`, `medium` o `high`), `ndvi` (media de la clase) y `area_pct` (porcentaje entero del lote que ocupa la clase). Una clase es baja o alta si su NDVI está más de 5 % por debajo o por encima de la mediana del propio lote. Con la copa cerrada el NDVI se satura, así que la clase alta suele faltar: lo que el mapa separa es la zona baja. Los 15 m del borde no se clasifican (mezclan lote con camino), por eso las zonas no llegan al contorno. `seasons` cuenta solo las campañas con imágenes despejadas. El indicador `field_zones` pasa a `field_zones.low`, `.medium` o `.high` con `low_pct`, `high_pct`, `seasons` y `spread` (diferencia de NDVI entre la mejor zona presente y la baja; 0 si no hay zona baja).
+- **Sequía:** `GET /api/v1/layers/drought/tiles?date=AAAA-MM` devuelve `url_template` (teselas XYZ), `min`, `max`, `unit`, `palette` y `source`: el percentil de humedad de la zona de raíces de SMAP L4 en ese mes. Un mes con menos de 10 días de datos también responde `422`. Sin Earth Engine responde `422 data_unavailable`. La web aún no usa esta ruta: sigue con la capa de NASA GIBS.

@@ -29,6 +29,37 @@ export interface PolygonGeometry {
   coordinates: number[][][];
 }
 
+export interface MultiPolygonGeometry {
+  type: 'MultiPolygon';
+  coordinates: number[][][][];
+}
+
+export type ZoneClass = 'low' | 'medium' | 'high';
+
+/** Un parche de una zona del lote (RF-18), en lon/lat WGS84. Una clase puede traer varios. */
+export interface ZoneFeature {
+  type: 'Feature';
+  geometry: PolygonGeometry | MultiPolygonGeometry;
+  /**
+   * Los números son de la clase entera y se repiten en cada parche: `ndvi` es su NDVI medio
+   * (0-1) y `area_pct` el porcentaje entero del lote que ocupa.
+   */
+  properties: { zone: ZoneClass; ndvi: number | null; area_pct: number };
+}
+
+/** Zonas estables dentro del lote: vigor bajo / medio / alto en varias campañas. */
+export interface ZonesGeoJSON {
+  type: 'FeatureCollection';
+  meta: {
+    source: string;
+    first_year: number;
+    last_year: number;
+    seasons: number;
+    resolution_m: number;
+  };
+  features: ZoneFeature[];
+}
+
 export interface Message {
   key: string;
   params: Record<string, string | number>;
@@ -162,7 +193,7 @@ export interface FieldReport {
   indicators: Indicator[];
   rotation: RotationComparison;
   enso: EnsoInsight;
-  zones_geojson: Record<string, unknown> | null;
+  zones_geojson: ZonesGeoJSON | null;
   sources: string[];
   observed_until: string | null;
   runs: SeasonRun[];

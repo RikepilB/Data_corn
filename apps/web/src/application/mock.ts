@@ -13,6 +13,8 @@ import type {
   RiskLevel,
   SeasonRun,
   StageWindow,
+  ZoneClass,
+  ZonesGeoJSON,
 } from '../domain/report';
 
 const EL_NINO = new Set([2002, 2004, 2006, 2009, 2015, 2018, 2023]);
@@ -139,8 +141,57 @@ function indicator(
 const byFraction = (f: number, medium: number, high: number): RiskLevel =>
   f >= high ? 'high' : f >= medium ? 'medium' : 'low';
 
+// Zonas de ejemplo. Los parches van en coordenadas del propio lote (u: de la esquina 1 a la 2,
+// v: hacia las esquinas 4 y 3; de 0 a 1), así siempre caen dentro del contorno.
+const ZONE_PATCHES: { zone: ZoneClass; uv: [number, number][] }[] = [
+  { zone: 'low', uv: [[0, 0], [0.3, 0], [0.24, 0.45], [0, 0.45]] },
+  { zone: 'high', uv: [[0, 0.45], [0.24, 0.45], [0.28, 1], [0, 1]] },
+  { zone: 'medium', uv: [[0.3, 0], [0.7, 0], [0.78, 0.6], [0.74, 1], [0.28, 1], [0.24, 0.45]] },
+  { zone: 'high', uv: [[0.7, 0], [1, 0], [1, 0.6], [0.78, 0.6]] },
+  { zone: 'low', uv: [[0.78, 0.6], [1, 0.6], [1, 1], [0.74, 1]] },
+];
+// Como la API: cada parche repite los números de su clase (el área es la de los parches de arriba)
+const ZONE_STATS: Record<ZoneClass, { ndvi: number; area_pct: number }> = {
+  low: { ndvi: 0.64, area_pct: 22 },
+  medium: { ndvi: 0.71, area_pct: 48 },
+  high: { ndvi: 0.78, area_pct: 30 },
+};
+
+/** Mapa de zonas para un lote de 4 esquinas (el de ejemplo); con otra forma no hay mapa. */
+export function mockZones(ring: LngLat[]): ZonesGeoJSON | null {
+  const [a, b, c, d] = ring;
+  if (ring.length !== 4 || !a || !b || !c || !d) return null;
+  const at = ([u, v]: [number, number]): number[] =>
+    [0, 1].map((k) => {
+      const south = a[k]! + (b[k]! - a[k]!) * u;
+      const north = d[k]! + (c[k]! - d[k]!) * u;
+      return Math.round((south + (north - south) * v) * 1e6) / 1e6;
+    });
+  return {
+    type: 'FeatureCollection',
+    meta: { source: 'Copernicus Sentinel-2 SR (Earth Engine)', first_year: 2021, last_year: 2025, seasons: 5, resolution_m: 10 },
+    features: ZONE_PATCHES.map(({ zone, uv }) => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [[...uv, uv[0]!].map(at)] },
+      properties: { zone, ...ZONE_STATS[zone] },
+    })),
+  };
+}
+
+function zonesIndicator(zones: ZonesGeoJSON | null): Indicator {
+  if (!zones) return indicator('field_zones', 'no_data', 'field_zones.needs_ee', {}, null, null, null, []);
+  const { meta } = zones;
+  const spread = Math.round((ZONE_STATS.high.ndvi - ZONE_STATS.low.ndvi) * 100) / 100;
+  const params = { low_pct: ZONE_STATS.low.area_pct, high_pct: ZONE_STATS.high.area_pct, seasons: meta.seasons, spread };
+  return {
+    ...indicator('field_zones', 'medium', 'field_zones.medium', params, spread, 'ndvi', 'check.scout_field', [meta.source]),
+    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones' },
+    confidence: 'high',
+  };
+}
+
 export async function mockReport(
-  _geometry: PolygonGeometry,
+  geometry: PolygonGeometry,
   values: FieldFormValues,
   described: DescribeFieldResult,
 ): Promise<FieldReport> {
@@ -166,6 +217,7 @@ export async function mockReport(
     'NASA MODIS MOD13Q1 (ORNL DAAC)',
     'NOAA CPC ONI',
   ];
+  const zones = mockZones(ringOf(geometry));
   const windowStart = addDays(start, -4);
   const windowEnd = addDays(start, 12);
   const indicators: Indicator[] = [
@@ -178,7 +230,7 @@ export async function mockReport(
       ? indicator('irrigation', 'low', 'irrigation.ok', { peak_week_mm: 44, capacity_week_mm: 38 * 1.2, season_mm: 260 }, 44, 'mm_week', 'check.irrigation_schedule', sources.slice(0, 1))
       : indicator('waterlogging', 'low', 'waterlogging.low', { years: 2, total }, 2, 'count', 'check.drainage', sources.slice(0, 2)),
     indicator('season_progress', 'no_data', 'season_progress.not_started', { season: values.season }, null, 'days', 'check.scout_field', sources.slice(3, 4)),
-    indicator('field_zones', 'no_data', 'field_zones.needs_ee', {}, null, null, null, []),
+    zonesIndicator(zones),
   ];
   const summaryRisk: RiskLevel =
     [waterRisk, heatRisk, hybridRisk].includes('high')
@@ -241,8 +293,8 @@ export async function mockReport(
       signal_strength: 'weak',
       message: { key: 'enso.weak', params: { now_phase: 'el_nino', delta_pct: -1 } },
     },
-    zones_geojson: null,
-    sources,
+    zones_geojson: zones,
+    sources: zones ? [...sources, zones.meta.source] : sources,
     observed_until: null,
     runs,
     typical_year: typical.year,

@@ -2,11 +2,12 @@
 // Se carga solo al pulsar «Descargar» (ver download.ts).
 import { Circle, Document, G, Image, Line, Page, Polyline, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer';
 import type { ReactNode } from 'react';
-import { type FormatContext, longDate, messageText, patternText, shortDate } from '../../domain/format';
+import { type FormatContext, formatParams, longDate, messageText, num, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
 import { strategyViews } from '../../domain/rotation';
 import { RISK_COLOR, SEVERITY, pickRun, yieldColor } from '../../domain/season';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
+import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
 import { numberLocale, t } from '../../i18n';
 import type { CardModel } from '../results/cards';
 
@@ -228,6 +229,7 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
   const runs = [...(report.runs ?? [])].sort((a, b) => a.year - b.year);
   const history = [...c.crop_history].sort((a, b) => a.year - b.year);
   const place = [c.admin.county, c.admin.state, c.admin.country].filter(Boolean).join(', ');
+  const zones = zonesOf(report);
 
   return (
     <Document title={`Data Corn · ${t(locale, 'pdf.title')}`} author="Data Corn" language={locale}>
@@ -398,7 +400,29 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
         )}
 
         <Text style={st.h2}>{s(t(locale, 'pdf.zones'))}</Text>
-        <Text style={st.muted}>{s(t(locale, 'pdf.zones_none'))}</Text>
+        {zones ? (
+          <View wrap={false}>
+            {zoneShares(zones).map((z) => (
+              <View key={z.zone} style={[st.row, { alignItems: 'center', marginBottom: 3 }]}>
+                <Svg width={10} height={10} viewBox="0 0 10 10">
+                  <Rect x={0} y={0} width={10} height={10} fill={ZONE_COLOR[z.zone]} />
+                </Svg>
+                <Text style={{ marginLeft: 5 }}>
+                  {s(
+                    t(locale, z.ndvi == null ? 'pdf.zones_row_no_ndvi' : 'pdf.zones_row', {
+                      name: t(locale, `legend.zones.${z.zone}`),
+                      area_pct: formatParams({ area_pct: z.area_pct }, ctx).area_pct ?? '',
+                      ndvi: z.ndvi == null ? '' : num(z.ndvi, locale, 2),
+                    }),
+                  )}
+                </Text>
+              </View>
+            ))}
+            <Text style={[st.small, st.muted, { marginTop: 2 }]}>{s(t(locale, 'pdf.zones_source', zones.meta))}</Text>
+          </View>
+        ) : (
+          <Text style={st.muted}>{s(t(locale, 'pdf.zones_none'))}</Text>
+        )}
         <Footer ctx={ctx} mock={mock} />
       </Page>
 

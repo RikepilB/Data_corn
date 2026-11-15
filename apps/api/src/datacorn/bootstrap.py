@@ -5,7 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from datacorn.application.ports import CachePort
-from datacorn.application.use_cases import AnalyzeField, DescribeField, ListDemoFields, ListRegions
+from datacorn.application.use_cases import (
+    AnalyzeField,
+    DescribeField,
+    GetDroughtLayer,
+    ListDemoFields,
+    ListRegions,
+)
 from datacorn.config import Settings
 from datacorn.infrastructure.cache import GcsCache, MemoryCache
 from datacorn.infrastructure.clock import SystemClock
@@ -23,6 +29,7 @@ class Container:
     list_demo_fields: ListDemoFields
     describe_field: DescribeField
     analyze_field: AnalyzeField
+    drought_layer: GetDroughtLayer
 
 
 def _cache(settings: Settings) -> CachePort:
@@ -63,4 +70,5 @@ def build_container(settings: Settings, *, countries: CountryLocator | None = No
         list_demo_fields=ListDemoFields(PackagedDemoFields()),
         describe_field=describe,
         analyze_field=analyze,
+        drought_layer=GetDroughtLayer(layer=providers.drought_layer(), clock=clock),
     )

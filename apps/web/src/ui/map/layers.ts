@@ -1,6 +1,8 @@
 import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, Map as MapLibreMap, RasterTileSource } from 'maplibre-gl';
 import type { LngLat } from '../../domain/geo';
+import type { ZonesGeoJSON } from '../../domain/report';
+import { ZONE_COLOR } from '../../domain/zones';
 import { type ClimateLayer, GIBS_ATTRIBUTION, tileUrl } from '../../infrastructure/gibs';
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -8,15 +10,42 @@ const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const LINE = '#ffffff';
 const HALO = '#000000';
 
-/** Fuentes y capas propias: lote, borrador del dibujo y capa de clima. */
+/** Fuentes y capas propias: lote, zonas del lote, borrador del dibujo y capa de clima. */
 export function installLayers(map: MapLibreMap): void {
   map.addSource('field', { type: 'geojson', data: EMPTY });
+  map.addSource('zones', { type: 'geojson', data: EMPTY });
   map.addSource('draft', { type: 'geojson', data: EMPTY });
   map.addLayer({
     id: 'field-fill',
     type: 'fill',
     source: 'field',
     paint: { 'fill-color': LINE, 'fill-opacity': 0.18, 'fill-color-transition': { duration: 120 } },
+  });
+  // Zonas: encima del relleno del lote y debajo de su contorno. Una clase desconocida no se pinta.
+  map.addLayer({
+    id: 'zones-fill',
+    type: 'fill',
+    source: 'zones',
+    paint: {
+      'fill-color': [
+        'match',
+        ['get', 'zone'],
+        'low',
+        ZONE_COLOR.low,
+        'medium',
+        ZONE_COLOR.medium,
+        'high',
+        ZONE_COLOR.high,
+        'rgba(0, 0, 0, 0)',
+      ],
+      'fill-opacity': 0.72,
+    },
+  });
+  map.addLayer({
+    id: 'zones-line',
+    type: 'line',
+    source: 'zones',
+    paint: { 'line-color': LINE, 'line-width': 0.75, 'line-opacity': 0.7 },
   });
   map.addLayer({
     id: 'field-glow',
@@ -97,6 +126,11 @@ export function setField(map: MapLibreMap, ring: LngLat[] | null): void {
       },
     ],
   });
+}
+
+/** Dibuja las zonas tal como las manda la API; null las quita. */
+export function setZones(map: MapLibreMap, zones: ZonesGeoJSON | null): void {
+  setData(map, 'zones', zones ?? EMPTY);
 }
 
 export function setFieldFill(map: MapLibreMap, color: string | null, opacity = 0.4): void {
