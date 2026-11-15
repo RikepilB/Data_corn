@@ -15,7 +15,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Dataset | Product ID / version | Provider | Use in Field Shift | Licence / terms | Status |
 |---|---|---|---|---|---|
-| NASA POWER daily, AG community (`power.larc.nasa.gov`) | `T2M_MAX, T2M_MIN, RH2M, WS2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR, TSOIL1, GWETTOP` | NASA LaRC (TSOIL1/GWETTOP from MERRA-2, ~0.5°) | Climate forcing 1981–2025, ET0, year types (Apr–Sep rain), planting window (soil temperature, frost) | NASA open data policy (verify) | used |
+| NASA POWER daily, AG community (`power.larc.nasa.gov`) | `T2M_MAX, T2M_MIN, PRECTOTCORR, ALLSKY_SFC_SW_DWN, RH2M, WS2M, GWETROOT, GWETTOP` | NASA LaRC (GWETROOT/GWETTOP from MERRA-2, ~0.5°) | Climate forcing 1981–2025, ET0, year types (Apr–Sep rain), soil wetness for the moisture series. The planting window is simulated from this forcing; soil temperature (`TSOIL1`) is not requested | NASA open data policy (verify) | used |
 | GRACE / GRACE-FO JPL mascon | `TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06.3_V4` (verify short name) | PO.DAAC | Regional water-storage trend as context (Should); never per field | NASA open data policy (verify) | planned |
 | OpenET | ensemble v2.0, monthly, 30 m (Landsat-based); Earth Engine asset `projects/openet/assets/ensemble/conus/gridmet/monthly/v2_0`, 1999-10 to 2024-12 | OpenET consortium (NASA, Google, others) | Observed monthly ET of an irrigated field. Adapter written 2026-11-15, runs only with Earth Engine enabled, not run yet; the comparison with the model is not built | verify | planned |
 | SMAP Enhanced L3 radiometer soil moisture | `SPL3SMP_E` v006, 9 km | NSIDC DAAC | Consistency check of simulated moisture anomalies, 2015–2025 | NASA open data policy (verify) | planned |
