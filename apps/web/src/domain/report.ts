@@ -109,7 +109,7 @@ export interface RotationOption {
   /** Optional until the engine sends it; `domain/rotation.ts` derives it from `previous_crop`. */
   strategy?: RotationStrategy;
   /** True for the one strategy that matches the field's crop record (CDL). At most one. */
-  current?: boolean;
+  current?: boolean | null;
   relative_yield: number | null;
   planting_soil_water_mm: number | null;
   residue_erosion_risk: RiskLevel;
