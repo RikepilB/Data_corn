@@ -61,8 +61,10 @@ def git_commit() -> str | None:
 
 
 def _write(path: Path, payload: Any) -> None:
-    text = json.dumps(payload, ensure_ascii=False, indent=1, allow_nan=False)
-    path.write_text(text + "\n", encoding="utf-8")
+    # JSON compacto (sin sangría): los reportes viajan con la web estática y el tamaño importa.
+    # En bytes para que Windows no convierta el salto de línea final en CRLF.
+    text = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    path.write_bytes((text + "\n").encode("utf-8"))
 
 
 def _compute(container: Container, field: DemoField, season: int) -> dict[str, Any]:

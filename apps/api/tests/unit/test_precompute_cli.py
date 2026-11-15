@@ -62,6 +62,15 @@ def test_writes_one_json_per_field_and_an_index(tmp_path: Path) -> None:
         assert entry["name"]["en"]
 
 
+def test_writes_compact_utf8_json_with_one_lf(tmp_path: Path) -> None:
+    precompute(_container(), tmp_path, now=NOW, commit=None, only=["hamilton-ne"])
+    for name in ("index.json", "hamilton-ne.json"):
+        raw = (tmp_path / name).read_bytes()
+        compact = json.dumps(json.loads(raw), ensure_ascii=False, separators=(",", ":")) + "\n"
+        assert raw == compact.encode("utf-8")
+    assert "·".encode() in (tmp_path / "index.json").read_bytes()  # raw UTF-8, not an ASCII escape
+
+
 def test_field_json_matches_the_api_response_shape(tmp_path: Path) -> None:
     container = _container()
     precompute(container, tmp_path, now=NOW, commit=None, only=["hamilton-ne"])
