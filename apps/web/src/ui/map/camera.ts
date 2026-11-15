@@ -14,11 +14,27 @@ export function flyToPlace(map: MapLibreMap, center: [number, number], zoom: num
   });
 }
 
+/** Imagen del mapa para el PDF: se toma justo después de dibujar un cuadro. */
+export function snapshotMap(map: MapLibreMap): Promise<string | null> {
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(null), 3000);
+    map.once('render', () => {
+      window.clearTimeout(timer);
+      try {
+        resolve(map.getCanvas().toDataURL('image/jpeg', 0.86));
+      } catch {
+        resolve(null);
+      }
+    });
+    map.triggerRepaint();
+  });
+}
+
 export function fitField(
   map: MapLibreMap,
   bounds: LngLatBoundsLike,
   padding: Partial<PaddingOptions>,
-  maxZoom = 15.5,
+  maxZoom = 14.6,
 ): void {
   map.fitBounds(bounds, {
     padding: { top: 0, bottom: 0, left: 0, right: 0, ...padding },

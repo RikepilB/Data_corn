@@ -43,16 +43,9 @@ function Segmented<T extends string>({
 export function TopBar({ step, locale, units, onLocale, onUnits, onHome }: Props) {
   const index = STEPS.indexOf(step);
   return (
-    <header className="topbar glass">
-      <button type="button" className="brand" onClick={onHome} aria-label="Data Corn">
-        <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-          <ellipse cx="16" cy="17" rx="7" ry="10.5" fill="#F2B632" />
-          <path d="M16 6.5v21M10.4 12h11.2M9.4 17h13.2M10.4 22h11.2" stroke="#9a6a00" strokeWidth="1.3" />
-          <path d="M9 26c-3-3-4-8-2-13M23 26c3-3 4-8 2-13" stroke="#3fbf9b" strokeWidth="2" fill="none" />
-        </svg>
-        <span>
-          Data<b>Corn</b>
-        </span>
+    <header className="topbar">
+      <button type="button" className="brand" onClick={onHome}>
+        Data Corn
       </button>
       <ol
         className="stepdots"

@@ -4,7 +4,9 @@ import type { LngLat } from '../../domain/geo';
 import { type ClimateLayer, GIBS_ATTRIBUTION, tileUrl } from '../../infrastructure/gibs';
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
-const GOLD = '#F2B632';
+// Blanco y negro: contorno blanco con halo negro, se lee sobre cualquier imagen satelital
+const LINE = '#ffffff';
+const HALO = '#000000';
 
 /** Fuentes y capas propias: lote, borrador del dibujo y capa de clima. */
 export function installLayers(map: MapLibreMap): void {
@@ -14,26 +16,26 @@ export function installLayers(map: MapLibreMap): void {
     id: 'field-fill',
     type: 'fill',
     source: 'field',
-    paint: { 'fill-color': GOLD, 'fill-opacity': 0.3, 'fill-color-transition': { duration: 120 } },
+    paint: { 'fill-color': LINE, 'fill-opacity': 0.18, 'fill-color-transition': { duration: 120 } },
   });
   map.addLayer({
     id: 'field-glow',
     type: 'line',
     source: 'field',
-    paint: { 'line-color': GOLD, 'line-width': 12, 'line-blur': 9, 'line-opacity': 0.45 },
+    paint: { 'line-color': HALO, 'line-width': 6, 'line-opacity': 0.55 },
   });
   map.addLayer({
     id: 'field-line',
     type: 'line',
     source: 'field',
-    paint: { 'line-color': GOLD, 'line-width': 3 },
+    paint: { 'line-color': LINE, 'line-width': 2.5 },
   });
   map.addLayer({
     id: 'draft-fill',
     type: 'fill',
     source: 'draft',
     filter: ['==', ['geometry-type'], 'Polygon'],
-    paint: { 'fill-color': GOLD, 'fill-opacity': 0.18 },
+    paint: { 'fill-color': LINE, 'fill-opacity': 0.15 },
   });
   map.addLayer({
     id: 'draft-line',
@@ -49,8 +51,8 @@ export function installLayers(map: MapLibreMap): void {
     filter: ['==', ['geometry-type'], 'Point'],
     paint: {
       'circle-radius': ['case', ['get', 'first'], 10, 7],
-      'circle-color': ['case', ['get', 'first'], GOLD, '#ffffff'],
-      'circle-stroke-color': '#0b1d3a',
+      'circle-color': ['case', ['get', 'first'], HALO, LINE],
+      'circle-stroke-color': ['case', ['get', 'first'], LINE, HALO],
       'circle-stroke-width': 2.5,
     },
   });
@@ -97,10 +99,10 @@ export function setField(map: MapLibreMap, ring: LngLat[] | null): void {
   });
 }
 
-export function setFieldFill(map: MapLibreMap, color: string | null, opacity = 0.62): void {
+export function setFieldFill(map: MapLibreMap, color: string | null, opacity = 0.4): void {
   if (!map.getLayer('field-fill')) return;
-  map.setPaintProperty('field-fill', 'fill-color', color ?? GOLD);
-  map.setPaintProperty('field-fill', 'fill-opacity', color ? opacity : 0.3);
+  map.setPaintProperty('field-fill', 'fill-color', color ?? LINE);
+  map.setPaintProperty('field-fill', 'fill-opacity', color ? opacity : 0.18);
 }
 
 const current = new WeakMap<MapLibreMap, string>();

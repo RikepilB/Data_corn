@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -27,7 +27,8 @@ interface Props {
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
 export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, filmSlot }: Props) {
   const { locale } = ctx;
-  const cards = buildCards(report, ctx);
+  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
+  const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
@@ -79,6 +80,26 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
             <p className="kcard__big">{c.big}</p>
             <p className="kcard__text">{c.sentence}</p>
             {c.extra && <p className="kcard__extra">{c.extra}</p>}
+            {c.history && c.history.length > 0 && (
+              <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
+                {c.history.map((h) => (
+                  <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
+                    <i />
+                    <small>{String(h.year).slice(2)}</small>
+                  </span>
+                ))}
+              </div>
+            )}
+            {c.history && c.history.length > 0 && (
+              <p className="kcard__legend" aria-hidden="true">
+                <span>
+                  <i className="is-maize" /> {t(locale, 'crop.maize')}
+                </span>
+                <span>
+                  <i /> {t(locale, 'crop.soybean')}
+                </span>
+              </p>
+            )}
           </article>
         ))}
       </div>
