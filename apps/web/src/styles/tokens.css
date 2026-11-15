@@ -1,0 +1,97 @@
+/* SI-assisted (Claude Code); reviewed by <name>
+   Data Corn design tokens (#55). One place for type, space, radii, targets and colour.
+   Principles: body text 16px at 1.5 line height; every control at least 44px; every text/background
+   pair at WCAG AA (4.5:1), every control edge at 3:1; colour only ever carries meaning together with a
+   word, an icon or a pattern. The risk and yield hues are Okabe-Ito (safe for the common forms of
+   colour blindness). The "Display" menu (text size, high contrast, calm) only flips the attributes
+   data-text, data-contrast and data-calm on <html>; every override lives at the end of this file. */
+
+:root {
+  /* --- Type ----------------------------------------------------------------------------- */
+  --font: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 0.875rem; /* 14px: captions, sources, axis labels. Nothing is smaller. */
+  --fs-sm: 1rem; /* 16px: secondary text, labels */
+  --fs-base: 1rem; /* 16px: body, buttons, inputs */
+  --fs-md: 1.125rem; /* 18px: lead text, card titles */
+  --fs-lg: 1.375rem; /* 22px: panel titles */
+  --fs-xl: 1.75rem; /* 28px: key numbers, area */
+  --fs-2xl: 2.25rem; /* 36px: first-screen title on desktop */
+  --lh-tight: 1.2;
+  --lh-body: 1.5;
+  --measure: 62ch; /* comfortable line length */
+
+  /* --- Space (4px base) ----------------------------------------------------------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* --- Shape and targets ---------------------------------------------------------------- */
+  --r-sm: 4px;
+  --r: 8px;
+  --r-lg: 12px;
+  --target: 44px; /* minimum size of anything you tap */
+  --top: 64px;
+  --panel-w: 460px;
+  --bw: 1px; /* hairline; the high-contrast mode makes it 2px */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* --- Neutrals (AA on white and on --paper-2) ------------------------------------------ */
+  --ink: #111113;
+  --ink-2: #3f3f46; /* 10.4:1 */
+  --muted: #55555c; /* 7.4:1 on white, 6.7:1 on --paper-2 */
+  --line: #767680; /* control edges: 4.5:1 on white (4.49:1), 4.1:1 on --paper-2; fine for the 3:1 of WCAG 1.4.11 (WCAG 1.4.11) */
+  --line-soft: #d4d4d8; /* decorative dividers only */
+  --paper: #ffffff;
+  --paper-2: #f4f4f5;
+  --space: #000000;
+
+  /* --- Risk: Okabe-Ito. The hue sits in an icon cell; the word and the icon carry the meaning. */
+  --risk-low: #0072b2; /* blue; white on it 5.2:1 */
+  --risk-medium: #e69f00; /* orange; ink on it 8.4:1 */
+  --risk-high: #d55e00; /* vermillion; ink on it 4.9:1 */
+  --risk-nodata: #6b6b75; /* 5.3:1 under white text */
+  --risk-low-ink: #ffffff;
+  --risk-medium-ink: #111113;
+  --risk-high-ink: #111113;
+  /* The water and yield ramp (vermillion -> neutral -> blue) is in ui/common/palette.ts: canvas and SVG
+     fills are computed in JS, so keep those hues in step with the three above. */
+
+  /* Old names, kept so the stylesheet below keeps working */
+  --good: var(--risk-low);
+  --warn: var(--risk-medium);
+  --bad: var(--risk-high);
+  --nodata: var(--risk-nodata);
+
+  --focus-ring: 3px;
+  color-scheme: light;
+}
+
+/* --- Display menu: text size ---------------------------------------------------------------
+   Everything is in rem, so the root size scales the whole interface and nothing overlaps. */
+html[data-text='large'] {
+  font-size: 112.5%; /* 18px */
+  --panel-w: 500px;
+}
+
+html[data-text='xlarge'] {
+  font-size: 125%; /* 20px */
+  --panel-w: 540px;
+}
+
+/* --- Display menu: high contrast (outdoor, in sun) -------------------------------------- */
+html[data-contrast='high'] {
+  --ink: #000000;
+  --ink-2: #000000;
+  --muted: #1f1f23;
+  --line: #000000;
+  --line-soft: #4a4a52;
+  --paper-2: #ececee;
+  --bw: 2px;
+  --focus-ring: 4px;
+}

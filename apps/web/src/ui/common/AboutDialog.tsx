@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { type Locale, t } from '../../i18n';
+import { EOX_ATTRIBUTION } from '../../infrastructure/gibs';
 
 const CREDITS = [
   'NASA POWER (MERRA-2)',
@@ -9,7 +10,7 @@ const CREDITS = [
   'USDA NRCS SSURGO',
   'USDA NASS Cropland Data Layer',
   'NOAA CPC Oceanic Niño Index',
-  'Sentinel-2 cloudless 2024 by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024)',
+  EOX_ATTRIBUTION,
   'Iowa State University Extension (rotation evidence)',
 ];
 

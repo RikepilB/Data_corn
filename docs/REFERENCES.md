@@ -36,7 +36,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Dataset | Provider | Use | Licence / attribution | Status |
 |---|---|---|---|---|
 | Copernicus Sentinel-2 L2A (Earth Engine `COPERNICUS/S2_SR_HARMONIZED`) | ESA / Copernicus | In-field zones at 10 m: median peak-season NDVI of several seasons, each pixel against the field's own median. Adapter written 2026-11-15, runs only with Earth Engine enabled, not run yet | Copernicus licence; attribution "Contains modified Copernicus Sentinel data [year]" (verify) | planned |
-| Sentinel-2 cloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map: "Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; EOX terms not read yet (verify) | used |
+| EOxCloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`; product page `cloudless.eox.at`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map, in the About panel and in the PDF, worded as on the EOX licence page (read 2026-11-15): "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; licence terms (verify) | used |
 
 ## Other data and methods
 
@@ -59,6 +59,10 @@ metadata (2026-11-15); that is not the same as `verified`.
 | [*Life cycle*](https://cornrootworm.extension.iastate.edu/basics/life-cycle), Iowa State University corn rootworm site | Iowa State University Extension | Rootworm risk on the rotation cards: extended diapause of northern corn rootworm eggs (two or more winters) and the soybean variant of western corn rootworm. Read 2026-11-15 | Citation | used |
 | Robertson and Acharya, [*Does planting green into a rye cover crop affect corn growth and yield?*](https://crops.extension.iastate.edu/post/does-planting-green-rye-cover-crop-affect-corn-growth-and-yield) (2021) | Iowa State University Extension | "Terminate a cereal rye cover 10 to 14 days before planting corn" (evidence line on the rye card). Read 2026-11-15 | Citation | used |
 | Robertson and Licht, [*Terminating cover crops ahead of corn*](https://crops.extension.iastate.edu/post/terminating-cover-crops-ahead-corn), Iowa State University Extension with Precision Sustainable Ag | Iowa State University Extension | Corn planted green into rye yielded less at 10 of 13 sites in 2021, 11 of 14 in 2022 and 10 of 12 in 2023 (evidence and risks on the rye card). Read 2026-11-15 | Citation | used |
+| Didan, K. (2021), *MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061*, NASA LP DAAC, [doi:10.5067/MODIS/MOD13Q1.061](https://doi.org/10.5067/MODIS/MOD13Q1.061) | NASA LP DAAC | NDVI at the pilot point, read through AppEEARS (first output 2026-11-15) | NASA open data policy (verify) | used |
+| NASA JPL (2013), *NASA Shuttle Radar Topography Mission Global 1 arc second NetCDF*, NASA LP DAAC, [doi:10.5067/MEASURES/SRTM/SRTMGL1_NC.003](https://doi.org/10.5067/MEASURES/SRTM/SRTMGL1_NC.003) | NASA LP DAAC | Elevation at the pilot point, read through AppEEARS (first output 2026-11-15) | NASA open data policy (verify) | used |
+| O'Neill, Chan, Njoku, Jackson, Bindlish, Chaubell and Colliander (2023), *SMAP Enhanced L3 Radiometer Global and Polar Grid Daily 9 km EASE-Grid Soil Moisture, Version 6*, NASA NSIDC DAAC, [doi:10.5067/M20OXIZHY3RJ](https://doi.org/10.5067/M20OXIZHY3RJ) | NASA NSIDC DAAC | SMAP soil moisture at the pilot point, read through AppEEARS (first output 2026-11-15) | NASA open data policy (verify) | used |
+| AppEEARS Team (2026), *Application for Extracting and Exploring Analysis Ready Samples (AppEEARS)*, Ver. 3.137, NASA EOSDIS LP DAAC, USGS EROS Center, [appeears.earthdatacloud.nasa.gov](https://appeears.earthdatacloud.nasa.gov) | NASA LP DAAC / USGS | The tool that ran the point request | Citation | used |
 | SoilGrids 2.0 (sand, clay, SOC), REST API `rest.isric.org` | ISRIC | Soil outside the US (Argentina, Brazil, Peru and the global profile) and the fallback in the US; inside the US the soil comes from SSURGO | CC BY 4.0 | used |
 | GOES-East and GOES-West ABI GeoColor (`GOES-East_ABI_GeoColor`, `GOES-West_ABI_GeoColor`, read as NASA GIBS tiles) | NOAA (GOES-R series); GeoColor by NOAA/CIRA | "Clouds now" layer on the globe: the last 12 h of the Americas in 30-min frames, refreshed every 10 min | NOAA data, U.S. Government work (verify) | used |
 | Oceanic Niño Index (ONI), `www.cpc.ncep.noaa.gov` | NOAA CPC | ENSO phase chip on the verdict, El Niño indicator on the globe (`GET /api/v1/enso`, last three years) and the El Niño / La Niña years of the season film: the background of the season, not a forecast | U.S. Government work | used |
@@ -98,7 +102,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Asset | Source | Licence | Status |
 |---|---|---|---|
-| IBM Plex Sans and IBM Plex Mono (weights 400, 500, 600) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
+| Atkinson Hyperlegible Next by the Braille Institute (weights 400, 500, 600, 700) and IBM Plex Mono (weights 400, 500) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
 | Favicon (`apps/web/public/favicon.svg`) | Made in this repository; no outside artwork | Apache-2.0, as the repository | used |
 | Music | None | — | — |
 

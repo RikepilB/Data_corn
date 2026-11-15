@@ -5,9 +5,10 @@ import type { Film } from '../../application/useFilm';
 import { yieldAt } from '../../domain/film';
 import { type FormatContext, shortDate } from '../../domain/format';
 import type { LngLat } from '../../domain/geo';
-import { filmDate, stageAt, waterColor } from '../../domain/season';
+import { filmDate, stageAt } from '../../domain/season';
 import { depth, format, temperature } from '../../domain/units';
 import { numberLocale, t } from '../../i18n';
+import { waterColor } from '../common/palette';
 
 /** Punto de anclaje: centro del borde norte del lote (la etiqueta queda encima). */
 export function tagAnchor(ring: LngLat[]): LngLat {

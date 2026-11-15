@@ -11,20 +11,12 @@ import {
 } from '../../domain/film';
 import { type FormatContext, shortDate } from '../../domain/format';
 import type { FieldReport, SeasonRun, Stage } from '../../domain/report';
-import {
-  DRY,
-  RISK_COLOR,
-  SEVERITY,
-  WET,
-  filmDate,
-  hasPhase,
-  positionOf,
-  stageAt,
-  yieldColor,
-} from '../../domain/season';
+import { SEVERITY, filmDate, hasPhase, positionOf, stageAt } from '../../domain/season';
 import { depth, format, temperature } from '../../domain/units';
 import { type Locale, numberLocale, t } from '../../i18n';
 import { Icon, type IconName } from '../common/Icon';
+import { motionAllowed } from '../common/displayPrefs';
+import { DRY, RISK_COLOR, WET, yieldColor } from '../common/palette';
 import { SoilGauge } from './SoilGauge';
 import { dateFormat } from '../../domain/intl';
 
@@ -159,16 +151,16 @@ export function SeasonFilm({ film, report, ctx }: { film: Film; report: FieldRep
   const mode = film.mode;
   const isWorst = mode.kind === 'year' && worst != null && mode.year === worst.year;
   const chips: { key: string; label: string; on: boolean; ok: boolean; pick: () => void }[] = [
-    { key: 'typical', label: t(locale, 'film.typical'), on: mode.kind === 'typical', ok: true, pick: () => film.setMode({ kind: 'typical' }, true) },
+    { key: 'typical', label: t(locale, 'film.typical'), on: mode.kind === 'typical', ok: true, pick: () => film.setMode({ kind: 'typical' }, motionAllowed()) },
     {
       key: 'worst',
       label: worst ? t(locale, 'film.worst', { year: worst.year }) : t(locale, 'film.worst_short'),
       on: isWorst,
       ok: worst != null,
-      pick: () => worst && film.setMode({ kind: 'year', year: worst.year }, true),
+      pick: () => worst && film.setMode({ kind: 'year', year: worst.year }, motionAllowed()),
     },
-    { key: 'el_nino', label: t(locale, 'film.el_nino'), on: mode.kind === 'el_nino', ok: hasPhase(report, 'el_nino'), pick: () => film.setMode({ kind: 'el_nino' }, true) },
-    { key: 'la_nina', label: t(locale, 'film.la_nina'), on: mode.kind === 'la_nina', ok: hasPhase(report, 'la_nina'), pick: () => film.setMode({ kind: 'la_nina' }, true) },
+    { key: 'el_nino', label: t(locale, 'film.el_nino'), on: mode.kind === 'el_nino', ok: hasPhase(report, 'el_nino'), pick: () => film.setMode({ kind: 'el_nino' }, motionAllowed()) },
+    { key: 'la_nina', label: t(locale, 'film.la_nina'), on: mode.kind === 'la_nina', ok: hasPhase(report, 'la_nina'), pick: () => film.setMode({ kind: 'la_nina' }, motionAllowed()) },
   ];
 
   const summary = events.length
@@ -217,7 +209,7 @@ export function SeasonFilm({ film, report, ctx }: { film: Film; report: FieldRep
             <span className="sr-only">{t(locale, 'film.pick_year')}</span>
             <select
               value={mode.kind === 'year' && !isWorst ? String(mode.year) : ''}
-              onChange={(e) => e.target.value && film.setMode({ kind: 'year', year: Number(e.target.value) }, true)}
+              onChange={(e) => e.target.value && film.setMode({ kind: 'year', year: Number(e.target.value) }, motionAllowed())}
             >
               <option value="">{t(locale, 'film.pick_year')}</option>
               {[...runs]
@@ -379,6 +371,10 @@ const FilmPlot = memo(function FilmPlot({
         <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="6" stroke={INK} strokeWidth="1.2" />
         </pattern>
+        {/* no depender del color: el riesgo alto es más alto y lleva rayas, el medio es más bajo y liso */}
+        <pattern id="riskHigh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke={INK} strokeWidth="1.6" />
+        </pattern>
       </defs>
       <rect x={0} y={PLOT_TOP} width={W} height={PLOT_BOTTOM - PLOT_TOP} fill="#f4f4f5" />
       {shapes.band && <path d={shapes.band} fill="#8a8a8f" opacity={0.26} />}
@@ -399,7 +395,14 @@ const FilmPlot = memo(function FilmPlot({
       {[...bands].sort((x, y) => SEVERITY[x.risk] - SEVERITY[y.risk]).map((b) => {
         const x0 = positionOf(run, b.start) * W;
         const x1 = positionOf(run, b.end) * W;
-        return <rect key={`${b.indicator}-${b.start}`} x={x0} y={RISK_Y} width={Math.max(x1 - x0, 4)} height={5} fill={RISK_COLOR[b.risk]} />;
+        const h = b.risk === 'high' ? 6 : 4;
+        const w = Math.max(x1 - x0, 4);
+        return (
+          <g key={`${b.indicator}-${b.start}`}>
+            <rect x={x0} y={RISK_Y} width={w} height={h} fill={RISK_COLOR[b.risk]} />
+            {b.risk === 'high' && <rect x={x0} y={RISK_Y} width={w} height={h} fill="url(#riskHigh)" />}
+          </g>
+        );
       })}
       {run.tmax_c.map((tc, i) =>
         tc >= HEAT_C ? <rect key={i} x={(i / n) * W - 1.5} y={HEAT_Y} width={3} height={7} fill={RISK_COLOR.high} /> : null,
