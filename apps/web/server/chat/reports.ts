@@ -6,6 +6,14 @@ import type { FieldReport } from '../../src/domain/report';
 import type { PrecomputedReport } from '../../src/infrastructure/precomputed';
 import { type ChatIrrigation, REPORT_ID } from './limits';
 
+/**
+ * The reports the assistant may explain. Only the example field (SAMPLE_FIELD_ID in
+ * src/infrastructure/precomputed.ts) shows these real results on the public demo; the other files
+ * in the index are not reachable from the app, and any field a person draws there is sample data.
+ * An id must be here AND in public/data/reports/index.json.
+ */
+export const REAL_REPORT_IDS: readonly string[] = ['hamilton-ne'];
+
 /** Reads `index` or one report id (already checked against REPORT_ID). Null when it is missing. */
 export type FetchReport = (name: string) => Promise<unknown>;
 
@@ -52,7 +60,7 @@ function allowedIds(index: unknown): string[] {
  * or an irrigation that was not computed in advance is `unknown_report`: there is nothing real to explain.
  */
 export async function loadReport(fetchReport: FetchReport, id: string, irrigation: ChatIrrigation): Promise<LoadResult> {
-  if (!REPORT_ID.test(id)) return { ok: false, code: 'unknown_report' };
+  if (!REPORT_ID.test(id) || !REAL_REPORT_IDS.includes(id)) return { ok: false, code: 'unknown_report' };
   let index: unknown;
   let file: unknown;
   try {

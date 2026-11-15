@@ -2,13 +2,19 @@
 // Limits of the chat assistant. The server enforces them (handler.ts) and the chat panel shows the
 // same numbers (src/ui/chat). This file is pure: no Node API, so the browser can import it too.
 
-/** Whole JSON body of one request, attachment included. */
+/**
+ * Whole JSON body of one request, attachment included. A Vercel function accepts about 4.5 MB of
+ * request body, so this stays under it.
+ */
 export const MAX_BODY_BYTES = 4 * 1024 * 1024;
 /**
- * One photo or one PDF, 3 MB counted as 3,000,000 bytes: as base64 that is 4,000,000 characters,
- * which leaves room for the conversation inside MAX_BODY_BYTES.
+ * One photo or one PDF, 2.5 MB counted as 2,500,000 bytes of the file itself. Base64 makes it a
+ * third larger (3,333,336 characters), which leaves room for the conversation inside MAX_BODY_BYTES.
+ * The panel shrinks photos before sending them (IMAGE_MAX_SIDE_PX) and refuses larger PDFs.
  */
-export const MAX_ATTACHMENT_BYTES = 3_000_000;
+export const MAX_ATTACHMENT_BYTES = 2_500_000;
+/** The panel redraws a photo so its long side is at most this many pixels, as JPEG. */
+export const IMAGE_MAX_SIDE_PX = 1568;
 export const MAX_MESSAGES = 20;
 /** Characters a person can type in one message. */
 export const MAX_TEXT_CHARS = 2000;

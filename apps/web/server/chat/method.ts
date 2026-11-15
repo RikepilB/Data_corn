@@ -157,7 +157,7 @@ export const METHOD: Record<MethodTopic, MethodNote> = {
   waterlogging: {
     published: [],
     team: [
-      'A past season counts when the heaviest 3 days of rain between planting and silking reach 100 mm (75 mm when the soil drains poorly or is hydrologic group D), 10 mm less when the mean slope is under 1 %.',
+      'A past season counts when the heaviest 3 days of rain between planting and silking reach 100 mm (75 mm when the soil drains poorly or is hydrologic group D), 10 mm less when the mean slope is known and under 1 %.',
       'Risk is medium from 15 % of seasons, high from 35 %.',
     ],
     limits: ['It is a rain threshold, not a simulation of ponding or of low spots in the field.'],
@@ -198,6 +198,7 @@ export const METHOD: Record<MethodTopic, MethodNote> = {
     team: [
       'What the field does now is read from the last 4 years of the USDA crop map (CDL): 4 years of corn is corn after corn; corn and soybean taking turns is corn-soybean. A rye cover crop cannot be seen in that map.',
       'Erosion risk from residue is a rule on slope and tillage (thin residue: medium from 2 % slope, high from 4 %; heavy residue: medium from 6 %; no-till lowers it one level). The rule for the rye option is not verified.',
+      'When the slope is not known, the field is taken as flat, and the report lists "Slope not available (assumed flat)" among its sources.',
     ],
     limits: [
       'The model does not simulate yield by rotation and does not carry water between crops.',
@@ -224,7 +225,9 @@ export const METHOD: Record<MethodTopic, MethodNote> = {
       'Vegetation, when available: NASA MODIS MOD13Q1.',
       'Map layers: NASA GIBS.',
     ],
-    team: [],
+    team: [
+      'When soil data is missing, the engine uses a generic loam soil and lists "Generic loam soil (no soil data; assumed)" among the sources (analyze_field.py).',
+    ],
     limits: ['NASA is a data source only. NASA does not endorse or review this project.'],
   },
 };
