@@ -5,6 +5,8 @@
 
 Built by Team DataCorn for the NASA Space Apps Challenge 2026: [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/) (Trujillo local event).
 
+**Try it live (provisional, sample data only):** [field-shift-datacorn.vercel.app](https://field-shift-datacorn.vercel.app/?mock=1). There is no API behind this link, so every number on it is a sample.
+
 > **Scenarios from historical climate, not forecasts.** The tool supports a producer's judgment and local agronomic advice. It does not replace them.
 "Google Earth for corn":
 - Start on a 3D globe with NASA climate layers: soil moisture, rain, heat and vegetation, on a time slider.
@@ -60,7 +62,7 @@ Hackathon build in progress. Submission closes Sun 2026-11-15 23:59 PET (interna
 | Contract `contracts/ficha.schema.json` v0.2.0 and a synthetic example ficha | Exist on a team member's machine (the 9 contract tests passed there at 15:00 PET) but are **not in this repository yet**. They arrive in the next pull request ([#11](https://github.com/RikepilB/Data_corn/issues/11)). |
 | Engine (`apps/api/`) | Skeleton: ports, use-case skeletons, region and crop profiles, a cache, and a test of the dependency rule. `GET /api/v1/health`, `/regions` and `/demo-fields` work (the skeleton's own claim; we have not run it); field analysis returns `501`. **Every science function is still a stub**: 59 `NotImplementedError` in 29 files (counted on 2026-11-14). The plan's Tasks 1-12 and 15 fill them. |
 | Web app (`apps/web/`) | Skeleton: Astro 7, React 19, MapLibre GL, English and Spanish text. The Field Shift tool page (planting strip, matrix, rotation cards) is not built into it yet. |
-| Hosting | Firebase project `field-shift-datacorn` exists (Spark plan, no Auth, no Firestore). **Nothing is deployed.** The planned address `field-shift-datacorn.web.app` goes live with the first deploy, [#52](https://github.com/RikepilB/Data_corn/issues/52). |
+| Hosting | **Live, provisional:** [field-shift-datacorn.vercel.app](https://field-shift-datacorn.vercel.app/?mock=1), a static build of `main` (2026-11-14) on Vercel's free plan. It shows sample data only and is not redeployed automatically. Firebase project `field-shift-datacorn` exists (Spark plan, no Auth, no Firestore); its address `field-shift-datacorn.web.app` goes live with the first Firebase deploy, [#52](https://github.com/RikepilB/Data_corn/issues/52), and replaces the Vercel link. |
 | Results | None yet. No real ficha has been generated; the only ficha is the synthetic example, labelled as such. |
 
 ## Tech stack and architecture
