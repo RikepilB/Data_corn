@@ -102,6 +102,45 @@ products are sampled at the point and labelled with their native resolution:
 
 Nothing is presented as field-scale ground truth.
 
+### Layering rule (enforced by a test)
+
+Dependencies point inward: the science stays pure and testable, all I/O sits at the edge, and the
+web only renders. The code is in `apps/api/src/datacorn/`. (The diagram above still uses the
+original plan's names: `pipeline/` is `apps/api/`, `adapters` is `infrastructure/`, `usecases` is
+`application/use_cases/` and `web/` is `apps/web/`.)
+
+| Layer | What it holds | Imports from `datacorn` |
+|---|---|---|
+| `domain/` | Pure FAO-56 and statistics: ET0, water balance, phenology, rotation scenarios, zones, the report. Its types are frozen dataclasses. No network, no files | Only itself |
+| `application/` | The ports (`ports.py`) the domain needs from the outside, and the use cases that orchestrate the domain and build the report | `domain` |
+| `infrastructure/` | Every adapter that does I/O: NASA POWER, SSURGO, CropScape, NASS, SoilGrids, NOAA ONI, Earth Engine, the HTTP client and the cache | `domain`, `application`, `config` |
+| `interfaces/` | The FastAPI routes and schemas: validate the input, call a use case, return the report | `application`, `domain`, `bootstrap` |
+| `bootstrap.py` | The composition root: the only place that wires adapters into use cases | All layers |
+| `apps/web/` | Renders the report | — |
+
+`apps/api/tests/unit/test_architecture.py` parses every import with `ast` and fails when:
+
+- `domain/` imports `application`, `infrastructure`, `interfaces`, `bootstrap` or `config`; or an
+  HTTP, Earth Engine, Google, Pydantic or YAML library; or a network or file-system module
+  (`urllib`, `socket`, `pathlib`, `os` and similar).
+- `application/` imports `infrastructure`, `interfaces` or `bootstrap`, or FastAPI, `httpx`, Earth
+  Engine or Google.
+- A dataclass in `domain/` or `application/` is not declared with `frozen=True`.
+
+Relative imports (`from ..infrastructure import http`) and submodules imported by name
+(`from datacorn import infrastructure`) are resolved to absolute names, so they count too. To add
+a rule, edit `FORBIDDEN` in that file. Run it with
+`cd apps/api && uv run --extra dev pytest tests/unit/test_architecture.py`.
+
+Not covered by the test, so kept by review:
+
+- `interfaces/` does not import `infrastructure/`. It gets its use cases from the container that
+  `bootstrap.py` builds.
+- `apps/web/` may format numbers and convert units, but every scientific value (stress days, yield
+  range, irrigation need) comes from the report, never from a calculation in the browser.
+
+Further reading (Spanish): [Arquitectura Clean: principios y ejemplo práctico](https://createam.io/blog/arquitectura-clean.html).
+
 ## 4. Science notes (what we may and may not claim)
 
 - **Year types, not ENSO.**

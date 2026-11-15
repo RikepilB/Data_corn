@@ -13,6 +13,7 @@ import { CLIMATE_LAYERS, nearestAvailable, recentMonths } from '../infrastructur
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { Icon } from '../ui/common/Icon';
+import { AboutDialog } from '../ui/common/AboutDialog';
 import { TopBar } from '../ui/common/TopBar';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
@@ -54,6 +55,7 @@ export default function DataCornApp() {
   const [drawError, setDrawError] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
@@ -249,7 +251,7 @@ export default function DataCornApp() {
         cards: buildCards(dc.report, ctx),
         mapImage,
         isSample: dc.isSample,
-        mock: dc.mock,
+        mock: dc.mock && !dc.precomputedAt,
       });
     } catch (e) {
       console.error(e);
@@ -257,7 +259,7 @@ export default function DataCornApp() {
     } finally {
       setPdfBusy(false);
     }
-  }, [dc.report, dc.isSample, dc.mock, map, ctx]);
+  }, [dc.report, dc.isSample, dc.mock, dc.precomputedAt, map, ctx]);
 
   const showLayers = step === 'globe' || step === 'results';
   const filmView = dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null;
@@ -281,7 +283,13 @@ export default function DataCornApp() {
           <span>{t(locale, 'map.center')}</span>
         </button>
       )}
-      {dc.mock && <div className="mock-banner">{t(locale, 'results.mock')}</div>}
+      {dc.mock && (
+        <div className="mock-banner">
+          {dc.precomputedAt
+            ? t(locale, 'results.precomputed', { date: dc.precomputedAt.slice(0, 10) })
+            : t(locale, 'results.mock')}
+        </div>
+      )}
 
       {showLayers && !flying && (
         <div className="layerbar">
@@ -303,6 +311,7 @@ export default function DataCornApp() {
             onLocate={onLocate}
             onPlace={onPlace}
             onSample={onSample}
+            onAbout={() => setAboutOpen(true)}
           />
         </div>
       )}
@@ -354,12 +363,13 @@ export default function DataCornApp() {
             film={film}
             ctx={ctx}
             isSample={dc.isSample}
-            mock={dc.mock}
+            mock={dc.mock && !dc.precomputedAt}
             pdfBusy={pdfBusy}
             pdfError={pdfError}
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
+            onAbout={() => setAboutOpen(true)}
             filmSlot={
               desktop ? null : (
                 <>
@@ -371,6 +381,8 @@ export default function DataCornApp() {
           />
         </>
       )}
+
+      <AboutDialog open={aboutOpen} locale={locale} onClose={() => setAboutOpen(false)} />
     </div>
   );
 }
