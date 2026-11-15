@@ -10,10 +10,11 @@ import { type Locale, t } from '../i18n';
 import { CLIMATE_LAYERS, type ClimateLayerId, nearestAvailable, recentMonths } from '../infrastructure/gibs';
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
+import { Icon } from '../ui/common/Icon';
 import { TopBar } from '../ui/common/TopBar';
 import { LayerChips, Legend, TimeSlider } from '../ui/layers/LayerControls';
 import { MapView } from '../ui/map/MapView';
-import { fitField, flyToPlace, reducedMotion, useGlobeSpin } from '../ui/map/camera';
+import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
 import { setClimate, setField, setFieldFill } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
 import { downloadReportPdf } from '../ui/pdf/download';
@@ -42,7 +43,8 @@ export default function DataCornApp() {
   const [locale, setLocale] = useState<Locale>(() => (navigator.language?.startsWith('es') ? 'es' : 'en'));
   const [units, setUnits] = useState<UnitSystem>('imperial');
   const [map, setMap] = useState<MapLibreMap | null>(null);
-  const [layerId, setLayerId] = useState<ClimateLayerId | null>('soil_moisture');
+  // Sin capa al inicio: la vista arranca en blanco y negro; las capas de datos son opcionales
+  const [layerId, setLayerId] = useState<ClimateLayerId | null>(null);
   const [globeTime, setGlobeTime] = useState<string>('');
   const [flying, setFlying] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -69,7 +71,10 @@ export default function DataCornApp() {
   }, [months]);
 
   // Semana de la película: la capa del mapa se actualiza por semana, no por día
-  const filmWeek = Math.floor(film.day / 7);
+  // Rendimiento: mientras la película corre, la capa cambia cada 4 semanas (cambiarla recarga
+  // las teselas); en pausa, la semana exacta.
+  const layerStep = film.playing ? 28 : 7;
+  const filmWeek = Math.floor(film.day / layerStep) * (layerStep / 7);
   const filmLayerTime = useMemo(() => {
     if (!layer || !film.run) return null;
     return nearestAvailable(layer, analogDate(film.run, filmWeek * 7));
@@ -97,10 +102,22 @@ export default function DataCornApp() {
   const fitPadding = useCallback(
     () =>
       desktop
-        ? { top: 90, bottom: step === 'results' ? 250 : 90, left: 60, right: 500 }
-        : { top: 90, bottom: Math.round(window.innerHeight * 0.58) + 20, left: 30, right: 30 },
+        ? { top: 100, bottom: step === 'results' ? 250 : 90, left: 60, right: 480 }
+        : { top: 120, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
     [desktop, step],
   );
+
+  // En escritorio, el globo se centra a la derecha de la tarjeta del paso 1
+  useEffect(() => {
+    if (!map) return;
+    const onGlobe = step === 'globe';
+    const left = desktop && onGlobe ? 460 : 0;
+    const bottom = !desktop && onGlobe ? 280 : 0;
+    const pad = map.getPadding();
+    if (pad.left === left && pad.bottom === bottom) return;
+    const zoom = onGlobe && !desktop && map.getZoom() > 1.15 ? 1.05 : undefined;
+    map.easeTo({ padding: { left, right: 0, top: 0, bottom }, zoom, duration: reducedMotion() ? 0 : 700 });
+  }, [map, step, desktop]);
 
   // Encuadra el lote al entrar a cada paso (no en cada cambio de puntos)
   const ringForFit = fieldRing && fieldRing.length >= 3 ? fieldRing : null;
@@ -164,6 +181,31 @@ export default function DataCornApp() {
     [flyThen, dc],
   );
 
+  // Botón «Centrar»: globo → vista inicial; dibujando → los puntos o mi ubicación; con lote → el lote
+  const onCenter = useCallback(() => {
+    if (!map) return;
+    stopSpin();
+    const duration = reducedMotion() ? 0 : 900;
+    const pts = dc.points;
+    if (step === 'globe') {
+      map.easeTo({ center: GLOBE_VIEW.center, zoom: desktop ? GLOBE_VIEW.zoom : 1.05, bearing: 0, pitch: 0, duration });
+      return;
+    }
+    if (pts.length >= 2) {
+      fitField(map, bounds(pts), fitPadding());
+      return;
+    }
+    if (pts.length === 1) {
+      map.easeTo({ center: pts[0]!, zoom: Math.max(map.getZoom(), FIELD_ZOOM), duration });
+      return;
+    }
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => map.easeTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: FIELD_ZOOM, duration }),
+      () => undefined,
+      { timeout: 10_000, maximumAge: 60_000 },
+    );
+  }, [map, step, desktop, dc.points, fitPadding, stopSpin]);
+
   const backToGlobe = useCallback(() => {
     dc.backToGlobe();
     if (map) {
@@ -177,12 +219,7 @@ export default function DataCornApp() {
     setPdfBusy(true);
     setPdfError(false);
     try {
-      let mapImage: string | null = null;
-      try {
-        mapImage = map ? map.getCanvas().toDataURL('image/jpeg', 0.86) : null;
-      } catch {
-        mapImage = null;
-      }
+      const mapImage = map ? await snapshotMap(map) : null;
       await downloadReportPdf({
         report: dc.report,
         ctx,
@@ -210,6 +247,12 @@ export default function DataCornApp() {
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
       <MapView locale={locale} onReady={setMap} />
       <TopBar step={step} locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      {!flying && (
+        <button type="button" className="mapbtn" onClick={onCenter} title={t(locale, 'map.center_hint')}>
+          <Icon name="locate" size={18} />
+          <span>{t(locale, 'map.center')}</span>
+        </button>
+      )}
       {dc.mock && <div className="mock-banner">{t(locale, 'results.mock')}</div>}
 
       {showLayers && !flying && (

@@ -36,7 +36,9 @@ export function globeStyle(): StyleSpecification {
         type: 'raster',
         source: 'eox',
         minzoom: 5,
-        paint: { 'raster-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 1] },
+        paint: {
+          'raster-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 1],
+        },
       },
     ],
   };

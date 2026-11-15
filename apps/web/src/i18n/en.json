@@ -51,6 +51,8 @@
   "time.pause": "Pause",
   "time.month": "Month",
 
+  "map.center": "Center",
+  "map.center_hint": "Center the map on the field, or on your location if there is no field yet",
   "draw.hint": "Tap the corners of your field",
   "draw.hint_more": "Keep tapping. Tap the first point to close.",
   "draw.undo": "Undo",
@@ -141,6 +143,8 @@
   "film.scrub": "Day of the season",
   "film.legend": "Water in the field",
   "film.heat_tick": "Extreme heat day",
+  "film.risk": "Risk window",
+  "rotation.history": "Crop by year (CDL)",
 
   "gauge.label": "Soil water",
 
@@ -251,8 +255,8 @@
   "check.scout_field": "Compare the lighter and greener parts of the field on the ground.",
   "summary.good": "A good season is expected. Plant between {start_date} and {end_date}.",
   "summary.watch": "Plant between {start_date} and {end_date}. Watch: {main_indicator}.",
-  "rotation.soy_first": "Corn after soybean fits here. History: {pattern} ({after_soy} years after soybean, {after_corn} after corn).",
-  "rotation.corn_on_slopes": "With this slope and conventional tillage, soybean's thin residue raises erosion: corn after corn protects the soil better. History: {pattern}.",
+  "rotation.soy_first": "Corn after soybean fits here. In this field's history: {after_soy} years after soybean and {after_corn} after corn.",
+  "rotation.corn_on_slopes": "With this slope and conventional tillage, soybean's thin residue raises erosion. Here corn after corn protects the soil better.",
   "rotation.note.rootworm": "Rotating breaks the corn rootworm cycle.",
   "rotation.note.residue": "Corn leaves more residue: it protects the soil but keeps it cooler at planting.",
   "msg.no_data": "Not enough data.",
