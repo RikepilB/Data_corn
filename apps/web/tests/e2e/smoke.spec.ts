@@ -156,6 +156,8 @@ test('help opens from the top bar, switches tabs and closes with Escape', async 
 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+});
 
 // A field drawn by hand: one "Back" on every step, to the screen before, and nothing entered is
 // lost by going back and forward again.
