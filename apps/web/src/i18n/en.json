@@ -34,7 +34,7 @@
   "about.ai.text": "Parts of the code and the text were written with an AI assistant (Claude Code) and reviewed by the team. The idea and the decisions are the team's.",
   "globe.sample": "See an example",
   "sample.name": "Sample field · Nebraska",
-  "results.precomputed": "Real data, computed in advance on {date}. Not live: change a value and the example falls back to sample numbers.",
+  "results.precomputed": "Real data, precomputed {date}. Not live.",
 
   "search.label": "Search a place",
   "search.placeholder": "City, county or “lat, lon”",
