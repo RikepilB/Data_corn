@@ -4,6 +4,7 @@ import { type FieldFormValues, defaultSeason, valuesFromDefaults } from '../doma
 import type { DescribeFieldResult, FieldReport, PolygonGeometry } from '../domain/report';
 import { ApiError, api } from '../infrastructure/apiClient';
 import { isMock, mockDescribe, mockReport } from './mock';
+import { isSnapshot, snapshotDescribe, snapshotReport } from './snapshot';
 
 // Pasos de la pantalla (docs/flujo.md §4)
 export type Step = 'globe' | 'draw' | 'calculating' | 'form' | 'results';
@@ -12,6 +13,7 @@ export const STEPS: Step[] = ['globe', 'draw', 'calculating', 'form', 'results']
 
 export function useDataCorn() {
   const mock = useMemo(isMock, []);
+  const snapshot = useMemo(isSnapshot, []);
   const [step, setStep] = useState<Step>('globe');
   const [points, setPoints] = useState<LngLat[]>([]);
   const [geometry, setGeometry] = useState<PolygonGeometry | null>(null);
@@ -34,7 +36,11 @@ export function useDataCorn() {
       setStep('calculating');
       const season = defaultSeason();
       try {
-        const d = mock ? await mockDescribe(g, season) : await api.describe(g, season);
+        const d = mock
+          ? await mockDescribe(g, season)
+          : snapshot
+            ? await snapshotDescribe(g)
+            : await api.describe(g, season);
         if (id !== run.current) return;
         setDescribeDone(true);
         setDescribed(d);
@@ -45,7 +51,7 @@ export function useDataCorn() {
         if (id === run.current) setError(toError(e));
       }
     },
-    [mock],
+    [mock, snapshot],
   );
 
   /** Cierra el lote dibujado y empieza el cálculo. */
@@ -70,7 +76,11 @@ export function useDataCorn() {
     setAnalyzing(true);
     setError(null);
     try {
-      const r = mock ? await mockReport(geometry, values, described) : await api.analyze(geometry, values);
+      const r = mock
+        ? await mockReport(geometry, values, described)
+        : snapshot
+          ? await snapshotReport(geometry, values)
+          : await api.analyze(geometry, values);
       setReport(r);
       setStep('results');
     } catch (e) {
@@ -78,7 +88,7 @@ export function useDataCorn() {
     } finally {
       setAnalyzing(false);
     }
-  }, [geometry, values, described, mock]);
+  }, [geometry, values, described, mock, snapshot]);
 
   const startDrawing = useCallback(() => {
     run.current++;
@@ -104,6 +114,7 @@ export function useDataCorn() {
 
   return {
     mock,
+    snapshot,
     step,
     points,
     setPoints,
