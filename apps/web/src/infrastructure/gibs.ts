@@ -204,7 +204,7 @@ export const BLUE_MARBLE_TILES = `${GIBS}/BlueMarble_ShadedRelief_Bathymetry/def
 export const EOX_TILES =
   'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';
 export const EOX_ATTRIBUTION =
-  'Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)';
+  'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)';
 // Foto aérea de 1 m (NAIP del USDA) de The National Map del USGS: sin clave y con CORS abierto.
 // Solo cubre EE. UU.: fuera de su borde, desde el zoom 13 responde 404 o teselas transparentes.
 export const NAIP_TILES =

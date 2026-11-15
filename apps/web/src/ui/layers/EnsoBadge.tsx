@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import type { FormatContext } from '../../domain/format';
 import type { EnsoOverview, EnsoState } from '../../domain/report';
-import { DRY, WET } from '../../domain/season';
 import { type Locale, numberLocale, t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { dateFormat, numberFormat } from '../../domain/intl';
+import { DRY, WET } from '../common/palette';
 
 const SEASONS = ['DJF', 'JFM', 'FMA', 'MAM', 'AMJ', 'MJJ', 'JJA', 'JAS', 'ASO', 'SON', 'OND', 'NDJ'];
 

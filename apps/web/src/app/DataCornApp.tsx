@@ -6,7 +6,8 @@ import { useFilm } from '../application/useFilm';
 import { type FormatContext, dayLabel, frameLabel, messageText, monthYear } from '../domain/format';
 import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
 import type { EnsoOverview } from '../domain/report';
-import { analogDate, waterColor } from '../domain/season';
+import { analogDate } from '../domain/season';
+import { waterColor } from '../ui/common/palette';
 import type { UnitSystem } from '../domain/units';
 import { zonesOf } from '../domain/zones';
 import { type Locale, t } from '../i18n';
@@ -181,7 +182,7 @@ export default function DataCornApp() {
     () =>
       desktop
         ? { top: 100, bottom: step === 'results' ? 340 : 90, left: 60, right: 480 }
-        : { top: 120, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
+        : { top: 136, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
     [desktop, step],
   );
 

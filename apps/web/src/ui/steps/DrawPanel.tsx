@@ -36,7 +36,7 @@ export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, show
           </p>
         )}
         <div className="draw-bar__actions">
-          <button type="button" className="btn btn--ghost" onClick={onUndo} disabled={points.length === 0}>
+          <button type="button" className="btn btn--secondary" onClick={onUndo} disabled={points.length === 0}>
             <Icon name="undo" size={20} /> {t(locale, 'draw.undo')}
           </button>
           <button type="button" className="btn btn--primary" onClick={onClose} disabled={!canClose && points.length < 3}>
