@@ -202,10 +202,10 @@ export async function mockReport(
   const sorted = [...runs].sort((a, b) => a.relative_yield - b.relative_yield);
   const typical = sorted[12]!;
   const total = runs.length;
-  const stressed = runs.filter((r) => r.relative_yield < 0.9).length;
+  const stressed = runs.filter((r) => 1 - r.relative_yield >= 0.15 || r.flowering_deficit_mm >= 30).length;
   const loss = Math.round(100 * (1 - typical.relative_yield));
   const heat = [...runs.map((r) => r.flowering_heat_days)].sort((a, b) => a - b)[12] ?? 0;
-  const waterRisk = byFraction(stressed / total, 0.2, 0.4);
+  const waterRisk = byFraction(stressed / total, 0.2, 0.45);
   const heatRisk: RiskLevel = heat > 4 ? 'high' : heat > 1 ? 'medium' : 'low';
   const rm = values.hybrid_rm_days;
   const matureOk = Math.max(10, total - Math.max(0, Math.round((rm - 105) / 3)));
@@ -291,7 +291,7 @@ export async function mockReport(
         };
       }),
       signal_strength: 'weak',
-      message: { key: 'enso.weak', params: { now_phase: 'el_nino', delta_pct: -1 } },
+      message: { key: 'enso.weak', params: { now_phase: 'el_nino', delta_pct: -1, years: runs.filter((r) => r.enso_phase === 'el_nino').length } },
     },
     zones_geojson: zones,
     sources: zones ? [...sources, zones.meta.source] : sources,
