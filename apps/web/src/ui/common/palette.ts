@@ -56,7 +56,7 @@ export const RISK_COLOR: Record<RiskLevel, string> = {
   low: '#0072b2',
   medium: '#e69f00',
   high: '#d55e00',
-  no_data: '#767680',
+  no_data: '#6b6b75',
 };
 
 /** Text colour that passes AA on each risk hue. */

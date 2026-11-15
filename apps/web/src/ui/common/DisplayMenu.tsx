@@ -19,14 +19,15 @@ export function DisplayMenu({ locale }: { locale: Locale }) {
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panelId = useId();
+  const close = () => {
+    setOpen(false);
+    button.current?.focus();
+  };
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        button.current?.focus();
-      }
+      if (e.key === 'Escape') close();
     };
     const onDown = (e: PointerEvent) => {
       if (root.current && !root.current.contains(e.target as Node)) setOpen(false);
@@ -45,6 +46,7 @@ export function DisplayMenu({ locale }: { locale: Locale }) {
         ref={button}
         type="button"
         className="display__button"
+        aria-label={t(locale, 'display.button')}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
@@ -58,7 +60,7 @@ export function DisplayMenu({ locale }: { locale: Locale }) {
         <div className="display__panel glass" id={panelId} role="group" aria-label={t(locale, 'display.title')}>
           <div className="display__head">
             <h2>{t(locale, 'display.title')}</h2>
-            <button type="button" className="iconbtn" aria-label={t(locale, 'display.close')} onClick={() => setOpen(false)}>
+            <button type="button" className="iconbtn" aria-label={t(locale, 'display.close')} onClick={close}>
               <span aria-hidden="true">×</span>
             </button>
           </div>

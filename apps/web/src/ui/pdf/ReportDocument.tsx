@@ -335,8 +335,8 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
             <View style={[st.row, { flexWrap: 'wrap' }]}>
               {(
                 [
-                  ['#2b6cb0', 'stripes.good', 'rect'],
-                  ['#b4532a', 'stripes.bad', 'rect'],
+                  [yieldColor(1), 'stripes.good', 'rect'],
+                  [yieldColor(0.7), 'stripes.bad', 'rect'],
                   [ENSO_COLOR.el_nino, 'stripes.el_nino', 'dot'],
                   [ENSO_COLOR.la_nina, 'stripes.la_nina', 'dot'],
                 ] as const

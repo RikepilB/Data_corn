@@ -11,8 +11,8 @@
   --font: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto,
     sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --fs-xs: 0.8125rem; /* 13px: captions, sources, axis labels. Nothing is smaller. */
-  --fs-sm: 0.9375rem; /* 15px: secondary text, labels */
+  --fs-xs: 0.875rem; /* 14px: captions, sources, axis labels. Nothing is smaller. */
+  --fs-sm: 1rem; /* 16px: secondary text, labels */
   --fs-base: 1rem; /* 16px: body, buttons, inputs */
   --fs-md: 1.125rem; /* 18px: lead text, card titles */
   --fs-lg: 1.375rem; /* 22px: panel titles */
@@ -45,7 +45,7 @@
   --ink: #111113;
   --ink-2: #3f3f46; /* 10.4:1 */
   --muted: #55555c; /* 7.4:1 on white, 6.7:1 on --paper-2 */
-  --line: #767680; /* control edges: 4.5:1 on white, 4.1:1 on --paper-2 (WCAG 1.4.11) */
+  --line: #767680; /* control edges: 4.5:1 on white (4.49:1), 4.1:1 on --paper-2; fine for the 3:1 of WCAG 1.4.11 (WCAG 1.4.11) */
   --line-soft: #d4d4d8; /* decorative dividers only */
   --paper: #ffffff;
   --paper-2: #f4f4f5;
@@ -55,7 +55,7 @@
   --risk-low: #0072b2; /* blue; white on it 5.2:1 */
   --risk-medium: #e69f00; /* orange; ink on it 8.4:1 */
   --risk-high: #d55e00; /* vermillion; ink on it 4.9:1 */
-  --risk-nodata: #767680;
+  --risk-nodata: #6b6b75; /* 5.3:1 under white text */
   --risk-low-ink: #ffffff;
   --risk-medium-ink: #111113;
   --risk-high-ink: #111113;
