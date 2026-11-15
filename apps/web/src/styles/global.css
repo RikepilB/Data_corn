@@ -138,7 +138,7 @@ p {
   line-height: 1.4;
 }
 
-.maplibregl-ctrl-attrib.maplibregl-compact {
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact {
   box-sizing: border-box;
   min-width: 44px;
   min-height: 44px;
@@ -148,13 +148,13 @@ p {
 }
 
 /* Opened: the credit wraps inside the screen, to the right of the 44px (i) button */
-.maplibregl-ctrl-attrib.maplibregl-compact-show {
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show {
   max-width: min(90vw, 28rem);
   padding: 8px 10px 8px 52px;
 }
 
 /* 44px touch target with a 24px icon, centred */
-.maplibregl-ctrl-attrib-button {
+.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button {
   width: 44px;
   height: 44px;
   border-radius: var(--r-sm);
@@ -167,6 +167,7 @@ p {
 .app:not(.step-globe) .maplibregl-ctrl-bottom-right {
   top: calc(var(--top) + 8px);
   bottom: auto;
+  z-index: 40; /* the opened credit sits over the chips and Center so it stays readable */
 }
 
 /* Créditos de Google (obligatorios cuando la imagen es de Google) */
@@ -1281,6 +1282,12 @@ fieldset.field > legend {
 .stripes__year {
   font-family: var(--mono);
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.stripes__step .btn {
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-sm);
 }
 
 .stripes__bar:hover {
