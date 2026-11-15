@@ -2,7 +2,8 @@ import type { RiskLevel } from '../../domain/report';
 import { type Locale, t } from '../../i18n';
 
 // Color + ícono + palabra: el significado nunca depende solo del color (RNF-09).
-const ICON: Record<RiskLevel, string> = { low: '✓', medium: '◆', high: '▲', no_data: '?' };
+// Exported so the Help answer about risk levels quotes the same symbols.
+export const RISK_ICON: Record<RiskLevel, string> = { low: '✓', medium: '◆', high: '▲', no_data: '?' };
 
 export function RiskBadge({
   risk,
@@ -19,7 +20,7 @@ export function RiskBadge({
       title={t(locale, 'risk.label', { level: t(locale, `risk.${risk}`) })}
     >
       <span className="risk__icon" aria-hidden="true">
-        {ICON[risk]}
+        {RISK_ICON[risk]}
       </span>
       <span className="risk__text">{t(locale, `risk.${risk}`)}</span>
     </span>

@@ -108,3 +108,43 @@ test('the example tapped right away reaches the results', async ({ page }) => {
 test('the example tapped after the globe settles reaches the results', async ({ page }) => {
   await exampleToResults(page, { waitForGlobe: true });
 });
+
+// Help from the live-demo feedback: questions, suggestions and support in one dialog. The globe card
+// has a Help link too, so the button is looked up inside the top bar.
+test('help opens from the top bar, switches tabs and closes with Escape', async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (err) => pageErrors.push(err.message));
+  await page.goto('/?mock=1');
+
+  const helpButton = page.locator('.topbar').getByRole('button', { name: 'Help', exact: true });
+  await expect(helpButton).toBeInViewport({ ratio: 1 });
+  await helpButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Help', exact: true });
+  await expect(dialog).toBeVisible();
+  const questions = dialog.getByRole('tab', { name: 'Questions', exact: true });
+  await expect(questions).toHaveAttribute('aria-selected', 'true');
+  await expect(dialog.getByRole('tabpanel', { name: 'Questions', exact: true })).toContainText('Is this a forecast?');
+
+  await dialog.getByRole('tab', { name: 'Suggestions', exact: true }).click();
+  const suggestions = dialog.getByRole('tabpanel', { name: 'Suggestions', exact: true });
+  await expect(suggestions).toBeVisible();
+  // GitHub until the team sets SUPPORT_EMAIL (ui/common/contact.ts), then an e-mail
+  const link = suggestions.getByRole('link', { name: /^Send a suggestion (on GitHub|by email)/ });
+  await expect(link).toHaveAttribute('href', /^(https:\/\/github\.com\/RikepilB\/Data_corn\/issues\/new\?title=|mailto:)/);
+  if ((await link.getAttribute('href'))!.startsWith('https:')) {
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+  }
+
+  // Arrow keys move along the tabs (roving tabindex); Home goes back to the first one.
+  await page.keyboard.press('ArrowRight');
+  await expect(dialog.getByRole('tab', { name: 'Support', exact: true })).toBeFocused();
+  await expect(dialog.getByRole('tabpanel', { name: 'Support', exact: true })).toContainText('device and browser');
+  await page.keyboard.press('Home');
+  await expect(questions).toBeFocused();
+  await expect(questions).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
+});

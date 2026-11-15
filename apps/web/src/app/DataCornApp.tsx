@@ -28,6 +28,7 @@ import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { Icon } from '../ui/common/Icon';
 import { AboutDialog } from '../ui/common/AboutDialog';
+import { HelpDialog } from '../ui/common/HelpDialog';
 import { TopBar } from '../ui/common/TopBar';
 import { EnsoBadge } from '../ui/layers/EnsoBadge';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
@@ -99,6 +100,10 @@ export default function DataCornApp() {
   const [pdfSaved, setPdfSaved] = useState<{ file: PdfFile; report: FieldReport; ctx: FormatContext } | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const openAbout = useCallback(() => setAboutOpen(true), []);
+  // Stable like openAbout, so the memoized TopBar and ResultsPanel do not re-render on film ticks
+  const [helpOpen, setHelpOpen] = useState(false);
+  const openHelp = useCallback(() => setHelpOpen(true), []);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
@@ -393,7 +398,14 @@ export default function DataCornApp() {
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
       <MapViewMemo locale={locale} onReady={setMap} />
       <FieldFillSync map={map} film={film} active={step === 'results' && !zonesOn} />
-      <TopBarMemo locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      <TopBarMemo
+        locale={locale}
+        units={units}
+        onLocale={setLocale}
+        onUnits={setUnits}
+        onHome={backToGlobe}
+        onHelp={openHelp}
+      />
       {!flying && (
         <button type="button" className="mapbtn" onClick={onCenter} title={t(locale, 'map.center_hint')}>
           <Icon name="locate" size={18} />
@@ -439,6 +451,7 @@ export default function DataCornApp() {
             onPlace={onPlace}
             onSample={onSample}
             onAbout={openAbout}
+            onHelp={openHelp}
           />
         </div>
       )}
@@ -502,12 +515,14 @@ export default function DataCornApp() {
             onNew={dc.startDrawing}
             onRestart={backToGlobe}
             onAbout={openAbout}
+            onHelp={openHelp}
             filmSlot={filmSlot}
           />
         </>
       )}
 
       <AboutDialog open={aboutOpen} locale={locale} onClose={() => setAboutOpen(false)} />
+      <HelpDialog open={helpOpen} locale={locale} onClose={closeHelp} />
     </div>
   );
 }
