@@ -185,7 +185,7 @@ function zonesIndicator(zones: ZonesGeoJSON | null): Indicator {
   const params = { low_pct: ZONE_STATS.low.area_pct, high_pct: ZONE_STATS.high.area_pct, seasons: meta.seasons, spread };
   return {
     ...indicator('field_zones', 'medium', 'field_zones.medium', params, spread, 'ndvi', 'check.scout_field', [meta.source]),
-    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones' },
+    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones_sample' },
     confidence: 'high',
   };
 }
