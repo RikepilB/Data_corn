@@ -1,1 +1,110 @@
-[]
+[
+  {
+    "id": "hamilton-ne",
+    "name": {
+      "en": "Sample field · Nebraska",
+      "es": "Lote de ejemplo · Nebraska"
+    },
+    "region_id": "us",
+    "irrigation": "none",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -98.004,
+            40.9
+          ],
+          [
+            -97.994,
+            40.9
+          ],
+          [
+            -97.994,
+            40.9073
+          ],
+          [
+            -98.004,
+            40.9073
+          ],
+          [
+            -98.004,
+            40.9
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "thomas-ks",
+    "name": {
+      "en": "Sample field · Kansas",
+      "es": "Lote de ejemplo · Kansas"
+    },
+    "region_id": "us",
+    "irrigation": "none",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -101.195,
+            39.34
+          ],
+          [
+            -101.185,
+            39.34
+          ],
+          [
+            -101.185,
+            39.3473
+          ],
+          [
+            -101.195,
+            39.3473
+          ],
+          [
+            -101.195,
+            39.34
+          ]
+        ]
+      ]
+    }
+  },
+  {
+    "id": "story-ia",
+    "name": {
+      "en": "Sample field · Iowa",
+      "es": "Lote de ejemplo · Iowa"
+    },
+    "region_id": "us",
+    "irrigation": "none",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -93.515,
+            42.098
+          ],
+          [
+            -93.505,
+            42.098
+          ],
+          [
+            -93.505,
+            42.1053
+          ],
+          [
+            -93.515,
+            42.1053
+          ],
+          [
+            -93.515,
+            42.098
+          ]
+        ]
+      ]
+    }
+  }
+]
