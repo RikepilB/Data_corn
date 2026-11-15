@@ -100,7 +100,8 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Asset | Source | Licence | Status |
 |---|---|---|---|
-| Atkinson Hyperlegible Next by the Braille Institute (weights 400, 500, 600, 700) and IBM Plex Mono (weights 400, 500) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
+| IBM Plex Mono (400, 500; Latin subset), self-hosted via Fontsource (`@fontsource/ibm-plex-mono` 5.3.0) | IBM; Fontsource | OFL-1.1 | used |
+| Atkinson Hyperlegible Next (variable), self-hosted via Fontsource (`@fontsource-variable/atkinson-hyperlegible-next` 5.3.0) | Braille Institute; Fontsource | OFL-1.1 | used |
 | `apps/web/public/og-image.jpg` (share image; screenshot of the app's Results step in sample-data mode, built on EOxCloudless 2024 basemap tiles and NASA GIBS imagery) | EOX IT Services GmbH, https://cloudless.eox.at (Contains modified Copernicus Sentinel data 2024); NASA GIBS | EOxCloudless: CC BY-NC-SA 4.0 per EOX (verify before reuse beyond this non-commercial hackathon entry); GIBS: NASA open data | used |
 | Favicon (`apps/web/public/favicon.svg`) | Made in this repository; no outside artwork | Apache-2.0, as the repository | used |
 | Music | None | — | — |
