@@ -19,7 +19,7 @@
   "about.how.text": "You draw your field. We read 25 past seasons of weather for that spot from NASA and public sources, run a soil water model for each season, and show what happened. Each season is a scenario, not a forecast.",
   "about.limits.title": "What to keep in mind",
   "about.limits.1": "These are scenarios, not forecasts. Nobody can say what this season will do.",
-  "about.limits.2": "When most data is missing, we show \"not available\". When soil or slope is missing, the engine uses generic values, and the report does not flag them yet.",
+  "about.limits.2": "When most data is missing, we show \"not available\". When soil or slope is missing, the engine uses generic values and lists them in the report's data sources.",
   "about.limits.3": "The model does not carry water between crops, and it has no yield records for your field.",
   "about.limits.4": "Data Corn supports farmers and agronomists. It does not replace their judgment or field scouting.",
   "about.credits.title": "Data credits",
