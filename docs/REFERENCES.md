@@ -56,11 +56,14 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Oceanic Niño Index (ONI), `www.cpc.ncep.noaa.gov` | NOAA CPC | ENSO phase chip on the verdict: the background of the season, not a forecast | U.S. Government work | used |
 | Índice Costero El Niño (ICEN) | ENFEN / IGP (Peru) | not used after the pivot | — | not used |
 | FAO-56: Allen, Pereira, Raes, Smith (1998), *Crop evapotranspiration*, FAO Irrigation and Drainage Paper 56 | FAO | ET0 equation, Kc, p, root depth tables | Citation | planned |
+| *Arquitectura Clean: principios y ejemplo práctico* (`createam.io/blog/arquitectura-clean.html`, Spanish) | CREATEAM | Reading shared by the team behind the layering rule in `docs/architecture/ARCHITECTURE.md` §3. No text or code copied | Citation | used |
 | Saxton & Rawls (2006), *Soil water characteristic estimates by texture and organic matter*, SSSAJ 70:1569 | — | Pedotransfer for field capacity / wilting point | Citation | planned |
 | FCC Census Area API (`geo.fcc.gov/api/census/area`) | U.S. Federal Communications Commission | State and county of a US field, no key | U.S. Government work (verify) | used |
 | USDA NASS QuickStats API (`quickstats.nass.usda.gov`) | USDA NASS | County corn-yield history for context. Needs a free key (`DATACORN_NASS_API_KEY`); without it the source is skipped | Public domain, U.S. Government work (verify) | used |
 | OpenStreetMap Nominatim search (`nominatim.openstreetmap.org`) | OpenStreetMap Foundation | Place search box of the web app, low volume | ODbL, "© OpenStreetMap contributors". The Nominatim usage policy asks for a credit line next to the results; the app does not show one yet (verify) | used |
 | Google Map Tiles API, 2D satellite (`tile.googleapis.com`) | Google | Sharper satellite basemap, only when the build has `PUBLIC_GOOGLE_MAPS_KEY`; the credit line comes from the viewport endpoint | Google Maps Platform terms (verify) | used |
+| McCool, Brown, Foster, Mutchler & Meyer (1987), *Revised slope steepness factor for the Universal Soil Loss Equation*, Transactions of the ASAE 30(5):1387-1396, doi:10.13031/2013.30576 | ASABE | Slope steepness factor S of the relative erosion index (`domain/agronomy/erosion.py`, #46) | Citation | planned |
+| Wischmeier & Smith (1978), *Predicting rainfall erosion losses: a guide to conservation planning*, USDA Agriculture Handbook 537 | USDA | Erosive-rain cutoff of 12.7 mm (0.5 in), applied to daily totals in the erosion index (#46). The 1.5 rain exponent and the default K of 0.03 are assumptions, not from a source | U.S. Government work | planned |
 
 ## Code libraries
 
@@ -94,4 +97,5 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Tool | What it did | Where labelled |
 |---|---|---|
-| Claude Code (Anthropic) | Repository scaffold, contract draft, planning docs, code assistance | README, file headers |
+| Claude Code (Anthropic) | Repository scaffold, most of the code and tests, planning docs, issues, source summaries; credited in commits as Claude Fable 5.2, Opus 5.5 and Sonnet 5.5 | README "Use of Super Intelligence (SI)", file headers, `Co-Authored-By` commit trailers, package descriptions |
+| Codex (OpenAI) | Relative erosion index code and tests ([#46](https://github.com/RikepilB/Data_corn/issues/46)) | File header of `apps/api/src/datacorn/domain/agronomy/erosion.py`, README |

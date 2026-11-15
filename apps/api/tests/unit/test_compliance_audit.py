@@ -27,6 +27,11 @@ def test_find_emails_ignores_package_versions_and_scopes() -> None:
     assert audit.find_emails("react@18.3.1, pytest==9.2.0 and @astrojs/react") == []
 
 
+def test_find_emails_drops_the_organizers_public_contacts() -> None:
+    text = "help: info@spaceappschallenge.org, conduct: conduct@spaceappschallenge.org"
+    assert audit.find_emails(text) == []
+
+
 def test_external_hosts_skip_own_links_and_placeholders() -> None:
     text = (
         "https://power.larc.nasa.gov/api https://field-shift.vercel.app/ http://localhost:4321/x "

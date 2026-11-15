@@ -31,7 +31,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
-EMAIL_ALLOWED = ("noreply", "@example.", "@anthropic.com", "git@github.com")
+# The organizer's help, web and conduct addresses are public contacts quoted from the event
+# guides, not personal data, so they do not fail the check.
+EMAIL_ALLOWED = ("noreply", "@example.", "@anthropic.com", "git@github.com", "@spaceappschallenge.org")
 URL = re.compile(r"https?://[^\s)>\]\"'`]+")
 URL_HOST = re.compile(r"https?://([A-Za-z0-9][A-Za-z0-9.-]*)")
 # Hosts that are not data, library or tile sources: the project's own links, namespaces, local servers.
@@ -87,7 +89,7 @@ class Result:
 
 
 def find_emails(text: str) -> list[str]:
-    """Addresses in `text` that are not a no-reply, example or tool address."""
+    """Addresses in `text` that are not a no-reply, example, tool or organizer address."""
     found = {m for m in EMAIL.findall(text) if not any(ok in m.lower() for ok in EMAIL_ALLOWED)}
     return sorted(found)
 
@@ -244,7 +246,9 @@ def check_personal_data(files: list[Path]) -> list[Result]:
     if not found:
         return [
             Result(
-                "PASS", "no e-mail addresses in tracked files", "none outside no-reply and example addresses"
+                "PASS",
+                "no e-mail addresses in tracked files",
+                "none outside no-reply, example and organizer addresses",
             )
         ]
     where = [f"{p} ({len(e)}, {listing(sorted({a.split('@')[1] for a in e}), 3)})" for p, e in found.items()]

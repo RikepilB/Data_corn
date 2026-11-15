@@ -1,5 +1,6 @@
 {
   "name": "datacorn-web",
+  "description": "Data Corn web app. Written with SI assistance (Claude Code); see the README section on SI use.",
   "type": "module",
   "version": "0.1.0",
   "private": true,
