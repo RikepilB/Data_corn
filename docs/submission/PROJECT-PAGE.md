@@ -7,7 +7,7 @@ Draft for [#63](https://github.com/RikepilB/Data_corn/issues/63), rewritten Sun 
 
 1. **Name.** The app and its PDF say "Data Corn"; the challenge is "Field Shift". The blocks write `{NAME}` until [#54](https://github.com/RikepilB/Data_corn/issues/54) decides.
 2. **Demo link.** Waits for [#61](https://github.com/RikepilB/Data_corn/issues/61) and [#62](https://github.com/RikepilB/Data_corn/issues/62). The comic panels for the deck are in `docs/story/STORY.md`.
-3. **Redeploy.** On `main`, "See an example" opens a Nebraska field with real engine results computed in advance. The live link still serves an older build, whose example shows generated sample numbers. The redeploy needs Richard's go-ahead. After it, open the link in a private window and check that the example's banner starts with "Real data, computed in advance".
+3. **Redeploy.** On `main`, "See an example" opens a Nebraska field with real engine results computed in advance. The live link still serves an older build, whose example shows generated sample numbers. The redeploy needs Richard's go-ahead. After it, open the link in a private window and check that the example's banner starts with "Real data" (from [#102](https://github.com/RikepilB/Data_corn/pull/102): "Real data, precomputed 2026-11-15. Not live.").
 4. **SI.** The team confirms the sentences listed under the SI block.
 
 Left out on purpose: forecasts of any kind (the tool replays past seasons); the dry/normal/wet matrix (cut: seasons are grouped by El Niño and La Niña); erosion numbers (the erosion index is not wired into the app, [#94](https://github.com/RikepilB/Data_corn/issues/94)); "GRACE shows the aquifer decline" (the NASA page cited below does not say it); the Sheridan-6 LEMA figures (unverified, [#26](https://github.com/RikepilB/Data_corn/issues/26)); anything about Peru (the tool is for US corn).
@@ -110,7 +110,7 @@ The EOX credit above is the one EOX's licence page asks for (read 2026-11-15). T
 
 ## Images (optional)
 
-JPG, PNG or GIF, 10 MB at most. After the redeploy, take four screenshots from the live link: the globe with a NASA layer, the outlined field, the results with the season stripes and the "Real data, computed in advance" banner, and the "Three ways to rotate" panel. No NASA logos, and none SI-generated.
+JPG, PNG or GIF, 10 MB at most. After the redeploy, take four screenshots from the live link: the globe with a NASA layer, the outlined field, the results with the season stripes and the "Real data" banner, and the "Three ways to rotate" panel. No NASA logos, and none SI-generated.
 
 ## Checked against
 
