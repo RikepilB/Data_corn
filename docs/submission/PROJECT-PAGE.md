@@ -36,7 +36,7 @@ Decided in [#61](https://github.com/RikepilB/Data_corn/issues/61). Paste the pub
 Live tool: https://field-shift-datacorn.vercel.app/ (provisional address). It runs without a data server. "See an example" opens a rainfed corn field in Hamilton County, Nebraska, with a real engine report computed in advance, under the banner "Real data, precomputed 2026-11-15. Not live." Any other field, or a changed form value such as irrigation, shows invented sample numbers under the banner "Sample data (no API)". Source code, tests and data credits: https://github.com/RikepilB/Data_corn (Apache-2.0). Neither link needs a login or a registration.
 ```
 
-Replace if the per-irrigation reports merge ([#100](https://github.com/RikepilB/Data_corn/issues/100)), and only once the lead confirms it: remove " such as irrigation" and, after "Not live.", add "Changing the irrigation option keeps a real report."
+Replace if the per-irrigation reports merge ([#100](https://github.com/RikepilB/Data_corn/issues/100)), and only once the lead confirms it: here, remove " such as irrigation" and, after "Not live.", add "Changing the irrigation option keeps a real report."; in the factors answer, change "for one rainfed example field in Nebraska" to "for one example field in Nebraska and its irrigation options".
 
 ## Project Details (the Detailed Project Description field)  _(5410 characters for the six answers)_
 
@@ -80,17 +80,17 @@ The prior-art sentences are the draft for [#29](https://github.com/RikepilB/Data
 Results are scenarios built from past climate, not forecasts. Weather comes from a grid about 50 km wide and soil from a survey, not from a probe in the field. Yield numbers come from published water-balance methods and are not calibrated against any farm's yields. Crop parameters are generic, and the degree days to maturity for each hybrid are not checked against a source yet. The rotation evidence comes mostly from Iowa studies, not from the High Plains. The model does not carry water between crops or model the water a rye cover uses. A card with no data says "No data" instead of showing a number. Where the soil survey has no soil or slope for a spot, the engine still uses generic values and does not flag them yet. We do not know a producer's priorities, budget or risk tolerance, and the tool has not been tested with farmers or extension specialists yet. The app needs no login and asks for no personal data, and NASA appears only as a data source. No data server is deployed behind the public demo, so it shows a real report, computed in advance, for one rainfed example field in Nebraska, and invented sample numbers, labelled as such, for any other field or changed value.
 ```
 
-## Use of Super Intelligence (SI)  _(1168 characters)_
+## Use of Super Intelligence (SI)  _(1252 characters)_
 
 ```
-Yes. The idea, the choice of challenge and the story idea came from the team. We used Claude Code (Anthropic) as a coding, writing and research assistant. It helped scaffold the repository, write and test engine and web code under the team's direction, draft planning documents, GitHub issues, the story and the comic captions from the team's outline, find and summarize sources, and write this page. One team member used Codex (OpenAI) to write a soil-erosion index function that the app does not use yet. Every number in a real report is computed by the engine from public data, with the methods cited in docs/REFERENCES.md; no SI model writes or estimates those values. The invented sample numbers the demo shows for other fields or changed values come from code written with SI help, and the app labels them "Sample data". The README has a section on SI use, and the package metadata says the code was written with SI assistance. The only image in the app is the favicon, a small SVG written as code with SI assistance. Any SI-generated image, video or audio in the demo or the slides carries a visible watermark. No NASA logos, flags or mission insignia are used.
+Yes. The idea, the choice of challenge and the story idea came from the team. We used Claude Code (Anthropic) as a coding, writing and research assistant. It helped scaffold the repository, write and test engine and web code under the team's direction, draft planning documents, GitHub issues, the story and the comic captions from the team's outline, find and summarize sources, and write this page. One team member used Codex (OpenAI) to write a soil-erosion index function that the app does not use yet. Every number in a real report is computed by the engine from public data, with the methods cited in docs/REFERENCES.md; no SI model writes or estimates those values. The invented sample numbers the demo shows for other fields or changed values come from code written with SI help, and the app labels them "Sample data". The README has a section on SI use, and the package metadata says the code was written with SI assistance. The app has no image files besides the favicon. The favicon and the line icons are small SVG drawings written as code with SI assistance; the charts are drawn from the data. Any SI-generated image, video or audio in the demo or the slides carries a visible watermark. No NASA logos, flags or mission insignia are used.
 ```
 
 Judges do not read this answer, but the form requires it ([#66](https://github.com/RikepilB/Data_corn/issues/66)). The team confirms these before pasting, and keeps a sentence only if it is true:
 
 - The idea, the choice of challenge and the story idea came from the team, not from SI.
 - Each member adds any other SI tool they used, and what it did.
-- Apart from the favicon (SVG code written with SI help), no image, video or audio was generated by SI, including the comic and any Canva art.
+- Apart from the favicon and the line icons (SVG code written with SI help), no image, video or audio was generated by SI, including the comic and any Canva art.
 
 ## NASA Data  _(672 characters)_
 
