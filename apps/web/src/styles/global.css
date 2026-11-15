@@ -1681,6 +1681,14 @@ fieldset.field > legend {
   color: var(--muted);
 }
 
+/* Under the PDF button: the tap-to-open link and the in-app browser note */
+.pdf-ready {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  text-align: center;
+}
+
 .disclaimer {
   display: flex;
   gap: 8px;

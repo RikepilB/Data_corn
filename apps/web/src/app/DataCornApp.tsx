@@ -5,6 +5,7 @@ import { useDay } from '../application/dayStore';
 import { type Film, useFilm } from '../application/useFilm';
 import { type FormatContext, messageText } from '../domain/format';
 import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
+import type { FieldReport } from '../domain/report';
 import { analogDate } from '../domain/season';
 import type { UnitSystem } from '../domain/units';
 import { zonesOf } from '../domain/zones';
@@ -21,7 +22,7 @@ import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '
 import { bucketColor, waterBucket } from '../ui/map/fillBucket';
 import { setClimate, setField, setFieldFill, setZones } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
-import { downloadReportPdf } from '../ui/pdf/download';
+import { type PdfFile, downloadReportPdf } from '../ui/pdf/download';
 import { ResultsPanel } from '../ui/results/ResultsPanel';
 import { SeasonFilm } from '../ui/results/SeasonFilm';
 import { buildCards } from '../ui/results/cards';
@@ -75,6 +76,8 @@ export default function DataCornApp() {
   const [drawError, setDrawError] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  // The last PDF and what it was built from; its link shows only while those are still on screen.
+  const [pdfSaved, setPdfSaved] = useState<{ file: PdfFile; report: FieldReport; ctx: FormatContext } | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const openAbout = useCallback(() => setAboutOpen(true), []);
   const dc = useDataCorn();
@@ -262,7 +265,7 @@ export default function DataCornApp() {
     setPdfError(false);
     try {
       const mapImage = map ? await snapshotMap(map) : null;
-      await downloadReportPdf({
+      const file = await downloadReportPdf({
         report: dc.report,
         ctx,
         cards: buildCards(dc.report, ctx),
@@ -270,6 +273,7 @@ export default function DataCornApp() {
         isSample: dc.isSample,
         mock: dc.mock && !dc.precomputedAt,
       });
+      setPdfSaved({ file, report: dc.report, ctx });
     } catch (e) {
       console.error(e);
       setPdfError(true);
@@ -277,6 +281,7 @@ export default function DataCornApp() {
       setPdfBusy(false);
     }
   }, [dc.report, dc.isSample, dc.mock, dc.precomputedAt, map, ctx]);
+  const pdfFile = pdfSaved && pdfSaved.report === dc.report && pdfSaved.ctx === ctx ? pdfSaved.file : null;
 
   const showLayers = step === 'globe' || step === 'results';
   const filmView = useMemo(
@@ -395,6 +400,7 @@ export default function DataCornApp() {
             mock={dc.mock && !dc.precomputedAt}
             pdfBusy={pdfBusy}
             pdfError={pdfError}
+            pdfFile={pdfFile}
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
