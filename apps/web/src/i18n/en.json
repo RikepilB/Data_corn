@@ -422,5 +422,19 @@
   "tag.tmax": "Max {temp}",
   "tag.rain": "Rain {mm}",
   "tag.irrigation": "Irrigation {mm}",
-  "tag.yield": "Yield {pct} %"
+  "tag.yield": "Yield {pct} %",
+
+  "film.odds": "Chance of a good harvest",
+  "film.odds_up": "▲ {pts} pts since planting",
+  "film.odds_down": "▼ {pts} pts since planting",
+  "film.odds_flat": "Same as at planting",
+  "film.odds_help": "Share of the years that looked the same on that day (water and yield) and ended with less than 15 % loss from water. Not a forecast.",
+  "film.battery": "Water for",
+  "film.battery_days": "{days} days",
+  "film.battery_max": "30+ days",
+  "film.battery_stress": "In stress",
+  "film.battery_help": "Days the field lasts without rain or irrigation before stress, at the last 10 days' use.",
+  "tag.days": "Lasts {days} days",
+  "tag.days_max": "Lasts 30+ days",
+  "tag.stress": "In stress"
 }

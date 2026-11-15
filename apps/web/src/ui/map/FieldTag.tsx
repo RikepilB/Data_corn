@@ -3,6 +3,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Film } from '../../application/useFilm';
 import { yieldAt } from '../../domain/film';
+import { BATTERY_MAX_DAYS } from '../../domain/outlook';
 import { type FormatContext, shortDate } from '../../domain/format';
 import type { LngLat } from '../../domain/geo';
 import { filmDate, stageAt, waterColor } from '../../domain/season';
@@ -72,6 +73,15 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
   const rain = run.rain_mm?.[day] ?? null;
   const irrigation = run.irrigation_mm?.[day] ?? 0;
   const yieldNow = yieldAt(run, day);
+  const left = film.waterLeft[day];
+  const lasts =
+    left == null
+      ? null
+      : left <= 0
+        ? t(locale, 'tag.stress')
+        : left >= BATTERY_MAX_DAYS
+          ? t(locale, 'tag.days_max')
+          : t(locale, 'tag.days', { days: Math.round(left) });
 
   return (
     <div
@@ -87,11 +97,12 @@ export function FieldTag({ map, anchor, film, ctx }: { map: MapLibreMap; anchor:
         <span>
           <i style={{ background: waterColor(water) }} /> {t(locale, 'tag.water', { pct: water })}
         </span>
+        {lasts && <span className={left != null && left <= 0 ? 'is-bad' : undefined}>{lasts}</span>}
         {tmax != null && <span>{t(locale, 'tag.tmax', { temp: format(temperature(tmax, units), lang, 0) })}</span>}
         {irrigation > 0 ? (
           <span>{t(locale, 'tag.irrigation', { mm: format(depth(irrigation, units), lang, units === 'metric' ? 0 : 1) })}</span>
         ) : (
-          rain != null && <span>{t(locale, 'tag.rain', { mm: format(depth(rain, units), lang, units === 'metric' ? 0 : 1) })}</span>
+          rain != null && rain >= 0.5 && <span>{t(locale, 'tag.rain', { mm: format(depth(rain, units), lang, units === 'metric' ? 0 : 1) })}</span>
         )}
         {yieldNow != null && <span>{t(locale, 'tag.yield', { pct: Math.round(yieldNow) })}</span>}
       </div>

@@ -422,5 +422,19 @@
   "tag.tmax": "Máx. {temp}",
   "tag.rain": "Lluvia {mm}",
   "tag.irrigation": "Riego {mm}",
-  "tag.yield": "Rinde {pct} %"
+  "tag.yield": "Rinde {pct} %",
+
+  "film.odds": "Prob. de buena cosecha",
+  "film.odds_up": "▲ {pts} pts desde la siembra",
+  "film.odds_down": "▼ {pts} pts desde la siembra",
+  "film.odds_flat": "Igual que al sembrar",
+  "film.odds_help": "Parte de los años que ese día iban igual (agua y rendimiento) y terminaron con una pérdida por agua menor al 15 %. No es un pronóstico.",
+  "film.battery": "Agua para",
+  "film.battery_days": "{days} días",
+  "film.battery_max": "30+ días",
+  "film.battery_stress": "En estrés",
+  "film.battery_help": "Días que aguanta el lote sin lluvia ni riego antes del estrés, al consumo de los últimos 10 días.",
+  "tag.days": "Alcanza {days} días",
+  "tag.days_max": "Alcanza 30+ días",
+  "tag.stress": "En estrés"
 }

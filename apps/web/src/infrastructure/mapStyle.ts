@@ -1,7 +1,18 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { BLUE_MARBLE_TILES, EOX_ATTRIBUTION, EOX_TILES, GIBS_ATTRIBUTION } from './gibs';
+import {
+  BLUE_MARBLE_TILES,
+  EOX_ATTRIBUTION,
+  EOX_TILES,
+  GIBS_ATTRIBUTION,
+  NAIP_ATTRIBUTION,
+  NAIP_BOUNDS,
+  NAIP_TILES,
+} from './gibs';
 
-/** La Tierra en 3D: Blue Marble de NASA GIBS y, al acercarse, Sentinel-2 cloudless (EOX). */
+/**
+ * La Tierra en 3D: Blue Marble de NASA GIBS; al acercarse, Sentinel-2 cloudless (EOX); y sobre un lote
+ * de EE. UU., la foto aérea de 1 m de NAIP (USGS).
+ */
 export function globeStyle(): StyleSpecification {
   return {
     version: 8,
@@ -27,6 +38,15 @@ export function globeStyle(): StyleSpecification {
         maxzoom: 16,
         attribution: EOX_ATTRIBUTION,
       },
+      naip: {
+        type: 'raster',
+        tiles: [NAIP_TILES],
+        tileSize: 256,
+        minzoom: 13,
+        maxzoom: 16,
+        bounds: NAIP_BOUNDS,
+        attribution: NAIP_ATTRIBUTION,
+      },
     },
     layers: [
       { id: 'ocean', type: 'background', paint: { 'background-color': '#0a1a2f' } },
@@ -38,6 +58,16 @@ export function globeStyle(): StyleSpecification {
         minzoom: 5,
         paint: {
           'raster-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0, 7, 1],
+        },
+      },
+      {
+        id: 'naip',
+        type: 'raster',
+        source: 'naip',
+        minzoom: 13,
+        paint: {
+          'raster-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0, 14, 1],
+          'raster-fade-duration': 150,
         },
       },
     ],

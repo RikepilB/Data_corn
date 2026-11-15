@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { filmEvents } from '../domain/film';
+import { harvestOdds, waterDays } from '../domain/outlook';
 import type { FieldReport, SeasonRun } from '../domain/report';
 import { type FilmMode, filmLength, pickRun } from '../domain/season';
 
@@ -15,6 +16,8 @@ export function useFilm(report: FieldReport | null) {
   const run: SeasonRun | null = useMemo(() => (report ? pickRun(report, mode) : null), [report, mode]);
   const length = run ? filmLength(run) : 0;
   const events = useMemo(() => (run ? filmEvents(run) : []), [run]);
+  const odds = useMemo(() => (run && report ? harvestOdds(report.runs ?? [], run) : []), [run, report]);
+  const waterLeft = useMemo(() => (run ? waterDays(run) : []), [run]);
   const dayRef = useRef(0);
   dayRef.current = day;
 
@@ -96,7 +99,7 @@ export function useFilm(report: FieldReport | null) {
     setPlaying(autoplay);
   }, []);
 
-  return { mode, setMode, run, day, setDay, playing, toggle, setPlaying, length, events };
+  return { mode, setMode, run, day, setDay, playing, toggle, setPlaying, length, events, odds, waterLeft };
 }
 
 function daysFrom(a: string, b: string): number {

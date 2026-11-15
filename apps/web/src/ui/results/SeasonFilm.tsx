@@ -10,6 +10,7 @@ import {
   yieldAt,
 } from '../../domain/film';
 import { type FormatContext, shortDate } from '../../domain/format';
+import { batteryCharge } from '../../domain/outlook';
 import type { FieldReport, SeasonRun, Stage } from '../../domain/report';
 import {
   DRY,
@@ -25,7 +26,7 @@ import {
 import { depth, format, temperature } from '../../domain/units';
 import { type Locale, numberLocale, t } from '../../i18n';
 import { Icon, type IconName } from '../common/Icon';
-import { SoilGauge } from './SoilGauge';
+import { OddsMeter, WaterBattery } from './OutlookMeters';
 import { dateFormat } from '../../domain/intl';
 
 const STAGE_ICONS: Partial<Record<Stage, IconName>> = {
@@ -347,7 +348,8 @@ export function SeasonFilm({ film, report, ctx }: { film: Film; report: FieldRep
         </div>
         <div className="film__stats">
           <YieldMeter value={shown} final={yieldFinal} live={yieldNow != null} locale={locale} />
-          <SoilGauge pct={water} locale={locale} />
+          <OddsMeter odds={film.odds} day={day} locale={locale} />
+          <WaterBattery days={film.waterLeft[day]} charge={batteryCharge(run, day)} locale={locale} />
         </div>
       </div>
     </section>

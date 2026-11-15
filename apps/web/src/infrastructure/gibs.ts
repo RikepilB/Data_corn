@@ -205,6 +205,13 @@ export const EOX_TILES =
   'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';
 export const EOX_ATTRIBUTION =
   'Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)';
+// Foto aérea de 1 m (NAIP del USDA) de The National Map del USGS: sin clave y con CORS abierto.
+// Solo cubre EE. UU.: fuera de su borde, desde el zoom 13 responde 404 o teselas transparentes.
+export const NAIP_TILES =
+  'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}';
+export const NAIP_ATTRIBUTION = 'USGS The National Map: Orthoimagery (USDA NAIP)';
+/** EE. UU. continental (oeste, sur, este, norte): fuera de aquí no se piden teselas NAIP. */
+export const NAIP_BOUNDS: [number, number, number, number] = [-125, 24.4, -66.9, 49.4];
 export const GIBS_ATTRIBUTION = 'NASA GIBS · Blue Marble, SMAP, GPM IMERG, MODIS, GOES (NOAA), GHRSST MUR';
 
 const DAY = 86_400_000;
