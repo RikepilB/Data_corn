@@ -38,6 +38,9 @@ export function fitField(
 ): void {
   map.fitBounds(bounds, {
     padding: { top: 0, bottom: 0, left: 0, right: 0, ...padding },
+    // Replace the map's padding instead of adding to it: the globe step leaves left: 460 on desktop,
+    // and 460 + 60 + 480 fills a 1000 px window, which made MapLibre throw "Invalid LngLat (NaN)".
+    absolutePadding: true,
     maxZoom,
     duration: reducedMotion() ? 0 : 1400,
     essential: true,
