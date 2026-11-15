@@ -44,6 +44,14 @@ export interface ChatModel {
   stream(request: ModelRequest): AsyncIterable<ModelEvent>;
 }
 
+/** OpenRouter refused the call. Only the HTTP status is kept: the body may echo the request. */
+export class ModelHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`OpenRouter answered ${status}`);
+    this.name = 'ModelHttpError';
+  }
+}
+
 export interface OpenRouterOptions {
   apiKey: string;
   /** An OpenRouter model id. */
@@ -141,8 +149,7 @@ export function createOpenRouterModel(options: OpenRouterOptions): ChatModel {
         }),
       });
       if (!response.ok || !response.body) {
-        // Only the status: the body may echo the request.
-        throw new Error(`OpenRouter answered ${response.status}`);
+        throw new ModelHttpError(response.status);
       }
 
       const calls = new Map<number, ToolCall>();

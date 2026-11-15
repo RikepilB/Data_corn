@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_BODY_BYTES, MAX_TOOL_ITERATIONS, createRateLimiter } from './limits';
 import { handleChat, toModelMessages } from './handler';
+import { type ChatModel, ModelHttpError } from './openrouter';
 import { SAMPLE_FILES, body, callTool, deps, events, post, say, scriptedModel } from './testKit';
 
 describe('handleChat refusals', () => {
@@ -85,8 +86,22 @@ describe('handleChat stream', () => {
   });
 
   it('turns a model failure into model_error without details', async () => {
-    const res = await handleChat(post(body()), deps(scriptedModel([])));
+    const reasons: string[] = [];
+    const res = await handleChat(post(body()), deps(scriptedModel([]), { onModelError: (r) => reasons.push(r) }));
     expect(await events(res)).toEqual([{ type: 'error', code: 'model_error' }]);
+    expect(reasons).toEqual(['Error']);
+  });
+
+  it('reports only the HTTP status of a refused model call', async () => {
+    const reasons: string[] = [];
+    const refused: ChatModel = {
+      // eslint-disable-next-line require-yield
+      async *stream() {
+        throw new ModelHttpError(402);
+      },
+    };
+    await events(await handleChat(post(body()), deps(refused, { onModelError: (r) => reasons.push(r) })));
+    expect(reasons).toEqual(['HTTP 402']);
   });
 
   it('uses the irrigation variant on screen', async () => {

@@ -13,7 +13,13 @@ const PORT = 8787;
 const origin = process.env.CHAT_SITE_ORIGIN || 'http://localhost:4321';
 const apiKey = process.env.OPENROUTER_API_KEY;
 const model = apiKey ? createOpenRouterModel({ apiKey, model: process.env.OPENROUTER_MODEL, referer: origin }) : null;
-const deps = { model, fetchReport: createReportFetcher(origin), limiter: createRateLimiter() };
+const deps = {
+  model,
+  fetchReport: createReportFetcher(origin),
+  limiter: createRateLimiter(),
+  // Only the HTTP status or an error class name: never the question, the file or the answer.
+  onModelError: (reason: string) => console.error(`Model call failed: ${reason}`),
+};
 
 const server = createServer(async (req, res) => {
   const controller = new AbortController();

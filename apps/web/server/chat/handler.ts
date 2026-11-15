@@ -17,7 +17,7 @@ import {
   type RateLimiter,
   parseChatRequest,
 } from './limits';
-import type { ChatModel, ContentPart, ModelEvent, ModelMessage } from './openrouter';
+import { type ChatModel, type ContentPart, type ModelEvent, type ModelMessage, ModelHttpError } from './openrouter';
 import { systemPrompt } from './prompt';
 import { type FetchReport, type LoadedReport, loadReport } from './reports';
 import { TOOLS, runTool } from './tools';
@@ -28,6 +28,17 @@ export interface ChatDeps {
   fetchReport: FetchReport;
   limiter: RateLimiter;
   now?: () => number;
+  /**
+   * Called when the model call fails, with a reason that never contains what the person wrote:
+   * "HTTP 402" for a refusal by the model service, otherwise the error's class name.
+   */
+  onModelError?: (reason: string) => void;
+}
+
+/** A failure reason safe to print: the status or the class name, never a message or a body. */
+export function modelErrorReason(e: unknown): string {
+  if (e instanceof ModelHttpError) return `HTTP ${e.status}`;
+  return e instanceof Error ? e.name : 'unknown';
 }
 
 export type StreamEvent =
@@ -149,7 +160,7 @@ async function* answer(
   yield { type: 'error', code: 'too_many_tool_rounds' };
 }
 
-function ndjson(events: AsyncGenerator<StreamEvent>): ReadableStream<Uint8Array> {
+function ndjson(events: AsyncGenerator<StreamEvent>, onError?: (reason: string) => void): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   return new ReadableStream({
     async pull(controller) {
@@ -160,8 +171,9 @@ function ndjson(events: AsyncGenerator<StreamEvent>): ReadableStream<Uint8Array>
           return;
         }
         controller.enqueue(encoder.encode(`${JSON.stringify(next.value)}\n`));
-      } catch {
-        // The reason is not sent or logged: it may contain the person's text.
+      } catch (e) {
+        // Only a safe reason leaves here (modelErrorReason); the page gets the code alone.
+        onError?.(modelErrorReason(e));
         controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'error', code: 'model_error' })}\n`));
         controller.close();
       }
@@ -194,7 +206,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   const loaded = await loadReport(deps.fetchReport, chat.reportId, chat.irrigation);
   if (!loaded.ok) return refuse(STATUS[loaded.code] ?? 400, loaded.code);
 
-  return new Response(ndjson(answer(deps.model, chat, loaded.loaded, request.signal)), {
+  return new Response(ndjson(answer(deps.model, chat, loaded.loaded, request.signal), deps.onModelError), {
     status: 200,
     headers: {
       'content-type': 'application/x-ndjson; charset=utf-8',
