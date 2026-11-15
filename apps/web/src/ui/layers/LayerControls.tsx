@@ -1,21 +1,30 @@
 import { useEffect, useState } from 'react';
-import { monthYear } from '../../domain/format';
+import { type FormatContext, formatParams, monthYear } from '../../domain/format';
+import type { ZonesGeoJSON } from '../../domain/report';
+import { ZONE_COLOR, zoneShares } from '../../domain/zones';
 import { type Locale, t } from '../../i18n';
 import { CLIMATE_LAYERS, type ClimateLayerId, LAYER_ORDER } from '../../infrastructure/gibs';
 import { Icon } from '../common/Icon';
+
+/** Una capa de clima o las zonas del lote: en el mapa se ve una sola a la vez. */
+export type LayerChoice = ClimateLayerId | 'zones';
 
 export function LayerChips({
   value,
   onChange,
   locale,
+  zones = false,
 }: {
-  value: ClimateLayerId | null;
-  onChange: (id: ClimateLayerId | null) => void;
+  value: LayerChoice | null;
+  onChange: (id: LayerChoice | null) => void;
   locale: Locale;
+  /** Resultados con zonas (RF-60): va primero, es la única capa de dentro del lote. */
+  zones?: boolean;
 }) {
+  const ids: LayerChoice[] = zones ? ['zones', ...LAYER_ORDER] : LAYER_ORDER;
   return (
     <div className="chips" role="radiogroup" aria-label={t(locale, 'layers.title')}>
-      {LAYER_ORDER.map((id) => (
+      {ids.map((id) => (
         <button
           key={id}
           type="button"
@@ -43,6 +52,26 @@ export function Legend({ id, locale, note }: { id: ClimateLayerId; locale: Local
         <span>{t(locale, `legend.${id}.high`)}</span>
       </div>
       <div className="legend__source">{note ?? t(locale, `layer.source.${id}`)}</div>
+    </div>
+  );
+}
+
+/** Leyenda de las zonas: cada clase con su palabra y su parte del lote, no solo el color. */
+export function ZonesLegend({ zones, note, ctx }: { zones: ZonesGeoJSON; note?: string; ctx: FormatContext }) {
+  const { locale } = ctx;
+  return (
+    <div className="legend legend--zones glass" role="group" aria-label={t(locale, 'layer.zones')}>
+      <ul className="legend__zones">
+        {zoneShares(zones).map((z) => (
+          <li key={z.zone}>
+            <i style={{ background: ZONE_COLOR[z.zone] }} aria-hidden="true" />
+            {t(locale, `legend.zones.${z.zone}`)}
+            <b>{formatParams({ area_pct: z.area_pct }, ctx).area_pct}</b>
+          </li>
+        ))}
+      </ul>
+      {note && <p className="legend__note">{note}</p>}
+      <div className="legend__source">{t(locale, 'layer.source.zones', zones.meta)}</div>
     </div>
   );
 }

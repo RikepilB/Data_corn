@@ -126,7 +126,7 @@ The whole flow works end to end with real data and **no accounts or keys**:
 
 The models are the FAO-56 Penman-Monteith reference ET and daily root-zone water balance, FAO-33 yield response, growing degree days, and season scenarios. A scenario is the observed days plus each historical year for the rest of the season, grouped by El Niño phase.
 
-- **Tests:** 29 tests cover the domain math, the use cases end to end with fakes, the clean-architecture dependency rule and the API.
+- **Tests:** 63 API tests cover the domain math, the use cases end to end with fakes, the Earth Engine adapters with a fake session, the clean-architecture dependency rule and the API. The web has 34 unit tests and a Playwright smoke test.
 - **Timing on the sample field:**
   - closing the field (`describe`) takes about 9 s;
   - results (`analyze`) take under 1 s;
@@ -136,7 +136,7 @@ The models are the FAO-56 Penman-Monteith reference ET and daily root-zone water
 
 ### Needs accounts
 - [ ] New Google Cloud project ($300 trial), deployed with Cloud Run (API) and Firebase Hosting (web). See [infra/README.md](infra/README.md).
-- [ ] Register the project for Earth Engine. That unlocks the in-field zones (Sentinel-2 / HLS), the drought anomaly layer, and PRISM, SMAP and OpenET for validation. The adapters are already stubbed in `apps/api/src/datacorn/infrastructure/earthengine/`.
+- [ ] Register the project for Earth Engine. That unlocks the in-field zones (Sentinel-2), field NDVI at 30 m (HLS), the drought layer, and PRISM, SMAP and OpenET. The adapters in `apps/api/src/datacorn/infrastructure/earthengine/` are written and unit-tested without network, but **they have not been run against Earth Engine yet**. Turn them on with `DATACORN_EARTH_ENGINE_ENABLED=true`; while it is off, or if Earth Engine fails, each one is skipped and the no-account source answers.
 - [ ] USDA NASS QuickStats API key (`DATACORN_NASS_API_KEY`) for county corn yields. The adapter is already written.
 - [ ] Earthdata login for ECOSTRESS (AppEEARS).
 

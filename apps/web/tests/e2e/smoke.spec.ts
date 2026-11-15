@@ -11,6 +11,9 @@ test('the example field goes from the globe to the results', async ({ page }) =>
 
   await expect(page.getByRole('heading', { name: 'Your field, seen from space' })).toBeVisible();
   await expect(page.locator('input[type=password]')).toHaveCount(0);
+  // The Zones layer belongs to a field's results; the globe only has the climate layers.
+  await expect(page.getByRole('radio', { name: 'Rain' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Zones' })).toHaveCount(0);
 
   // The map fills the screen (MapLibre's CSS once collapsed it to 0 px in the build).
   const viewport = page.viewportSize()!;
@@ -29,6 +32,14 @@ test('the example field goes from the globe to the results', async ({ page }) =>
     timeout: 45_000,
   });
   await expect(page.locator('input[type=password]')).toHaveCount(0);
+
+  // The sample report carries a zone map: the Zones chip turns it on, with a legend in words.
+  const zones = page.getByRole('radio', { name: 'Zones' });
+  await expect(zones).toBeVisible();
+  await zones.click();
+  await expect(zones).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('.legend--zones')).toContainText('Less green');
+  await expect(page.locator('.legend--zones')).toContainText('Greener');
 
   expect(pageErrors, `uncaught errors: ${pageErrors.join(' | ')}`).toEqual([]);
 });
