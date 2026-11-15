@@ -313,7 +313,7 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [x] [#37](https://github.com/RikepilB/Data_corn/issues/37) Task 3 · FAO-56 reference evapotranspiration · Must · M1
   - [x] [#38](https://github.com/RikepilB/Data_corn/issues/38) Task 4 · SSURGO soil profile -> available water · Must · M2
   - [x] [#39](https://github.com/RikepilB/Data_corn/issues/39) Task 5 · Crop parameters and site config · Must · M2
-  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Soil water at planting after the previous crop (rotation schedule) · Must · M2
+  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily balance per rotation: rainfed and full-irrigation runs (one season exists) · Must · M2
   - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet year types (the planting window exists) · Must · M1
   - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Rotation x year-type matrix with confidence · Must · M2
   - [x] [#43](https://github.com/RikepilB/Data_corn/issues/43) Task 9 · `build_site_ficha` use case and CLI (first real ficha) · Must · M2
