@@ -20,7 +20,8 @@ export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedRepo
     values.irrigation_capacity_mm_day === i.irrigation_capacity_mm_day &&
     values.tillage === i.tillage &&
     values.yield_goal_t_ha === i.yield_goal_t_ha &&
-    values.previous_crop === i.previous_crop
+    // null means "let the engine read it from the crop history"; the report records what it chose
+    (values.previous_crop === null || values.previous_crop === i.previous_crop)
   );
 }
 
