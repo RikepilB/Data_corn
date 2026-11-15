@@ -1,6 +1,27 @@
+import { useCallback, useEffect, useState } from 'react';
 import type { UnitSystem } from '../../domain/units';
 import { type Locale, t } from '../../i18n';
 import { DisplayMenu } from './DisplayMenu';
+import { Icon } from './Icon';
+
+/** Browser full screen for the whole page. iPhone Safari has no API for it, so the button hides. */
+function useFullscreen() {
+  const [supported, setSupported] = useState(false);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    setSupported(Boolean(document.fullscreenEnabled));
+    const sync = () => setOn(document.fullscreenElement != null);
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, []);
+  const toggle = useCallback(() => {
+    const request = document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen();
+    request.catch((e: unknown) => console.warn('fullscreen', e));
+  }, []);
+  return { supported, on, toggle };
+}
 
 interface Props {
   locale: Locale;
@@ -40,6 +61,8 @@ function Segmented<T extends string>({
 }
 
 export function TopBar({ locale, units, onLocale, onUnits, onHome }: Props) {
+  const fs = useFullscreen();
+  const fsLabel = t(locale, fs.on ? 'top.fullscreen_exit' : 'top.fullscreen');
   return (
     <header className="topbar">
       <button type="button" className="brand" onClick={onHome} title={t(locale, 'results.restart')}>
@@ -65,6 +88,18 @@ export function TopBar({ locale, units, onLocale, onUnits, onHome }: Props) {
           onChange={onUnits}
         />
         <DisplayMenu locale={locale} />
+        {fs.supported && (
+          <button
+            type="button"
+            className="iconbtn fsbtn"
+            onClick={fs.toggle}
+            aria-pressed={fs.on}
+            aria-label={fsLabel}
+            title={fsLabel}
+          >
+            <Icon name={fs.on ? 'shrink' : 'expand'} size={20} />
+          </button>
+        )}
       </div>
     </header>
   );

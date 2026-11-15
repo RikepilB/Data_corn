@@ -27,6 +27,23 @@ export function matchesPrecomputed(values: FieldFormValues, pre: PrecomputedRepo
 
 export const STEPS: Step[] = ['globe', 'draw', 'calculating', 'form', 'results'];
 
+/** True when the form still holds the inputs of the report on screen, so → can show it again without a new run. */
+export function formMatchesReport(values: FieldFormValues | null, report: FieldReport | null): boolean {
+  const i = report?.inputs;
+  if (!values || !i) return false;
+  return (
+    values.season === i.season &&
+    values.planting_date === i.planting_date &&
+    values.hybrid_rm_days === i.hybrid_rm_days &&
+    values.irrigation === i.irrigation &&
+    values.irrigation_capacity_mm_day === i.irrigation_capacity_mm_day &&
+    values.tillage === i.tillage &&
+    values.yield_goal_t_ha === i.yield_goal_t_ha &&
+    // null means "let the engine read it from the crop history"; the report records what it chose
+    (values.previous_crop === null || values.previous_crop === i.previous_crop)
+  );
+}
+
 export function useDataCorn() {
   const mock = useMemo(isMock, []);
   const [step, setStep] = useState<Step>('globe');
@@ -133,6 +150,19 @@ export function useDataCorn() {
 
   const editData = useCallback(() => setStep('form'), []);
 
+  /** ← from the details: back to drawing with the same points, to adjust the field and close it again. */
+  const backToField = useCallback(() => {
+    run.current++;
+    setError(null);
+    setStep('draw');
+  }, []);
+
+  const canShowResults = formMatchesReport(values, report);
+  /** → from the details: the results on screen still match the form, so no new run. */
+  const showResults = useCallback(() => {
+    if (formMatchesReport(values, report)) setStep('results');
+  }, [values, report]);
+
   return {
     mock,
     /** Generation date (ISO) when the report on screen is a real result computed in advance. */
@@ -155,6 +185,9 @@ export function useDataCorn() {
     startDrawing,
     backToGlobe,
     editData,
+    backToField,
+    canShowResults,
+    showResults,
   };
 }
 

@@ -994,7 +994,20 @@ p {
 }
 
 .sheet__head h2 {
+  flex: 1;
+  min-width: 0;
   font-size: var(--fs-lg);
+}
+
+/* Pantalla completa: en el celular la barra no tiene sitio y el navegador ya ocupa la pantalla */
+.fsbtn {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .fsbtn {
+    display: inline-grid;
+  }
 }
 
 .detected {

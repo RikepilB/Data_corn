@@ -78,6 +78,13 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
     await expect(page.locator('.legend--zones')).toContainText('Greener');
   }
 
+  // "Change details" opens the form; while nothing changed, → shows the same results again
+  // without a new run.
+  await nav.getByRole('button', { name: 'Change details' }).click();
+  await page.getByRole('button', { name: 'Back to the results' }).click();
+  await expect(nav).toBeVisible();
+  await expect(page.locator('.results .tag--warn')).toHaveCount(0);
+
   // "Start over" goes back to the globe, where the example can be opened again.
   await nav.getByRole('button', { name: 'Start over' }).click();
   await expect(page.getByRole('button', { name: 'See an example' })).toBeVisible({ timeout: 15_000 });

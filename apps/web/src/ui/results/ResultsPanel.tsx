@@ -67,12 +67,15 @@ export const ResultsPanel = memo(function ResultsPanel({
       {/* Siempre a la vista al desplazarse: cambiar datos, otro lote o volver al globo */}
       <nav className="results__nav" aria-label={t(locale, 'results.nav')}>
         <button type="button" className="btn btn--secondary" onClick={onChange}>
+          <Icon name="back" size={18} />
           {t(locale, 'results.change')}
         </button>
         <button type="button" className="btn btn--secondary" onClick={onNew}>
+          <Icon name="pin" size={18} />
           {t(locale, 'results.new')}
         </button>
         <button type="button" className="btn btn--secondary" onClick={onRestart}>
+          <Icon name="globe" size={18} />
           {t(locale, 'results.restart')}
         </button>
       </nav>
