@@ -6,6 +6,8 @@ Hoy sábado a las 12:00 PET quedan ~36 h. Todos los horarios de este documento e
 Borrador preparado con ayuda de SI (Claude Code) a partir de la propuesta del equipo. La idea
 y las decisiones son del equipo; lo marcado **DECIDIR** se cierra en el kickoff.
 
+> **ACTUALIZACIÓN (sáb 14 nov, ~22:00 PET; decidió Richard): la matriz sale.** Mandan §2 y §5. Donde §3, §4, §7 (diapositiva 6) y §9 (Producto) dicen "matriz", léase "las tres rotaciones explicadas".
+
 > **PIVOT (sáb. tarde, tras la asesoría con el mentor).**
 > - **Foco:** maíz, productores grandes y medianos de **un estado de EE. UU.**; se recomienda el oeste de Kansas.
 > - **Decisiones que apoya la herramienta:** **cuándo sembrar** y **en qué etapa falta agua** (floración, VT–R1).
@@ -34,7 +36,7 @@ Seis decisiones, en este orden. Cada una tiene una recomendación; el equipo pue
 | # | Decisión | Recomendación | Por qué |
 |---|---|---|---|
 | 1 | **Campo piloto** (estado de EE. UU.) | Oeste de Kansas, GMD4 (condado Sheridan, zona del LEMA Sheridan-6) | Escasez real (Ogallala, visible con GRACE); OpenET se usa en Kansas; evidencia local del LEMA. Iowa ya tiene FACTS y Nebraska tiene NavePlant (salido de Space Apps 2024). Confirmar con el mentor (pregunta 1) |
-| 2 | **≥3 rotaciones, incluida la actual** (el reto lo exige) | Actual: maíz continuo con riego. Alternativas: maíz → soya; maíz → cobertura de centeno → soya; trigo → maíz → sorgo → barbecho en secano | Cubre fijación de N, ruptura del maíz sobre maíz, suelo cubierto en invierno y un cultivo tolerante a sequía. La rotación actual se lee de Crop Sequence Boundaries (USDA). Que la revise un mentor o extensionista |
+| 2 | **≥3 rotaciones, incluida la actual** (el reto lo exige) | Tres estrategias explicadas: maíz continuo (la actual), maíz → soya, maíz → soya con cobertura de centeno | Cubre la rotación actual, la ruptura del maíz sobre maíz y el suelo cubierto en invierno. La rotación actual se lee del historial del Cropland Data Layer del campo. Que la revise un mentor o extensionista |
 | 3 | **Nombre y tagline** | Ver §7 (3 opciones) | Hay que tenerlo antes de diseñar la UI y el guion |
 | 4 | **Formato del demo**: video ≤30 s **o** ≤7 diapositivas (solo uno) | **7 diapositivas en inglés** | Menos riesgo de producción. Un video exige subtítulos en inglés y marca de agua si usa SI |
 | 5 | **Quién abre Earthdata y envía el pedido AppEEARS** | Miguel, antes de las 14:00 | La cola de AppEEARS puede tardar horas; es la ruta crítica de SMAP + NDVI |
@@ -44,29 +46,38 @@ Seis decisiones, en este orden. Cada una tiene una recomendación; el equipo pue
 
 ## 2. La solución en una frase
 
-**El calendario dice _dónde_ hay espacio para cambiar, el gemelo dice _qué pasaría_ y el tipo
-de año (seco / normal / húmedo) dice _en qué años_ conviene.**
+**Para tu campo, tres rotaciones explicadas con 45 años de datos NASA: por qué se sugiere cada una, qué evidencia hay, qué beneficios trae y qué no sabemos.**
+
+> **Qué cambió (sáb 14 nov, ~22:00 PET; decidió Richard).** La matriz rotaciones × tipo de año **sale** del alcance:
+> 1. **El motor no puede arrastrar agua entre cultivos.** Su palanca (`initial_depletion_fraction` en `water_balance.py`) se mide contra 15 cm de raíz al sembrar (~21 mm). En una prueba descartable con datos reales de POWER (45 años, 2 sitios, 3 suelos; no está en el repo), subirla de 0,15 a 0,50 movió el rendimiento relativo ≤0,4 puntos. Mostrar un arrastre real pide un balance de suelo por capas: modelado nuevo.
+> 2. **La diferencia entre filas sería un supuesto nuestro** (el subsuelo que deja cada cultivo previo), no un dato NASA.
+> 3. **Las filas 3 y 4 no tienen cultivos:** no hay temporada de soya (su tabla de grados-día está vacía) ni trigo, sorgo, centeno o barbecho.
+>
+> La rotación sigue siendo el titular, como lo pide el reto. Lo que cambia: tres estrategias explicadas, no una tabla de números.
 
 ```
-NDVI (MODIS) ──► calendario real + ventanas de suelo desnudo
-                              │
-POWER 1981–2025 + suelo SSURGO ──► GEMELO FAO-56 por rotación ──► SMAP 2015–2025 (chequeo de consistencia)
-                              │
-lluvia abr–sep (POWER) ──► tipo de año ──► MATRIZ rotaciones × tipo de año
-                                           (estrés sin riego, estrés en floración VT–R1, riego necesario,
-                                            suelo desnudo, erosión + confianza)
-temperatura del suelo + heladas (POWER) ──► VENTANA DE SIEMBRA (todos los años; detalle por tipo de año)
-GRACE ──► contexto regional del agua subterránea (no habla de un campo)
+POWER 1981–2025 + suelo SSURGO ──► GEMELO FAO-56 del campo (el maíz de esta temporada) ──► veredicto + película + 25 franjas
+historial CDL + pendiente + labranza + ciclo del gusano de la raíz ──► lo que el campo mide en cada rotación
+fuentes de extensión (cada afirmación con su fuente) ──► TRES ROTACIONES EXPLICADAS
 ```
 
 Qué ve el agricultor:
-- su campo en el mapa;
-- cuándo se puede sembrar maíz: primero el rango de todos los años, porque en abril no se sabe si el verano será
-  seco; debajo, el detalle por tipo de año;
-- una tabla con filas = rotaciones y columnas = años secos / normales / húmedos.
+- su campo en el globo;
+- el veredicto de la temporada y la película de 25 años del mismo campo;
+- tres rotaciones, la que coincide con su historial primero y marcada "actual";
+- el PDF.
 
-Cada rotación explica **por qué se sugiere, la evidencia, los beneficios, lo que no sabemos y los
-riesgos que debe revisar alguien local**. Unidades de EE. UU. (pulgadas, °F, acres).
+**Las tres rotaciones.**
+
+| # | Rotación | Por qué está |
+|---|---|---|
+| 1 | Maíz continuo | Línea de base; es la actual si el historial CDL del campo termina en maíz |
+| 2 | Maíz → soya | Rompe el ciclo del gusano de la raíz y deja nitrógeno; es la actual si el historial alterna |
+| 3 | Maíz → soya con centeno de cobertura | Cubre el suelo en invierno (erosión, infiltración); pide cuidar el agua en primavera |
+
+Cada tarjeta tiene los cinco encabezados del reto: **por qué se sugiere, la evidencia (con fuente), los beneficios, lo que no sabemos y los riesgos que debe revisar alguien local**. Se suma lo que el campo sí mide: historial CDL, erosión por pendiente y labranza, ciclo del gusano de la raíz. El agua del maíz es una sola vista, igual para las tres.
+
+**Vacíos declarados en pantalla.** El modelo no arrastra agua entre cultivos. No modelamos nitrógeno, residuos ni rendimiento absoluto. La regla de erosión con cobertura es una regla simple, con fuente por confirmar. Unidades de EE. UU. (pulgadas, °F, acres).
 
 Siempre visible: *escenarios con clima histórico, no pronósticos; la herramienta apoya, no
 reemplaza, el criterio del agricultor.*
@@ -115,9 +126,22 @@ fusionar. Si alguien termina, ayuda al carril **Must** más atrasado.
 
 | Nivel | Incluye | Si falta tiempo |
 |---|---|---|
-| **Must** | 1 campo en Kansas, ≥3 rotaciones, POWER 1981–2025 + suelo SSURGO → gemelo FAO-56 → estrés sin riego, estrés en floración y riego necesario; tipos de año → matriz con confianza; ventana de siembra; web pública sin login en unidades de EE. UU.; demo; página | No se corta |
-| **Should** | Chequeo SMAP; calendario NDVI y ventanas desnudas; índice de erosión (SRTM); coberturas sin helada; contexto GRACE | Cada uno cae a "not-available" / "assumed" sin romper nada |
-| **Could** | Escenarios de fecha de siembra (temprana / normal / tardía); OpenET (pide clave de API); fecha de floración por grados-día; 2.º estado (Iowa); análisis en vivo de cualquier campo (Cloud Run) | Fuera |
+| **Must** | 1) **Enlace público** sin login con reportes reales precalculados de 2–3 campos (propuesta: condado Hamilton, NE, y condado Thomas, KS, semiárido), en unidades de EE. UU. 2) Lo que ya está en `main`: globo, campo dibujado, veredicto, película, 25 franjas, PDF. 3) **Panel de rotaciones:** las tres estrategias de §2 con los cinco encabezados y lo que el campo mide; campo `strategy` en el contrato. 4) Vacíos declarados en pantalla. 5) Demo (7 diapositivas o 30 s) y página del proyecto | No se corta. Plan B del panel: la tarjeta de rotación actual y los tres textos en el demo y la página del proyecto |
+| **Should** | Resumen del maíz en años secos / normales / húmedos (terciles de lluvia abr–sep); regla de erosión con cobertura y su fuente; panel en español; chequeo SMAP, NDVI y GRACE solo si el adaptador de Earth Engine llega | Cada uno cae a "not-available" sin romper nada |
+| **Could** | 4.ª rotación trigo → maíz → sorgo → barbecho (pide cultivos nuevos en el motor); matriz rotaciones × tipo de año (pide balance por capas); OpenET (pide clave de API); 2.º estado; riesgo de siembra por ventana de 10 días, estilo ZARC; análisis en vivo de cualquier campo (Cloud Run) | Fuera |
+| **Fuera** | La matriz; trigo, sorgo y centeno como cultivos simulados; rendimiento absoluto; nitrógeno y residuos; arrastre de agua entre cultivos | Va como vacío declarado |
+
+**Reparto propuesto** (estimaciones de SI; el equipo las confirma):
+
+| Quién | Qué | Estimación |
+|---|---|---|
+| Richard | Revisa textos y fuentes; decide; coordina el enlace público | ~1 h más coordinación |
+| Hildemaro | Contrato en Python (`report.py`: `strategy` y `current`, que `report.ts` ya consume desde el PR 80, fusionado); motor en el PR #87; tres opciones en `rotation.py`, pruebas; reportes reales precalculados | ~2 h más reportes |
+| Marcelo | Panel de rotaciones bajo el veredicto: **fusionado con el PR 80 (dom 15 nov)**; falta el PDF, los textos finales y la revisión de Richard | ~1 h |
+| Camila | Historia, diapositiva 6 ("las tres rotaciones y lo que no sabemos") y página del proyecto | — |
+| SI (Claude Code) | Redacta los textos y las fuentes de las tres tarjetas; Richard los revisa | — |
+
+**Puntos de control (hora Perú).** Dom 09:00: contrato con `strategy` fusionado y un reporte real con las tres estrategias. Dom 14:00: congelamiento. Dom 20:00: envío.
 
 ---
 
