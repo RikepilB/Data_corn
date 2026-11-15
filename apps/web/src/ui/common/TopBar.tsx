@@ -1,10 +1,8 @@
-import { STEPS, type Step } from '../../application/useDataCorn';
 import type { UnitSystem } from '../../domain/units';
 import { type Locale, t } from '../../i18n';
 import { DisplayMenu } from './DisplayMenu';
 
 interface Props {
-  step: Step;
   locale: Locale;
   units: UnitSystem;
   onLocale: (l: Locale) => void;
@@ -41,24 +39,12 @@ function Segmented<T extends string>({
   );
 }
 
-export function TopBar({ step, locale, units, onLocale, onUnits, onHome }: Props) {
-  const index = STEPS.indexOf(step);
+export function TopBar({ locale, units, onLocale, onUnits, onHome }: Props) {
   return (
     <header className="topbar">
-      <button type="button" className="brand" onClick={onHome}>
+      <button type="button" className="brand" onClick={onHome} title={t(locale, 'results.restart')}>
         Data Corn
       </button>
-      <p className="stepname">
-        {t(locale, 'step.progress', { n: index + 1, name: t(locale, `step.${step}`) })}
-      </p>
-      <ol
-        className="stepdots"
-        aria-label={t(locale, 'step.progress', { n: index + 1, name: t(locale, `step.${step}`) })}
-      >
-        {STEPS.map((s, i) => (
-          <li key={s} className={i < index ? 'done' : i === index ? 'now' : ''} title={t(locale, `step.${s}`)} />
-        ))}
-      </ol>
       <div className="topbar__tools">
         <Segmented
           label={t(locale, 'top.lang')}
