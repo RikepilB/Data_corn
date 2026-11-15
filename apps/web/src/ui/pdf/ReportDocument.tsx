@@ -4,6 +4,7 @@ import { Circle, Document, G, Image, Line, Page, Polyline, Rect, StyleSheet, Svg
 import type { ReactNode } from 'react';
 import { type FormatContext, formatParams, longDate, messageText, num, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
+import { strategyViews } from '../../domain/rotation';
 import { RISK_COLOR, SEVERITY, pickRun, yieldColor } from '../../domain/season';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
 import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
@@ -373,13 +374,17 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
 
         <Text style={st.h2}>{s(t(locale, 'card.rotation'))}</Text>
         <Text style={{ marginBottom: 4 }}>{s(messageText(report.rotation.message, ctx))}</Text>
-        {report.rotation.options.map((o) => (
-          <View key={o.previous_crop} style={[st.row, { marginBottom: 3, alignItems: 'center' }]}>
-            <Text style={{ width: 140 }}>{s(`${t(locale, `crop.${o.previous_crop}`)} -> ${t(locale, 'crop.maize')}`)}</Text>
-            <Badge risk={o.residue_erosion_risk} ctx={ctx} />
-            <Text style={[st.small, st.muted, { marginLeft: 6, flex: 1 }]}>{s(o.notes.map((n) => messageText(n, ctx)).join(' '))}</Text>
+        {strategyViews(report.rotation).map(({ strategy, current, option: o }) => (
+          <View key={strategy} style={[st.row, { marginBottom: 3, alignItems: 'center' }]}>
+            <Text style={{ width: 150 }}>
+              {s(`${t(locale, `rotation.strategy.${strategy}`)}${current ? ` (${t(locale, 'rotation.current')})` : ''}`)}
+            </Text>
+            {o && o.residue_erosion_risk !== 'no_data' && <Badge risk={o.residue_erosion_risk} ctx={ctx} />}
+            {o && o.residue_erosion_risk === 'no_data' && <Text style={[st.small, st.muted]}>{s(t(locale, 'rotation.erosion_unverified'))}</Text>}
+            <Text style={[st.small, st.muted, { marginLeft: 6, flex: 1 }]}>{s((o?.notes ?? []).map((n) => messageText(n, ctx)).join(' '))}</Text>
           </View>
         ))}
+        <Text style={[st.small, st.muted, { marginBottom: 4 }]}>{s(t(locale, 'rotation.no_carryover'))}</Text>
         {history.length > 0 && (
           <>
             <Text style={[st.cardTitle, { marginTop: 6 }]}>{s(t(locale, 'pdf.crop_history'))}</Text>

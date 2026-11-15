@@ -38,6 +38,16 @@ async function exampleToResults(page: Page, { waitForGlobe }: { waitForGlobe: bo
   });
   await expect(page.locator('input[type=password]')).toHaveCount(0);
 
+  // Rotation panel (#42, #51): three strategies, at most one current, five headings each,
+  // and the stated gap about water between crops.
+  const strategies = page.locator('.rotation .rcard');
+  await expect(strategies).toHaveCount(3);
+  expect(await page.locator('.rotation .rcard--current').count()).toBeLessThanOrEqual(1);
+  for (const card of await strategies.all()) {
+    await expect(card.locator('h3')).toHaveCount(5);
+  }
+  await expect(page.locator('.rotation')).toContainText('The model does not carry water between crops.');
+
   // The sample report carries a zone map: the Zones chip turns it on, with a legend in words.
   const zones = page.getByRole('radio', { name: 'Zones' });
   await expect(zones).toBeVisible();

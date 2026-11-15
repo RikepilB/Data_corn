@@ -7,6 +7,7 @@ import { t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { RiskBadge } from '../common/RiskBadge';
 import { ClimateStripes } from './ClimateStripes';
+import { RotationPanel } from './RotationPanel';
 import { buildCards } from './cards';
 
 interface Props {
@@ -64,6 +65,8 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
           </p>
         )}
       </section>
+
+      <RotationPanel rotation={report.rotation} locale={locale} />
 
       <ClimateStripes report={report} film={film} locale={locale} />
 
