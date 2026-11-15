@@ -19,7 +19,7 @@
   "about.how.text": "Dibujas tu lote. Leemos 25 campañas pasadas de clima de ese lugar desde la NASA y otras fuentes públicas, corremos un modelo de agua en el suelo para cada campaña y te mostramos lo que pasó. Cada campaña es un escenario, no un pronóstico.",
   "about.limits.title": "Qué tener en cuenta",
   "about.limits.1": "Son escenarios, no pronósticos. Nadie puede decir qué hará esta campaña.",
-  "about.limits.2": "Cuando faltan datos de suelo, de pendiente o de altura, el motor usa valores genéricos y el reporte todavía no lo indica.",
+  "about.limits.2": "Cuando faltan datos, mostramos \"no disponible\". Cuando faltan el suelo o la pendiente, el motor usa valores genéricos y el informe aún no lo señala.",
   "about.limits.3": "El modelo no traslada el agua de un cultivo al siguiente y no tiene registros de rendimiento de tu lote.",
   "about.limits.4": "Data Corn apoya al productor y al agrónomo. No reemplaza su criterio ni la revisión en campo.",
   "about.credits.title": "Créditos de los datos",
