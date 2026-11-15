@@ -37,7 +37,7 @@ See [docs/arquitectura.md](../docs/arquitectura.md) for the architecture and
 ## Status
 
 The API runs the engine: `POST /api/v1/fields/analyze` returns a field report, and `/describe`, `/health`, `/regions`, `/demo-fields` and the layer routes work. Some adapters are still stubs that raise `NotImplementedError`, which the API turns into a `501` (for example the Earth Engine admin lookups); the data sources and their status are listed in [docs/REFERENCES.md](../docs/REFERENCES.md).
-- **Tests:** engine and web tests run with `pytest` (`apps/api`) and `pnpm test` (`apps/web`).
+- **Tests:** engine and web tests run with `pytest` (`apps/api`) and `npm test` (`apps/web`).
 
 ## Pending tasks
 
