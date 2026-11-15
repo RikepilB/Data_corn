@@ -102,6 +102,8 @@ metadata (2026-11-15); that is not the same as `verified`.
 | earthengine-api | Earth Engine adapters (written, not run yet) | Apache-2.0 | used |
 | google-cloud-storage | Optional GCS cache | Apache-2.0 | used |
 | pytest, ruff, Vitest, Playwright, TypeScript, @astrojs/check | Tests and checks; not shipped | MIT, Apache-2.0 | used |
+| tsx | Runs the local chat server (`npm run chat:dev`); not shipped | MIT | used |
+| OpenRouter API (https://openrouter.ai) | Model access for the optional chat assistant; called from the server only, never from the browser | Service terms of OpenRouter and of the chosen model's provider | used when the chat is on |
 | pandas, jsonschema, requests, earthaccess, Observable Plot | Earlier plan; none is in the dependency lists | — | not used |
 
 ## Fonts, images, music
@@ -119,4 +121,5 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Tool | What it did | Where labelled |
 |---|---|---|
 | Claude Code (Anthropic) | Repository scaffold, most of the code and tests, planning docs, issues, source summaries; credited in commits as Claude Fable 5.2, Opus 5.5, Sonnet 5.5 and Haiku 5.5 | README "Use of Super Intelligence (SI)", file headers, `Co-Authored-By` commit trailers, package descriptions |
+| Chat assistant: a language model reached through OpenRouter (`OPENROUTER_MODEL`; default in `apps/web/server/chat/openrouter.ts`) | At run time, only when `PUBLIC_CHAT_ENABLED=true` and only on the real example report: explains that report's numbers, read through fixed lookup tools; computes no result ([#120](https://github.com/RikepilB/Data_corn/issues/120)) | The panel's notice "SI assistant, it can be wrong.", the About panel, README, file headers in `apps/web/server/chat/` and `apps/web/src/ui/chat/` |
 | Codex (OpenAI) | Relative erosion index code and tests ([#46](https://github.com/RikepilB/Data_corn/issues/46)) | File header of `apps/api/src/datacorn/domain/agronomy/erosion.py`, README |

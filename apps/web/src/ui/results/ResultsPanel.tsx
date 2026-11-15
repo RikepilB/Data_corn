@@ -33,6 +33,8 @@ interface Props {
   onRestart: () => void;
   onAbout: () => void;
   onHelp: () => void;
+  /** Opens the chat assistant. Only passed when the chat is on and the report is the real example. */
+  onChat?: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
 }
@@ -65,6 +67,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   onRestart,
   onAbout,
   onHelp,
+  onChat,
   filmSlot,
 }: Props) {
   const { locale } = ctx;
@@ -193,6 +196,11 @@ export const ResultsPanel = memo(function ResultsPanel({
         </p>
       )}
       {inApp && <p className="pdf-ready">{t(locale, 'results.pdf_inapp')}</p>}
+      {onChat && (
+        <button type="button" className="btn btn--secondary results__chat" onClick={onChat}>
+          {t(locale, 'chat.open')}
+        </button>
+      )}
       <div className="results__links">
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}

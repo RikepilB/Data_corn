@@ -1,5 +1,5 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBackButton } from '../application/useBackButton';
 import { backDepth, previousStep, useDataCorn } from '../application/useDataCorn';
 import { useDay } from '../application/dayStore';
@@ -28,10 +28,12 @@ import {
 } from '../infrastructure/gibs';
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
+import { SAMPLE_FIELD_ID } from '../infrastructure/precomputed';
 import { Icon } from '../ui/common/Icon';
 import { AboutDialog } from '../ui/common/AboutDialog';
 import { HelpDialog } from '../ui/common/HelpDialog';
 import { TopBar } from '../ui/common/TopBar';
+import { CHAT_ENABLED, chatAvailable } from '../ui/chat/availability';
 import { EnsoBadge } from '../ui/layers/EnsoBadge';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
 import { FieldTag, tagAnchor } from '../ui/map/FieldTag';
@@ -52,6 +54,8 @@ import { GlobePanel } from '../ui/steps/GlobePanel';
 
 // Rendered once, not per film tick: these only change with the map, the language or the step.
 const MapViewMemo = memo(MapView);
+// The chat's code and styles load only when it can show (PUBLIC_CHAT_ENABLED and the real example)
+const ChatPanel = lazy(() => import('../ui/chat/ChatPanel').then((m) => ({ default: m.ChatPanel })));
 const TopBarMemo = memo(TopBar);
 
 /**
@@ -106,11 +110,24 @@ export default function DataCornApp() {
   const [helpOpen, setHelpOpen] = useState(false);
   const openHelp = useCallback(() => setHelpOpen(true), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
+  const [chatOpen, setChatOpen] = useState(false);
+  const openChat = useCallback(() => setChatOpen(true), []);
+  const closeChat = useCallback(() => setChatOpen(false), []);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
   const ctx: FormatContext = useMemo(() => ({ locale, units }), [locale, units]);
   const { step } = dc;
+  const chatReady = chatAvailable({
+    enabled: CHAT_ENABLED,
+    step,
+    isSample: dc.isSample,
+    precomputedAt: dc.precomputedAt,
+    hasReport: dc.report !== null,
+  });
+  useEffect(() => {
+    if (!chatReady) setChatOpen(false);
+  }, [chatReady]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -556,9 +573,23 @@ export default function DataCornApp() {
             onRestart={backToGlobe}
             onAbout={openAbout}
             onHelp={openHelp}
+            onChat={chatReady ? openChat : undefined}
             filmSlot={filmSlot}
           />
         </>
+      )}
+
+      {chatReady && dc.report && (
+        <Suspense fallback={null}>
+          <ChatPanel
+            open={chatOpen}
+            onClose={closeChat}
+            locale={locale}
+            units={units}
+            reportId={SAMPLE_FIELD_ID}
+            irrigation={dc.report.inputs.irrigation}
+          />
+        </Suspense>
       )}
 
       <AboutDialog open={aboutOpen} locale={locale} onClose={() => setAboutOpen(false)} />

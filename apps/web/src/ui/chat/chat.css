@@ -1,0 +1,190 @@
+/* SI-assisted (Claude Code); reviewed by <name>
+   The chat assistant's panel: a modal <dialog>. Full screen on a phone (down to 375 px wide), a
+   tall panel on the right on wider screens. Same tokens and buttons as the rest of the app. */
+
+.chat {
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.chat::backdrop {
+  background: rgb(17 17 19 / 0.55);
+}
+
+.chat__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  height: 100%;
+  min-width: 0;
+  padding: var(--sp-4);
+  padding-top: max(var(--sp-4), env(safe-area-inset-top, 0px));
+  padding-bottom: max(var(--sp-4), env(safe-area-inset-bottom, 0px));
+}
+
+.chat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.chat__head h2 {
+  font-size: var(--fs-md);
+}
+
+.chat__notice,
+.chat__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r);
+  background: var(--paper-2);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+
+.chat__notice svg,
+.chat__error svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.chat__error {
+  border-color: var(--bad);
+  border-width: 2px;
+}
+
+.chat__log {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.chat__intro,
+.chat__note {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+
+.chat__msg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r);
+  overflow-wrap: anywhere;
+}
+
+.chat__msg p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.chat__msg--user {
+  align-self: flex-end;
+  max-width: 88%;
+  background: var(--paper-2);
+  border: var(--bw) solid var(--line-soft);
+}
+
+.chat__msg--assistant {
+  border-left: 3px solid var(--ink);
+}
+
+.chat__who {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chat__file-tag {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.chat__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.chat__file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-size: var(--fs-sm);
+}
+
+.chat__file span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat__input {
+  width: 100%;
+  min-height: calc(var(--target) * 1.5);
+  max-height: 30vh;
+  resize: vertical;
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r);
+  font: inherit;
+  font-size: var(--fs-base);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.chat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.chat__send {
+  margin-left: auto;
+}
+
+.chat__privacy {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-body);
+}
+
+.results__chat {
+  align-self: flex-start;
+}
+
+@media (min-width: 700px) {
+  .chat {
+    width: min(460px, 100%);
+    margin: 0 0 0 auto;
+    border-left: var(--bw) solid var(--line);
+  }
+}
