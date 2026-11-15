@@ -147,7 +147,7 @@
   "results.disclaimer": "Data Corn supports farmers and agronomists; it does not replace their judgment or field scouting.",
   "results.sources": "Data: {list}",
   "results.mock": "Sample data (no API)",
-  "results.snapshot": "Real report computed ahead of time for the example field (no live engine)",
+  "results.snapshot": "Real report, precomputed",
   "results.panel": "Field results",
 
   "film.title": "Season film",
