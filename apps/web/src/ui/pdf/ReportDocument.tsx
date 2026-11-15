@@ -10,6 +10,7 @@ import { RISK_COLOR, RISK_INK, yieldColor } from '../common/palette';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
 import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
 import { numberLocale, t } from '../../i18n';
+import { EOX_ATTRIBUTION } from '../../infrastructure/gibs';
 import type { CardModel } from '../results/cards';
 
 export interface ReportArgs {
@@ -437,7 +438,7 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
           </Text>
         ))}
         <Text style={{ marginBottom: 2 }}>{s('- NASA GIBS (Blue Marble, SMAP L4, GPM IMERG, MODIS Terra)')}</Text>
-        <Text style={{ marginBottom: 2 }}>{s('- EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)')}</Text>
+        <Text style={{ marginBottom: 2 }}>{s(`- ${EOX_ATTRIBUTION}`)}</Text>
         <Text style={st.h2}>{s(t(locale, 'pdf.assumptions'))}</Text>
         {[1, 2, 3, 4].map((n) => (
           <Text key={n} style={{ marginBottom: 3 }}>

@@ -284,7 +284,7 @@ The browser calls these hosts directly. It sends them tile numbers and a typed p
 
 | Host | Use | Access | Status |
 |---|---|---|---|
-| `tiles.maps.eox.at`, layer `s2cloudless-2024_3857` | Satellite basemap: Sentinel-2 cloudless 2024 by EOX IT Services GmbH, contains modified Copernicus Sentinel data 2024. The credit is shown on the map | None | Verified 2026-11-15: one tile, HTTP 200, `image/jpeg` |
+| `tiles.maps.eox.at`, layer `s2cloudless-2024_3857` | Satellite basemap: EOxCloudless 2024 by EOX IT Services GmbH, contains modified Copernicus Sentinel data 2024. The credit is shown on the map | None | Verified 2026-11-15: one tile, HTTP 200, `image/jpeg` |
 | `tile.googleapis.com` (Google Map Tiles API, 2D satellite) | A sharper basemap, only when the web build has `PUBLIC_GOOGLE_MAPS_KEY`; the credit line comes from the viewport endpoint | A Google Maps Platform key, restricted by HTTP referrer | Not probed: no key |
 | `nominatim.openstreetmap.org` | The place search box: one request per search, five results at most | None. The Nominatim usage policy limits the request rate and asks for a credit line next to the results; the search box shows "© OpenStreetMap contributors" under its results, linked to openstreetmap.org/copyright | Verified 2026-11-15: one result for "Selden Kansas" |
 | No fonts host | Atkinson Hyperlegible Next and IBM Plex Mono are self-hosted with the app (Fontsource, OFL-1.1, see REFERENCES.md) | None | No third-party request |

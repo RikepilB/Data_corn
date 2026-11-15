@@ -310,21 +310,13 @@ export default function DataCornApp() {
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
       <MapViewMemo locale={locale} onReady={setMap} />
       <FieldFillSync map={map} film={film} active={step === 'results' && !zonesOn} />
-      <TopBarMemo step={step} locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      <TopBarMemo locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
       {!flying && (
         <button type="button" className="mapbtn" onClick={onCenter} title={t(locale, 'map.center_hint')}>
           <Icon name="locate" size={18} />
           <span>{t(locale, 'map.center')}</span>
         </button>
       )}
-      {dc.mock && (
-        <div className="mock-banner">
-          {dc.precomputedAt
-            ? t(locale, 'results.precomputed', { date: dc.precomputedAt.slice(0, 10) })
-            : t(locale, 'results.mock')}
-        </div>
-      )}
-
       {showLayers && !flying && (
         <div className="layerbar">
           <LayerChips value={layerId} onChange={setLayerId} locale={locale} zones={zones != null} />
@@ -403,6 +395,7 @@ export default function DataCornApp() {
             onPdf={onPdf}
             onChange={dc.editData}
             onNew={dc.startDrawing}
+            onRestart={backToGlobe}
             onAbout={openAbout}
             filmSlot={filmSlot}
           />

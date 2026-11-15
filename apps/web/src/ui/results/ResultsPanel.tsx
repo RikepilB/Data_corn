@@ -23,6 +23,8 @@ interface Props {
   onPdf: () => void;
   onChange: () => void;
   onNew: () => void;
+  /** Back to the globe, where the layers, the search and the example are. */
+  onRestart: () => void;
   onAbout: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
@@ -51,6 +53,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   onPdf,
   onChange,
   onNew,
+  onRestart,
   onAbout,
   filmSlot,
 }: Props) {
@@ -61,6 +64,18 @@ export const ResultsPanel = memo(function ResultsPanel({
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
       <div className="sheet__grip" aria-hidden="true" />
+      {/* Siempre a la vista al desplazarse: cambiar datos, otro lote o volver al globo */}
+      <nav className="results__nav" aria-label={t(locale, 'results.nav')}>
+        <button type="button" className="btn btn--secondary" onClick={onChange}>
+          {t(locale, 'results.change')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onNew}>
+          {t(locale, 'results.new')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onRestart}>
+          {t(locale, 'results.restart')}
+        </button>
+      </nav>
       <div className="results__tags">
         <span className="tag tag--plain">{t(locale, 'results.campaign', { season: report.inputs?.season ?? '' })}</span>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
@@ -159,14 +174,6 @@ export const ResultsPanel = memo(function ResultsPanel({
         </p>
       )}
       <div className="results__links">
-        <button type="button" className="link" onClick={onChange}>
-          {t(locale, 'results.change')}
-        </button>
-        <span aria-hidden="true">·</span>
-        <button type="button" className="link" onClick={onNew}>
-          {t(locale, 'results.new')}
-        </button>
-        <span aria-hidden="true">·</span>
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
         </button>
