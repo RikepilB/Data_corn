@@ -41,7 +41,7 @@ export function CalculatingPanel({ locale, done, error, onRetry, onRedraw }: Pro
           <button type="button" className="btn btn--primary" onClick={onRetry}>
             {t(locale, 'calc.retry')}
           </button>
-          <button type="button" className="btn btn--ghost" onClick={onRedraw}>
+          <button type="button" className="btn btn--secondary" onClick={onRedraw}>
             {t(locale, 'calc.redraw')}
           </button>
         </div>

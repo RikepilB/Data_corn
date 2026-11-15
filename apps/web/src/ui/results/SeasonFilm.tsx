@@ -1,10 +1,13 @@
-import { type KeyboardEvent, type PointerEvent, useMemo, useRef } from 'react';
+import { type KeyboardEvent, type PointerEvent, memo, useMemo, useRef } from 'react';
+import { useDay } from '../../application/dayStore';
 import type { Film } from '../../application/useFilm';
 import { shortDate } from '../../domain/format';
-import type { FieldReport, SeasonRun, Stage } from '../../domain/report';
-import { RISK_COLOR, SEVERITY, filmDate, hasPhase, positionOf, stageAt, waterColor } from '../../domain/season';
+import type { FieldReport, SeasonRun, Stage, Timeline } from '../../domain/report';
+import { SEVERITY, filmDate, hasPhase, positionOf, stageAt } from '../../domain/season';
 import { type Locale, t } from '../../i18n';
 import { Icon, type IconName } from '../common/Icon';
+import { motionAllowed } from '../common/displayPrefs';
+import { RISK_COLOR, waterColor } from '../common/palette';
 import { SoilGauge } from './SoilGauge';
 
 const STAGE_ICONS: Partial<Record<Stage, IconName>> = {
@@ -27,19 +30,88 @@ function waterPoints(run: SeasonRun): string[] {
 const waterPath = (run: SeasonRun) => `M0,${H} L${waterPoints(run).join(' L')} L${W},${H} Z`;
 const waterLine = (run: SeasonRun) => `M${waterPoints(run).join(' L')}`;
 
-/** Película de la campaña (RF-31): ▶ día a día, cursor, etapas y tramos de riesgo. */
-export function SeasonFilm({ film, report, locale }: { film: Film; report: FieldReport; locale: Locale }) {
-  const { run, day, length } = film;
-  const track = useRef<HTMLDivElement>(null);
-
+/**
+ * The chart itself: water curve, risk bands and heat ticks. It depends only on the run, so it is
+ * memoised and skips the per-day re-render the cursor and readouts need.
+ */
+const FilmChart = memo(function FilmChart({ run, bands, length }: { run: SeasonRun; bands: Timeline['risk_bands']; length: number }) {
   const gradientStops = useMemo(() => {
-    if (!run) return [];
     const n = run.water_pct.length;
     const step = Math.max(1, Math.floor(n / 24));
     const stops: { offset: number; color: string }[] = [];
     for (let i = 0; i < n; i += step) stops.push({ offset: i / Math.max(n - 1, 1), color: waterColor(run.water_pct[i]!) });
     return stops;
   }, [run]);
+  const area = useMemo(() => waterPath(run), [run]);
+  const line = useMemo(() => waterLine(run), [run]);
+  // the most severe risk is drawn on top
+  const sortedBands = useMemo(() => [...bands].sort((x, y) => SEVERITY[x.risk] - SEVERITY[y.risk]), [bands]);
+  const observed = run.observed_days > 0 ? Math.min(run.observed_days, length) : 0;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="waterGrad" x1="0" x2="1" y1="0" y2="0">
+          {gradientStops.map((s) => (
+            <stop key={s.offset} offset={s.offset} stopColor={s.color} />
+          ))}
+        </linearGradient>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#111113" strokeWidth="1.2" />
+        </pattern>
+        {/* no depender del color: el riesgo alto es más alto y lleva rayas, el medio es más bajo y liso */}
+        <pattern id="riskHigh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke="#111113" strokeWidth="1.6" />
+        </pattern>
+      </defs>
+      <path d={area} fill="url(#waterGrad)" opacity="0.85" />
+      <path d={line} fill="none" stroke="#111113" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+      {sortedBands.map((b) => {
+        const x0 = positionOf(run, b.start) * W;
+        const x1 = positionOf(run, b.end) * W;
+        // Tramo de riesgo con el color de su estado (la leyenda lo nombra)
+        const h = b.risk === 'high' ? 14 : 8;
+        const w = Math.max(x1 - x0, 4);
+        return (
+          <g key={`${b.indicator}-${b.start}`}>
+            <rect x={x0} y={0} width={w} height={h} fill={RISK_COLOR[b.risk]} />
+            {b.risk === 'high' && <rect x={x0} y={0} width={w} height={h} fill="url(#riskHigh)" />}
+          </g>
+        );
+      })}
+      {run.tmax_c.map((tc, i) =>
+        tc >= HEAT_C ? <rect key={i} x={(i / Math.max(length - 1, 1)) * W - 1.5} y={H - 6} width={3} height={6} fill={RISK_COLOR.high} /> : null,
+      )}
+      {observed > 0 && observed < length && (
+        <>
+          <rect
+            x={(observed / (length - 1)) * W}
+            y={0}
+            width={W - (observed / (length - 1)) * W}
+            height={H}
+            fill="url(#hatch)"
+            opacity={0.18}
+          />
+          <line
+            x1={(observed / (length - 1)) * W}
+            x2={(observed / (length - 1)) * W}
+            y1={0}
+            y2={H}
+            stroke="#111113"
+            strokeWidth={1.5}
+            vectorEffect="non-scaling-stroke"
+          />
+        </>
+      )}
+    </svg>
+  );
+});
+
+/** Película de la campaña (RF-31): ▶ día a día, cursor, etapas y tramos de riesgo. */
+export function SeasonFilm({ film, report, locale }: { film: Film; report: FieldReport; locale: Locale }) {
+  const { run, dayStore, length } = film;
+  // The one component that re-renders on every tick: cursor, date, stage and gauge
+  const day = useDay(dayStore, (d) => d);
+  const track = useRef<HTMLDivElement>(null);
 
   if (!run || length === 0) return null;
 
@@ -104,7 +176,7 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
               aria-checked={film.mode.kind === m.kind}
               disabled={!m.ok}
               className={`chip${film.mode.kind === m.kind ? ' is-on' : ''}`}
-              onClick={() => film.setMode({ kind: m.kind }, true)}
+              onClick={() => film.setMode({ kind: m.kind }, motionAllowed())}
             >
               {t(locale, m.key)}
             </button>
@@ -150,60 +222,7 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
             onPointerMove={onPointer}
             onKeyDown={onKey}
           >
-            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="waterGrad" x1="0" x2="1" y1="0" y2="0">
-                  {gradientStops.map((s) => (
-                    <stop key={s.offset} offset={s.offset} stopColor={s.color} />
-                  ))}
-                </linearGradient>
-                <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                  <line x1="0" y1="0" x2="0" y2="6" stroke="#111113" strokeWidth="1.2" />
-                </pattern>
-              </defs>
-              <path d={waterPath(run)} fill="url(#waterGrad)" opacity="0.85" />
-              <path d={waterLine(run)} fill="none" stroke="#111113" strokeWidth={2} vectorEffect="non-scaling-stroke" />
-              {/* el riesgo más grave se dibuja encima */}
-              {[...report.timeline.risk_bands].sort((x, y) => SEVERITY[x.risk] - SEVERITY[y.risk]).map((b) => {
-                const x0 = positionOf(run, b.start) * W;
-                const x1 = positionOf(run, b.end) * W;
-                // Tramo de riesgo con el color de su estado (la leyenda lo nombra)
-                return (
-                  <rect
-                    key={`${b.indicator}-${b.start}`}
-                    x={x0}
-                    y={0}
-                    width={Math.max(x1 - x0, 4)}
-                    height={8}
-                    fill={RISK_COLOR[b.risk]}
-                  />
-                );
-              })}
-              {run.tmax_c.map((tc, i) =>
-                tc >= HEAT_C ? <rect key={i} x={(i / Math.max(length - 1, 1)) * W - 1.5} y={H - 6} width={3} height={6} fill={RISK_COLOR.high} /> : null,
-              )}
-              {observed > 0 && observed < length && (
-                <>
-                  <rect
-                    x={(observed / (length - 1)) * W}
-                    y={0}
-                    width={W - (observed / (length - 1)) * W}
-                    height={H}
-                    fill="url(#hatch)"
-                    opacity={0.18}
-                  />
-                  <line
-                    x1={(observed / (length - 1)) * W}
-                    x2={(observed / (length - 1)) * W}
-                    y1={0}
-                    y2={H}
-                    stroke="#111113"
-                    strokeWidth={1.5}
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </>
-              )}
-            </svg>
+            <FilmChart run={run} bands={report.timeline.risk_bands} length={length} />
             {observed > 0 && observed < length && (
               <span className="film__today" style={{ left: `${(observed / (length - 1)) * 100}%` }}>
                 {t(locale, 'film.today')}

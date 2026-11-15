@@ -19,7 +19,12 @@ export function installLayers(map: MapLibreMap): void {
     id: 'field-fill',
     type: 'fill',
     source: 'field',
-    paint: { 'fill-color': LINE, 'fill-opacity': 0.18, 'fill-color-transition': { duration: 120 } },
+    paint: {
+      'fill-color': LINE,
+      'fill-opacity': 0.18,
+      // Shorter than the 100 ms film tick, so a colour change never overlaps the next one
+      'fill-color-transition': { duration: 90 },
+    },
   });
   // Zonas: encima del relleno del lote y debajo de su contorno. Una clase desconocida no se pinta.
   map.addLayer({

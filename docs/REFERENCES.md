@@ -35,7 +35,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Dataset | Provider | Use | Licence / attribution | Status |
 |---|---|---|---|---|
 | Copernicus Sentinel-2 L2A (Earth Engine `COPERNICUS/S2_SR_HARMONIZED`) | ESA / Copernicus | In-field zones at 10 m: median peak-season NDVI of several seasons, each pixel against the field's own median. Adapter written 2026-11-15, runs only with Earth Engine enabled, not run yet | Copernicus licence; attribution "Contains modified Copernicus Sentinel data [year]" (verify) | planned |
-| Sentinel-2 cloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map: "Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; EOX terms not read yet (verify) | used |
+| EOxCloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`; product page `cloudless.eox.at`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map, in the About panel and in the PDF, worded as on the EOX licence page (read 2026-11-15): "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; licence terms (verify) | used |
 
 ## Other data and methods
 
@@ -70,7 +70,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Saxton & Rawls (2006), *Soil water characteristic estimates by texture and organic matter*, SSSAJ 70:1569 | — | Pedotransfer for field capacity / wilting point | Citation | planned |
 | FCC Census Area API (`geo.fcc.gov/api/census/area`) | U.S. Federal Communications Commission | State and county of a US field, no key | U.S. Government work (verify) | used |
 | USDA NASS QuickStats API (`quickstats.nass.usda.gov`) | USDA NASS | County corn-yield history for context. Needs a free key (`DATACORN_NASS_API_KEY`); without it the source is skipped | Public domain, U.S. Government work (verify) | used |
-| OpenStreetMap Nominatim search (`nominatim.openstreetmap.org`) | OpenStreetMap Foundation | Place search box of the web app, low volume | ODbL, "© OpenStreetMap contributors". The Nominatim usage policy asks for a credit line next to the results; the app does not show one yet (verify) | used |
+| OpenStreetMap Nominatim search (`nominatim.openstreetmap.org`) | OpenStreetMap Foundation | Place search box of the web app, low volume | ODbL, "© OpenStreetMap contributors". The Nominatim usage policy asks for a credit line next to the results; the search box shows it under its results, linked to `https://www.openstreetmap.org/copyright` | used |
 | Google Map Tiles API, 2D satellite (`tile.googleapis.com`) | Google | Sharper satellite basemap, only when the build has `PUBLIC_GOOGLE_MAPS_KEY`; the credit line comes from the viewport endpoint | Google Maps Platform terms (verify) | used |
 | McCool, Brown, Foster, Mutchler & Meyer (1987), *Revised slope steepness factor for the Universal Soil Loss Equation*, Transactions of the ASAE 30(5):1387-1396, doi:10.13031/2013.30576 | ASABE | Slope steepness factor S of the relative erosion index (`domain/agronomy/erosion.py`, #46) | Citation | planned |
 | Renard et al. (1997; K. G. Renard, coordinating editor), *Predicting soil erosion by water: a guide to conservation planning with the Revised Universal Soil Loss Equation (RUSLE)*, USDA Agriculture Handbook 703, 384 pp. (title, year and pages from library catalogues and USDA ARS records; the ARS publication page is `ars.usda.gov/research/publications/publication/?seqNo115=92824`; no DOI) | USDA ARS | RUSLE structure behind the relative erosion index (K · S · cover · rain) | Citation; U.S. Government work (verify) | planned |
@@ -100,7 +100,9 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Asset | Source | Licence | Status |
 |---|---|---|---|
-| IBM Plex Sans and IBM Plex Mono (weights 400, 500, 600) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
+| IBM Plex Mono (400, 500; Latin subset), self-hosted via Fontsource (`@fontsource/ibm-plex-mono` 5.3.0) | IBM; Fontsource | OFL-1.1 | used |
+| Atkinson Hyperlegible Next (variable), self-hosted via Fontsource (`@fontsource-variable/atkinson-hyperlegible-next` 5.3.0) | Braille Institute; Fontsource | OFL-1.1 | used |
+| `apps/web/public/og-image.jpg` (share image; screenshot of the app's Results step in sample-data mode, built on EOxCloudless 2024 basemap tiles and NASA GIBS imagery) | EOX IT Services GmbH, https://cloudless.eox.at (Contains modified Copernicus Sentinel data 2024); NASA GIBS | EOxCloudless: CC BY-NC-SA 4.0 per EOX (verify before reuse beyond this non-commercial hackathon entry); GIBS: NASA open data | used |
 | Favicon (`apps/web/public/favicon.svg`) | Made in this repository; no outside artwork | Apache-2.0, as the repository | used |
 | Music | None | — | — |
 

@@ -1,16 +1,22 @@
+import { memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FieldReport } from '../../domain/report';
-import { yieldColor } from '../../domain/season';
+import { motionAllowed } from '../common/displayPrefs';
+import { yieldColor } from '../common/palette';
 import { type Locale, t } from '../../i18n';
 
+const barHeight = (rel: number) => `${Math.round(24 + 43 * Math.min(1, Math.max(0, (rel - 0.6) / 0.4)))}px`;
+
 /** Franjas de 25 campañas (RF-38): una por año, color por rendimiento relativo, marca ENSO. */
-export function ClimateStripes({ report, film, locale }: { report: FieldReport; film: Film; locale: Locale }) {
-  const runs = [...(report.runs ?? [])].sort((a, b) => a.year - b.year);
+export const ClimateStripes = memo(function ClimateStripes({ report, film, locale }: { report: FieldReport; film: Film; locale: Locale }) {
+  const runs = useMemo(() => [...(report.runs ?? [])].sort((a, b) => a.year - b.year), [report.runs]);
   if (runs.length === 0) return null;
   const selected = film.run?.year;
   const first = runs[0]!.year;
   const last = runs[runs.length - 1]!.year;
   const middle = runs[Math.floor(runs.length / 2)]!.year;
+  const idx = runs.findIndex((r) => r.year === selected);
+  const goTo = (i: number) => film.setMode({ kind: 'year', year: runs[Math.min(runs.length - 1, Math.max(0, i))]!.year }, motionAllowed());
 
   return (
     <section className="card stripes" aria-labelledby="stripes-title">
@@ -31,16 +37,17 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
               <span className={`stripes__mark${phase ? ` is-${phase}` : ''}`} aria-hidden="true" />
               <button
                 type="button"
-                className={`stripes__bar${selected === r.year ? ' is-selected' : ''}`}
-                style={{ background: yieldColor(r.relative_yield) }}
+                className={`stripes__bar${selected === r.year ? ' is-selected' : ''}${r.relative_yield < 0.85 ? ' is-poor' : ''}`}
+                // Altura = rendimiento relativo; los años flojos además llevan rayas: no solo color
+                style={{ backgroundColor: yieldColor(r.relative_yield), height: barHeight(r.relative_yield) }}
                 aria-label={label}
                 title={label}
                 aria-pressed={film.mode.kind === 'year' && film.mode.year === r.year}
                 onClick={(e) => {
-                  film.setMode({ kind: 'year', year: r.year }, true);
+                  film.setMode({ kind: 'year', year: r.year }, motionAllowed());
                   // En celular la película está arriba del mismo panel: subir para verla
                   if (!window.matchMedia('(min-width: 900px)').matches) {
-                    e.currentTarget.closest('.results')?.scrollTo({ top: 0, behavior: 'smooth' });
+                    e.currentTarget.closest('.results')?.scrollTo({ top: 0, behavior: motionAllowed() ? 'smooth' : 'auto' });
                   }
                 }}
               />
@@ -53,12 +60,23 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
         <span>{middle}</span>
         <span>{last}</span>
       </div>
+      <div className="stripes__step">
+        <button type="button" className="btn btn--secondary" disabled={idx === 0} onClick={() => goTo(idx < 0 ? runs.length - 1 : idx - 1)}>
+          <span aria-hidden="true">‹</span> {t(locale, 'stripes.prev')}
+        </button>
+        <span className="stripes__year" aria-live="polite">
+          {idx < 0 ? t(locale, 'stripes.none') : t(locale, 'stripes.year', { year: runs[idx]!.year })}
+        </span>
+        <button type="button" className="btn btn--secondary" disabled={idx === runs.length - 1} onClick={() => goTo(idx < 0 ? 0 : idx + 1)}>
+          {t(locale, 'stripes.next')} <span aria-hidden="true">›</span>
+        </button>
+      </div>
       <div className="stripes__legend">
         <span>
-          <i className="sw" style={{ background: yieldColor(1) }} /> {t(locale, 'stripes.good')}
+          <i className="sw" style={{ backgroundColor: yieldColor(1) }} /> {t(locale, 'stripes.good')}
         </span>
         <span>
-          <i className="sw" style={{ background: yieldColor(0.7) }} /> {t(locale, 'stripes.bad')}
+          <i className="sw sw--hatch" style={{ backgroundColor: yieldColor(0.7) }} /> {t(locale, 'stripes.bad')}
         </span>
         <span>
           <i className="dot is-el_nino" /> {t(locale, 'stripes.el_nino')}
@@ -69,4 +87,4 @@ export function ClimateStripes({ report, film, locale }: { report: FieldReport; 
       </div>
     </section>
   );
-}
+});

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { type Locale, t } from '../../i18n';
-import { type Place, searchPlaces } from '../../infrastructure/geocode';
+import { NOMINATIM_ATTRIBUTION, NOMINATIM_COPYRIGHT_URL, type Place, searchPlaces } from '../../infrastructure/geocode';
 import { Icon } from '../common/Icon';
 
 interface Props {
@@ -114,6 +114,13 @@ function PlaceSearch({
             </li>
           ))}
         </ul>
+      )}
+      {results && (
+        <p className="muted small">
+          <a href={NOMINATIM_COPYRIGHT_URL} target="_blank" rel="noreferrer">
+            {NOMINATIM_ATTRIBUTION}
+          </a>
+        </p>
       )}
     </div>
   );

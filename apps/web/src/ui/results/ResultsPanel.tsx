@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -6,8 +6,10 @@ import type { FieldReport } from '../../domain/report';
 import { t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { RiskBadge } from '../common/RiskBadge';
+import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
+import { warmPdf } from '../pdf/download';
 import { buildCards } from './cards';
 
 interface Props {
@@ -21,26 +23,64 @@ interface Props {
   onPdf: () => void;
   onChange: () => void;
   onNew: () => void;
+  /** Back to the globe, where the layers, the search and the example are. */
+  onRestart: () => void;
   onAbout: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
 }
 
+/** Calm mode folds the secondary detail behind a summary; otherwise it shows as usual. */
+function Secondary({ calm, label, children }: { calm: boolean; label: string; children: ReactNode }) {
+  if (!calm) return <>{children}</>;
+  return (
+    <details className="more">
+      <summary>{label}</summary>
+      {children}
+    </details>
+  );
+}
+
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, onAbout, filmSlot }: Props) {
+export const ResultsPanel = memo(function ResultsPanel({
+  report,
+  film,
+  ctx,
+  isSample,
+  mock,
+  pdfBusy,
+  pdfError,
+  onPdf,
+  onChange,
+  onNew,
+  onRestart,
+  onAbout,
+  filmSlot,
+}: Props) {
   const { locale } = ctx;
-  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
+  const calm = useDisplayPrefs().calm;
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
       <div className="sheet__grip" aria-hidden="true" />
+      {/* Siempre a la vista al desplazarse: cambiar datos, otro lote o volver al globo */}
+      <nav className="results__nav" aria-label={t(locale, 'results.nav')}>
+        <button type="button" className="btn btn--secondary" onClick={onChange}>
+          {t(locale, 'results.change')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onNew}>
+          {t(locale, 'results.new')}
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={onRestart}>
+          {t(locale, 'results.restart')}
+        </button>
+      </nav>
       <div className="results__tags">
         <span className="tag tag--plain">{t(locale, 'results.campaign', { season: report.inputs?.season ?? '' })}</span>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
         {mock && <span className="tag tag--warn">{t(locale, 'results.mock')}</span>}
       </div>
-      {filmSlot}
 
       <section className={`verdict verdict--${report.summary.risk}`} aria-labelledby="verdict-title">
         <div className="verdict__top">
@@ -67,9 +107,13 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         )}
       </section>
 
+      {filmSlot}
+
       <RotationPanel rotation={report.rotation} locale={locale} />
 
-      <ClimateStripes report={report} film={film} locale={locale} />
+      <Secondary calm={calm} label={t(locale, 'display.more')}>
+        <ClimateStripes report={report} film={film} locale={locale} />
+      </Secondary>
 
       <div className="cards">
         {cards.map((c) => (
@@ -83,32 +127,44 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
             <RiskBadge risk={c.risk} locale={locale} />
             <p className="kcard__big">{c.big}</p>
             <p className="kcard__text">{c.sentence}</p>
-            {c.extra && <p className="kcard__extra">{c.extra}</p>}
-            {c.history && c.history.length > 0 && (
-              <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
-                {c.history.map((h) => (
-                  <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
-                    <i />
-                    <small>{String(h.year).slice(2)}</small>
-                  </span>
-                ))}
-              </div>
-            )}
-            {c.history && c.history.length > 0 && (
-              <p className="kcard__legend" aria-hidden="true">
-                <span>
-                  <i className="is-maize" /> {t(locale, 'crop.maize')}
-                </span>
-                <span>
-                  <i /> {t(locale, 'crop.soybean')}
-                </span>
-              </p>
+            {(c.extra || (c.history && c.history.length > 0)) && (
+              <Secondary calm={calm} label={t(locale, 'display.more')}>
+                {c.extra && <p className="kcard__extra">{c.extra}</p>}
+                {c.history && c.history.length > 0 && (
+                  <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
+                    {c.history.map((h) => (
+                      <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
+                        <i />
+                        <small>{String(h.year).slice(2)}</small>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {c.history && c.history.length > 0 && (
+                  <p className="kcard__legend" aria-hidden="true">
+                    <span>
+                      <i className="is-maize" /> {t(locale, 'crop.maize')}
+                    </span>
+                    <span>
+                      <i /> {t(locale, 'crop.soybean')}
+                    </span>
+                  </p>
+                )}
+              </Secondary>
             )}
           </article>
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary btn--xl" onClick={onPdf} disabled={pdfBusy}>
+      <button
+        type="button"
+        className="btn btn--primary btn--xl"
+        onClick={onPdf}
+        disabled={pdfBusy}
+        onPointerEnter={warmPdf}
+        onFocus={warmPdf}
+        onTouchStart={warmPdf}
+      >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
       </button>
@@ -118,14 +174,6 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         </p>
       )}
       <div className="results__links">
-        <button type="button" className="link" onClick={onChange}>
-          {t(locale, 'results.change')}
-        </button>
-        <span aria-hidden="true">·</span>
-        <button type="button" className="link" onClick={onNew}>
-          {t(locale, 'results.new')}
-        </button>
-        <span aria-hidden="true">·</span>
         <button type="button" className="link" onClick={onAbout}>
           {t(locale, 'about.link')}
         </button>
@@ -136,4 +184,4 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
       <p className="sources">{t(locale, 'results.sources', { list: report.sources.join(' · ') })}</p>
     </aside>
   );
-}
+});

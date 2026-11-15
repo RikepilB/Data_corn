@@ -5,10 +5,12 @@ import type { ReactNode } from 'react';
 import { type FormatContext, formatParams, longDate, messageText, num, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
 import { strategyViews } from '../../domain/rotation';
-import { RISK_COLOR, SEVERITY, pickRun, yieldColor } from '../../domain/season';
+import { SEVERITY, pickRun } from '../../domain/season';
+import { RISK_COLOR, RISK_INK, yieldColor } from '../common/palette';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
 import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
 import { numberLocale, t } from '../../i18n';
+import { EOX_ATTRIBUTION } from '../../infrastructure/gibs';
 import type { CardModel } from '../results/cards';
 
 export interface ReportArgs {
@@ -78,7 +80,7 @@ const st = StyleSheet.create({
 });
 
 function Badge({ risk, ctx }: { risk: RiskLevel; ctx: FormatContext }) {
-  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk], color: risk === 'medium' || risk === 'no_data' ? '#111113' : '#ffffff', borderRadius: 2 }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
+  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk], color: RISK_INK[risk], borderRadius: 2 }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
 }
 
 function KV({ k, v }: { k: string; v: string }) {
@@ -334,8 +336,8 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
             <View style={[st.row, { flexWrap: 'wrap' }]}>
               {(
                 [
-                  ['#2b6cb0', 'stripes.good', 'rect'],
-                  ['#b4532a', 'stripes.bad', 'rect'],
+                  [yieldColor(1), 'stripes.good', 'rect'],
+                  [yieldColor(0.7), 'stripes.bad', 'rect'],
                   [ENSO_COLOR.el_nino, 'stripes.el_nino', 'dot'],
                   [ENSO_COLOR.la_nina, 'stripes.la_nina', 'dot'],
                 ] as const
@@ -436,7 +438,7 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
           </Text>
         ))}
         <Text style={{ marginBottom: 2 }}>{s('- NASA GIBS (Blue Marble, SMAP L4, GPM IMERG, MODIS Terra)')}</Text>
-        <Text style={{ marginBottom: 2 }}>{s('- Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)')}</Text>
+        <Text style={{ marginBottom: 2 }}>{s(`- ${EOX_ATTRIBUTION}`)}</Text>
         <Text style={st.h2}>{s(t(locale, 'pdf.assumptions'))}</Text>
         {[1, 2, 3, 4].map((n) => (
           <Text key={n} style={{ marginBottom: 3 }}>
