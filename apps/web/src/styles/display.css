@@ -21,6 +21,10 @@
   }
 }
 
+.brand {
+  white-space: nowrap;
+}
+
 /* --- Menú «Pantalla» ------------------------------------------------------------------------ */
 .display {
   position: relative;
