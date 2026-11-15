@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from datacorn.application.ports import CachePort
+from datacorn.application.ports import CachePort, EnsoPort
 from datacorn.application.use_cases import (
     AnalyzeField,
     DescribeField,
+    EnsoNow,
     GetDroughtLayer,
     ListDemoFields,
     ListRegions,
@@ -30,6 +31,7 @@ class Container:
     describe_field: DescribeField
     analyze_field: AnalyzeField
     drought_layer: GetDroughtLayer
+    enso_now: EnsoNow
 
 
 def _cache(settings: Settings) -> CachePort:
@@ -40,7 +42,12 @@ def _cache(settings: Settings) -> CachePort:
     return MemoryCache()
 
 
-def build_container(settings: Settings, *, countries: CountryLocator | None = None) -> Container:
+def build_container(
+    settings: Settings,
+    *,
+    countries: CountryLocator | None = None,
+    enso: EnsoPort | None = None,
+) -> Container:
     providers = ProviderFactory(settings)
     regions = ProfileRegionResolver(
         load_profiles(), providers, countries or providers.country_locator()
@@ -71,4 +78,6 @@ def build_container(settings: Settings, *, countries: CountryLocator | None = No
         describe_field=describe,
         analyze_field=analyze,
         drought_layer=GetDroughtLayer(layer=providers.drought_layer(), clock=clock),
+        # El indicador del globo usa el ONI global (NOAA), sin depender de la región
+        enso_now=EnsoNow(enso or providers.chain(["oni"]), clock),  # type: ignore[arg-type]
     )

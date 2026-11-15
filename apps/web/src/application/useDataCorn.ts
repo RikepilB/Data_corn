@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { type LngLat, toPolygon } from '../domain/geo';
+import { type LngLat, ringOf, toPolygon } from '../domain/geo';
 import { type FieldFormValues, defaultSeason, valuesFromDefaults } from '../domain/inputs';
 import type { DescribeFieldResult, FieldReport, PolygonGeometry } from '../domain/report';
 import { ApiError, api } from '../infrastructure/apiClient';
@@ -42,6 +42,31 @@ export function formMatchesReport(values: FieldFormValues | null, report: FieldR
   return values !== null && report?.inputs != null && matchesReport(values, report);
 }
 
+/**
+ * Where "Back" goes from each step: always the screen before it. The example was never drawn,
+ * so its details go back to the globe; a drawn field goes back to its corners.
+ */
+export function previousStep(step: Step, isSample: boolean): Step {
+  if (step === 'results') return 'form';
+  if (step === 'form' || step === 'calculating') return isSample ? 'globe' : 'draw';
+  return 'globe';
+}
+
+/** How many "Back" presses reach the globe; the browser history holds one entry per press. */
+export function backDepth(step: Step, isSample: boolean): number {
+  let depth = 0;
+  for (let s = step; s !== 'globe'; s = previousStep(s, isSample)) depth++;
+  return depth;
+}
+
+/** True when the corners are the ones of the field already read, so closing it again changes nothing. */
+export function sameField(ring: LngLat[], geometry: PolygonGeometry | null): boolean {
+  if (!geometry) return false;
+  const known = ringOf(geometry);
+  const next = ringOf(toPolygon(ring));
+  return known.length === next.length && known.every((p, i) => p[0] === next[i]![0] && p[1] === next[i]![1]);
+}
+
 export function useDataCorn() {
   const mock = useMemo(isMock, []);
   const [step, setStep] = useState<Step>('globe');
@@ -61,10 +86,11 @@ export function useDataCorn() {
   const toError = (e: unknown) => (e instanceof ApiError ? e : new ApiError(-1, { detail: String(e) }));
 
   const describe = useCallback(
-    async (g: PolygonGeometry, sample = false) => {
+    async (g: PolygonGeometry, sample = false, keepValues = false) => {
       const id = ++run.current;
       setError(null);
       setDescribeDone(false);
+      setDescribed(null);
       setStep('calculating');
       let season = defaultSeason();
       try {
@@ -78,7 +104,8 @@ export function useDataCorn() {
         if (id !== run.current) return;
         setDescribeDone(true);
         setDescribed(d);
-        setValues(valuesFromDefaults(d, season));
+        // An adjusted field keeps the details already entered; a new one starts from the defaults
+        setValues((prev) => (keepValues && prev ? prev : valuesFromDefaults(d, season)));
         // Deja ver el último ✓ antes de pasar al formulario
         window.setTimeout(() => id === run.current && setStep('form'), 650);
       } catch (e) {
@@ -91,18 +118,26 @@ export function useDataCorn() {
   /** Cierra el lote dibujado y empieza el cálculo. */
   const closeField = useCallback(
     (ring: LngLat[], sample = false) => {
+      // Back to the corners and forward again without moving them: the details and results stay
+      if (!sample && described && sameField(ring, geometry)) {
+        setError(null);
+        setStep('form');
+        return;
+      }
       const g = toPolygon(ring);
+      // `geometry` is only kept by backToField, so here the same field is being adjusted
+      const adjusting = !sample && geometry !== null;
       setPoints(ring);
       setGeometry(g);
       setIsSample(sample);
       setReport(null);
-      void describe(g, sample);
+      void describe(g, sample, adjusting);
     },
-    [describe],
+    [describe, described, geometry],
   );
 
   const retry = useCallback(() => {
-    if (geometry) void describe(geometry, isSample);
+    if (geometry) void describe(geometry, isSample, !isSample);
   }, [geometry, isSample, describe]);
 
   const analyze = useCallback(async () => {
@@ -129,6 +164,7 @@ export function useDataCorn() {
     setGeometry(null);
     setReport(null);
     setDescribed(null);
+    setValues(null);
     setError(null);
     setIsSample(false);
     setStep('draw');
@@ -139,6 +175,8 @@ export function useDataCorn() {
     setPoints([]);
     setGeometry(null);
     setReport(null);
+    setDescribed(null);
+    setValues(null);
     setError(null);
     setStep('globe');
   }, []);

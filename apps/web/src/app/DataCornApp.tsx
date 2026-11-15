@@ -1,26 +1,45 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDataCorn } from '../application/useDataCorn';
+import { useBackButton } from '../application/useBackButton';
+import { backDepth, previousStep, useDataCorn } from '../application/useDataCorn';
 import { useDay } from '../application/dayStore';
+import { COARSE_ZOOM, type LocateIssue, isCoarse, locate } from '../application/locate';
+import { mockEnso } from '../application/mock';
 import { type Film, useFilm } from '../application/useFilm';
-import { type FormatContext, messageText } from '../domain/format';
+import { type FormatContext, dayLabel, frameLabel, messageText, monthYear } from '../domain/format';
 import { type LngLat, bounds, centroid, checkField } from '../domain/geo';
-import type { FieldReport } from '../domain/report';
+import type { EnsoOverview, FieldReport } from '../domain/report';
 import { analogDate } from '../domain/season';
 import type { UnitSystem } from '../domain/units';
 import { zonesOf } from '../domain/zones';
 import { type Locale, t } from '../i18n';
-import { CLIMATE_LAYERS, nearestAvailable, recentMonths } from '../infrastructure/gibs';
+import { api } from '../infrastructure/apiClient';
+import {
+  CLIMATE_LAYERS,
+  GLOBE_LAYERS,
+  LAYER_ORDER,
+  LIVE_LAYERS,
+  isLive,
+  latestTime,
+  liveFrames,
+  nearestAvailable,
+  recentMonths,
+  tileUrl,
+} from '../infrastructure/gibs';
 import type { Place } from '../infrastructure/geocode';
 import { FIELD_ZOOM, GLOBE_VIEW, SAMPLE_FIELD } from '../infrastructure/mapStyle';
 import { Icon } from '../ui/common/Icon';
 import { AboutDialog } from '../ui/common/AboutDialog';
+import { HelpDialog } from '../ui/common/HelpDialog';
 import { TopBar } from '../ui/common/TopBar';
+import { EnsoBadge } from '../ui/layers/EnsoBadge';
 import { type LayerChoice, LayerChips, Legend, TimeSlider, ZonesLegend } from '../ui/layers/LayerControls';
+import { FieldTag, tagAnchor } from '../ui/map/FieldTag';
+import { softwareRendering } from '../ui/map/gpu';
 import { MapView } from '../ui/map/MapView';
-import { fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
+import { cancelFlight, fitField, flyToPlace, reducedMotion, snapshotMap, useGlobeSpin } from '../ui/map/camera';
 import { bucketColor, waterBucket } from '../ui/map/fillBucket';
-import { setClimate, setField, setFieldFill, setZones } from '../ui/map/layers';
+import { setClimate, setField, setFieldFill, setOverlay, setZones } from '../ui/map/layers';
 import { useDrawing } from '../ui/map/useDrawing';
 import { type PdfFile, downloadReportPdf } from '../ui/pdf/download';
 import { ResultsPanel } from '../ui/results/ResultsPanel';
@@ -67,12 +86,15 @@ export default function DataCornApp() {
   const [locale, setLocale] = useState<Locale>(() => (navigator.language?.startsWith('es') ? 'es' : 'en'));
   const [units, setUnits] = useState<UnitSystem>('imperial');
   const [map, setMap] = useState<MapLibreMap | null>(null);
-  // Sin capa al inicio: la vista arranca en blanco y negro; las capas de datos son opcionales
-  const [layerId, setLayerId] = useState<LayerChoice | null>(null);
+  // El globo arranca con las nubes de ahora (GOES): se ve vivo desde el primer segundo.
+  // Sin GPU (dibujo por software) arranca sin capa: las nubes animadas saturarían la página.
+  const [layerId, setLayerId] = useState<LayerChoice | null>(() => (softwareRendering() ? null : 'clouds'));
+  const [liveTimes, setLiveTimes] = useState<string[]>([]);
+  const [enso, setEnso] = useState<EnsoOverview | null>(null);
   const [globeTime, setGlobeTime] = useState<string>('');
   const [flying, setFlying] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [denied, setDenied] = useState(false);
+  const [locateIssue, setLocateIssue] = useState<LocateIssue | null>(null);
   const [drawError, setDrawError] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
@@ -80,6 +102,10 @@ export default function DataCornApp() {
   const [pdfSaved, setPdfSaved] = useState<{ file: PdfFile; report: FieldReport; ctx: FormatContext } | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const openAbout = useCallback(() => setAboutOpen(true), []);
+  // Stable like openAbout, so the memoized TopBar and ResultsPanel do not re-render on film ticks
+  const [helpOpen, setHelpOpen] = useState(false);
+  const openHelp = useCallback(() => setHelpOpen(true), []);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
   const dc = useDataCorn();
   const film = useFilm(dc.report);
   const desktop = useIsDesktop();
@@ -92,11 +118,49 @@ export default function DataCornApp() {
 
   // --- Globo: giro lento y capa de clima con su deslizador de meses ---------------------------
   const stopSpin = useGlobeSpin(map, step === 'globe' && !flying);
-  const layer = layerId && layerId !== 'zones' ? CLIMATE_LAYERS[layerId] : null;
+  const live = isLive(layerId) ? LIVE_LAYERS[layerId] : null;
+  const layer = layerId && layerId !== 'zones' && !isLive(layerId) ? CLIMATE_LAYERS[layerId] : null;
   const months = useMemo(() => (layer ? recentMonths(layer) : []), [layer]);
+  const frames = live ? liveTimes : months;
   useEffect(() => {
     if (months.length) setGlobeTime(months[months.length - 1]!);
   }, [months]);
+
+  // Capas en vivo: la hora de la última imagen la da GIBS; los cuadros van hacia atrás desde ahí
+  useEffect(() => {
+    if (!live) return;
+    let alive = true;
+    setLiveTimes([]);
+    void latestTime(live).then((latest) => {
+      if (!alive) return;
+      const list = liveFrames(live, latest);
+      setLiveTimes(list);
+      setGlobeTime(list[list.length - 1]!);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [live]);
+
+  // En los resultados solo hay capas históricas (siguen a la película)
+  useEffect(() => {
+    if (step === 'results' && isLive(layerId)) setLayerId(null);
+  }, [step, layerId]);
+
+  // El Niño / La Niña ahora (NOAA ONI) para el globo
+  useEffect(() => {
+    let alive = true;
+    (dc.mock ? mockEnso() : api.enso())
+      .then((e) => {
+        if (alive) setEnso(e);
+      })
+      .catch(() => {
+        if (alive) setEnso(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [dc.mock]);
 
   // Semana de la película: la capa del mapa se actualiza por semana, no por día
   // Rendimiento: mientras la película corre, la capa cambia cada 4 semanas (cambiarla recarga
@@ -111,10 +175,19 @@ export default function DataCornApp() {
 
   useEffect(() => {
     if (!map) return;
-    if (step === 'globe') setClimate(map, layer, globeTime || null);
+    if (step === 'globe' && live) {
+      const time = globeTime && liveTimes.includes(globeTime) ? globeTime : null;
+      setOverlay(
+        map,
+        time
+          ? { key: `live-${live.id}`, parts: live.parts.map((p) => ({ url: tileUrl(p, time), maxzoom: p.maxzoom })) }
+          : null,
+        live.id === 'clouds' ? 0.95 : 0.8,
+      );
+    } else if (step === 'globe') setClimate(map, layer, globeTime || null);
     else if (step === 'results') setClimate(map, layer, filmLayerTime, 0.4);
     else setClimate(map, null, null);
-  }, [map, step, layer, globeTime, filmLayerTime]);
+  }, [map, step, live, liveTimes, layer, globeTime, filmLayerTime]);
 
   // --- Lote en el mapa ---------------------------------------------------------------------
   const fieldRing = step === 'calculating' || step === 'form' || step === 'results' ? dc.points : null;
@@ -133,7 +206,7 @@ export default function DataCornApp() {
   const fitPadding = useCallback(
     () =>
       desktop
-        ? { top: 100, bottom: step === 'results' ? 250 : 90, left: 60, right: 480 }
+        ? { top: 100, bottom: step === 'results' ? 340 : 90, left: 60, right: 480 }
         : { top: 136, bottom: Math.round(window.innerHeight * 0.62) + 16, left: 24, right: 24 },
     [desktop, step],
   );
@@ -146,8 +219,16 @@ export default function DataCornApp() {
     const bottom = !desktop && onGlobe ? 280 : 0;
     const pad = map.getPadding();
     if (pad.left === left && pad.bottom === bottom) return;
-    const zoom = onGlobe && !desktop && map.getZoom() > 1.15 ? 1.05 : undefined;
-    map.easeTo({ padding: { left, right: 0, top: 0, bottom }, zoom, duration: reducedMotion() ? 0 : 700 });
+    // Back from a field, this ease replaces the one backToGlobe started, so it carries the globe
+    // view too; with the padding alone the first panel stayed over a map zoomed into the field.
+    const far = onGlobe && map.getZoom() > 3.2;
+    const zoom = onGlobe && !desktop && map.getZoom() > 1.15 ? 1.05 : far ? GLOBE_VIEW.zoom : undefined;
+    map.easeTo({
+      padding: { left, right: 0, top: 0, bottom },
+      zoom,
+      ...(far ? { center: GLOBE_VIEW.center } : {}),
+      duration: reducedMotion() ? 0 : far ? 2600 : 700,
+    });
   }, [map, step, desktop]);
 
   // Encuadra el lote al entrar a cada paso (no en cada cambio de puntos)
@@ -168,14 +249,20 @@ export default function DataCornApp() {
     }
   }, [dc]);
   useDrawing(map, step === 'draw', dc.points, dc.setPoints, tryClose);
-  useEffect(() => setDrawError(false), [dc.points.length]);
+  useEffect(() => {
+    setDrawError(false);
+    if (dc.points.length) setLocateIssue(null);
+  }, [dc.points.length]);
 
   // --- Acciones del globo ------------------------------------------------------------------
   // Un toque antes de que el mapa cargue (red lenta en el teléfono) queda en espera y se
   // ejecuta al cargar; antes se perdía sin aviso.
   const pendingFlight = useRef<{ center: LngLat; zoom: number; then: () => void } | null>(null);
+  const flights = useRef(0);
   const flyThen = useCallback(
     async (center: LngLat, zoom: number, then: () => void) => {
+      flights.current += 1;
+      setLocateIssue(null);
       if (!map) {
         pendingFlight.current = { center, zoom, then };
         setFlying(true);
@@ -183,9 +270,10 @@ export default function DataCornApp() {
       }
       stopSpin();
       setFlying(true);
-      await flyToPlace(map, center, zoom);
+      const end = await flyToPlace(map, center, zoom);
+      if (end === 'superseded') return;
       setFlying(false);
-      then();
+      if (end === 'landed') then();
     },
     [map, stopSpin],
   );
@@ -196,23 +284,23 @@ export default function DataCornApp() {
     void flyThen(p.center, p.zoom, p.then);
   }, [map, flyThen]);
 
-  const onLocate = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setDenied(true);
+  const onLocate = useCallback(async () => {
+    const before = flights.current;
+    setLocating(true);
+    setLocateIssue(null);
+    const fix = await locate();
+    setLocating(false);
+    // The person picked a place or the example while waiting: that choice stands.
+    if (flights.current !== before) return;
+    if (!fix.ok) {
+      setLocateIssue(fix.reason);
       return;
     }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        void flyThen([pos.coords.longitude, pos.coords.latitude], FIELD_ZOOM, dc.startDrawing);
-      },
-      () => {
-        setLocating(false);
-        setDenied(true);
-      },
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
-    );
+    // An approximate position (Wi-Fi or IP) is not the field: a wider view, and the person is told.
+    void flyThen(fix.center, fix.coarse ? COARSE_ZOOM : FIELD_ZOOM, () => {
+      if (fix.coarse) setLocateIssue('coarse');
+      dc.startDrawing();
+    });
   }, [flyThen, dc.startDrawing]);
 
   const onPlace = useCallback(
@@ -244,20 +332,45 @@ export default function DataCornApp() {
       return;
     }
     navigator.geolocation?.getCurrentPosition(
-      (pos) => map.easeTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: FIELD_ZOOM, duration }),
+      (pos) =>
+        map.easeTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: isCoarse(pos.coords.accuracy) ? COARSE_ZOOM : FIELD_ZOOM,
+          duration,
+        }),
       () => undefined,
       { timeout: 10_000, maximumAge: 60_000 },
     );
   }, [map, step, desktop, dc.points, fitPadding, stopSpin]);
 
+  const onShowSea = useCallback(() => {
+    setLayerId('sea_temp');
+    if (!map) return;
+    stopSpin();
+    map.easeTo({ center: [-150, 2], zoom: desktop ? 1.9 : 1.2, duration: reducedMotion() ? 0 : 1600 });
+  }, [map, desktop, stopSpin]);
+
   const dcBackToGlobe = dc.backToGlobe;
   const backToGlobe = useCallback(() => {
     dcBackToGlobe();
     if (map) {
+      cancelFlight(map);
       map.stop();
       map.easeTo({ center: GLOBE_VIEW.center, zoom: GLOBE_VIEW.zoom, duration: reducedMotion() ? 0 : 2600 });
     }
   }, [dcBackToGlobe, map]);
+
+  // One Back for every step, also behind the browser's and the phone's Back button
+  const backTo = previousStep(step, dc.isSample);
+  const backLabel = t(locale, backTo === 'form' ? 'nav.back_form' : backTo === 'draw' ? 'nav.back_field' : 'nav.back_globe');
+  const { editData, backToField } = dc;
+  const goBack = useCallback(() => {
+    if (step === 'globe') return;
+    if (backTo === 'form') editData();
+    else if (backTo === 'draw') backToField();
+    else backToGlobe();
+  }, [step, backTo, editData, backToField, backToGlobe]);
+  useBackButton(backDepth(step, dc.isSample), goBack);
 
   const onPdf = useCallback(async () => {
     if (!dc.report) return;
@@ -285,9 +398,14 @@ export default function DataCornApp() {
 
   const showLayers = step === 'globe' || step === 'results';
   const filmView = useMemo(
-    () => (dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} locale={locale} /> : null),
-    [dc.report, step, film, locale],
+    () => (dc.report && step === 'results' ? <SeasonFilm film={film} report={dc.report} ctx={ctx} /> : null),
+    [dc.report, step, film, ctx],
   );
+  const frameText = useCallback(
+    (iso: string) => (live && live.id !== 'sea_temp' ? frameLabel(iso, locale) : live ? dayLabel(iso, locale) : monthYear(iso, locale)),
+    [live, locale],
+  );
+  const anchor = useMemo(() => (dc.points.length >= 3 ? tagAnchor(dc.points) : null), [dc.points]);
   const filmNoLayer =
     step === 'results' && layer && film.run && !filmLayerTime
       ? t(locale, 'layer.no_data_year', { year: film.run.year })
@@ -315,7 +433,14 @@ export default function DataCornApp() {
     <div className={`app step-${step}${flying ? ' is-flying' : ''}`}>
       <MapViewMemo locale={locale} onReady={setMap} />
       <FieldFillSync map={map} film={film} active={step === 'results' && !zonesOn} />
-      <TopBarMemo locale={locale} units={units} onLocale={setLocale} onUnits={setUnits} onHome={backToGlobe} />
+      <TopBarMemo
+        locale={locale}
+        units={units}
+        onLocale={setLocale}
+        onUnits={setUnits}
+        onHome={backToGlobe}
+        onHelp={openHelp}
+      />
       {!flying && (
         <button type="button" className="mapbtn" onClick={onCenter} title={t(locale, 'map.center_hint')}>
           <Icon name="locate" size={18} />
@@ -324,25 +449,44 @@ export default function DataCornApp() {
       )}
       {showLayers && !flying && (
         <div className="layerbar">
-          <LayerChips value={layerId} onChange={setLayerId} locale={locale} zones={zones != null} />
-          {layer && <Legend id={layer.id} locale={locale} note={filmNoLayer} />}
+          <LayerChips
+            ids={step === 'globe' ? GLOBE_LAYERS : zones ? ['zones', ...LAYER_ORDER] : LAYER_ORDER}
+            value={layerId}
+            onChange={setLayerId}
+            locale={locale}
+          />
+          {step === 'globe' && enso && <EnsoBadge enso={enso} ctx={ctx} onShowSea={onShowSea} />}
+          {layerId && layerId !== 'zones' && <Legend id={layerId} locale={locale} note={filmNoLayer} />}
           {desktop && zonesLegend}
         </div>
       )}
 
+      {step === 'results' && map && anchor && film.run && (
+        <FieldTag map={map} anchor={anchor} film={film} ctx={ctx} />
+      )}
+
       {step === 'globe' && !flying && (
         <div className="globe-dock">
-          {layer && months.length > 0 && (
-            <TimeSlider months={months} value={globeTime} onChange={setGlobeTime} locale={locale} />
+          {layerId && frames.length > 0 && (
+            <TimeSlider
+              frames={frames}
+              value={globeTime}
+              onChange={setGlobeTime}
+              label={frameText}
+              locale={locale}
+              intervalMs={live ? 700 : 1100}
+              live={live != null && live.id !== 'sea_temp'}
+            />
           )}
           <GlobePanel
             locale={locale}
             locating={locating}
-            denied={denied}
+            issue={locateIssue}
             onLocate={onLocate}
             onPlace={onPlace}
             onSample={onSample}
             onAbout={openAbout}
+            onHelp={openHelp}
           />
         </div>
       )}
@@ -353,9 +497,11 @@ export default function DataCornApp() {
           locale={locale}
           units={units}
           showError={drawError}
+          coarse={locateIssue === 'coarse'}
           onUndo={() => dc.setPoints((p) => p.slice(0, -1))}
           onClose={tryClose}
-          onBack={backToGlobe}
+          onBack={goBack}
+          backLabel={backLabel}
         />
       )}
 
@@ -367,6 +513,8 @@ export default function DataCornApp() {
             error={dc.error}
             onRetry={dc.retry}
             onRedraw={dc.startDrawing}
+            onBack={goBack}
+            backLabel={backLabel}
           />
         </div>
       )}
@@ -383,8 +531,8 @@ export default function DataCornApp() {
           onChange={dc.setValues}
           onSubmit={dc.analyze}
           onRedraw={dc.startDrawing}
-          onBack={dc.isSample ? backToGlobe : dc.backToField}
-          backLabel={t(locale, dc.isSample ? 'draw.back' : 'nav.back_field')}
+          onBack={goBack}
+          backLabel={backLabel}
           onForward={dc.canShowResults ? dc.showResults : undefined}
         />
       )}
@@ -402,16 +550,19 @@ export default function DataCornApp() {
             pdfError={pdfError}
             pdfFile={pdfFile}
             onPdf={onPdf}
-            onChange={dc.editData}
+            onBack={goBack}
+            backLabel={backLabel}
             onNew={dc.startDrawing}
             onRestart={backToGlobe}
             onAbout={openAbout}
+            onHelp={openHelp}
             filmSlot={filmSlot}
           />
         </>
       )}
 
       <AboutDialog open={aboutOpen} locale={locale} onClose={() => setAboutOpen(false)} />
+      <HelpDialog open={helpOpen} locale={locale} onClose={closeHelp} />
     </div>
   );
 }

@@ -27,10 +27,10 @@ The register of every data source, API and account behind Field Shift. It is the
 | S9 | Microsoft Planetary Computer STAC | NDVI fallback | Fallback | Hosts NASA products | None to read | Root verified 2026-11-14 and 2026-11-15; no adapter |
 | S10 | GPM IMERG, HLS, Copernicus Sentinel-2, Google Earth Engine | Map layer (IMERG); Earth Engine adapters (the rest) | Not in the plan | Partly | Varies | IMERG is on the map; the rest is written and never run; open decision for IMERG ([#16](https://github.com/RikepilB/Data_corn/issues/16)) |
 | S11 | Meteomatics, GLDAS, ICEN, Earth Engine SoilGrids, ECOSTRESS | None | Not used | No | None | Not used; the ICEN, Earth Engine SoilGrids and ECOSTRESS adapters are stubs |
-| S12 | NASA GIBS map tiles | Map layers on the globe and the field map | In the code | Yes (NASA ESDIS) | None | Verified 2026-11-15: a tile of each of the five layers |
+| S12 | NASA GIBS map tiles | Map layers on the globe and the field map, including clouds, rain and sea temperature now | In the code | Yes (NASA ESDIS; GOES is NOAA) | None | Verified 2026-11-15: a tile of each of the nine layers |
 | S13 | FCC Census Area API | State and county of a US field | In the code | No | None | Verified 2026-11-15 |
 | S14 | USDA NASS QuickStats | County corn-yield history | In the code | No | Free API key | Not probed: no key |
-| S15 | NOAA CPC Oceanic Niño Index | ENSO chip on the verdict | In the code | No | None | Verified 2026-11-15: seasons to ASO 2026 |
+| S15 | NOAA CPC Oceanic Niño Index | ENSO chip on the verdict, El Niño indicator on the globe, El Niño and La Niña years in the season film | In the code | No | None | Verified 2026-11-15: seasons to ASO 2026 |
 | S16 | ISRIC SoilGrids REST | Soil outside the US, and the fallback inside it | In the code | No | None | Verified 2026-11-15 |
 | S17 | Basemaps, place search and fonts in the browser | Satellite basemap, place search, type | In the code | No | None, or a Google key | EOX and Nominatim verified 2026-11-15 |
 | S18 | Google Earth Engine datasets | SMAP L4, NASADEM, HLS, Sentinel-2, MODIS, PRISM, ERA5-Land, CDL, OpenET; NLDAS, TIGER and GAUL stubs | In the code | Partly | Earth Engine account | Written 2026-11-15, never run |
@@ -222,13 +222,13 @@ SoilGrids (S16) and the Oceanic Niño Index (S15) were listed here after the piv
 
 | Field | Value |
 |---|---|
-| Role | The map layers on the globe and the field map: root-zone soil moisture, rain, heat and vegetation, and the Blue Marble image of the globe. The browser fetches the tiles; the API is not involved and no number of the report comes from them. |
-| Product and endpoint | GIBS WMTS, REST form: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/<layer>/default/<date>/<matrix set>/{z}/{y}/{x}.<png or jpeg>`. Layers: `BlueMarble_ShadedRelief_Bathymetry` (2004-08-01), `SMAP_L4_Analyzed_Root_Zone_Soil_Moisture` (daily), `IMERG_Precipitation_Rate` (daily), `MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day` (monthly), `MODIS_Terra_L3_NDVI_Monthly` (monthly). The list and the date ranges are in `apps/web/src/infrastructure/gibs.ts`. |
+| Role | The map layers on the globe and the field map: clouds now, rain now and the sea-temperature anomaly (El Niño seen in the Pacific) on the globe; root-zone soil moisture, rain, heat and vegetation; and the Blue Marble image of the globe. The browser fetches the tiles; the API is not involved and no number of the report comes from them. |
+| Product and endpoint | GIBS WMTS, REST form: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/<layer>/default/<date>/<matrix set>/{z}/{y}/{x}.<png or jpeg>`. Layers: `BlueMarble_ShadedRelief_Bathymetry` (2004-08-01), `SMAP_L4_Analyzed_Root_Zone_Soil_Moisture` (daily), `IMERG_Precipitation_Rate` (daily), `MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day` (monthly), `MODIS_Terra_L3_NDVI_Monthly` (monthly). Live layers on the globe: `GOES-East_ABI_GeoColor` and `GOES-West_ABI_GeoColor` (NOAA GOES ABI, every 10 min, the last 12 h in 30-min frames), `IMERG_Precipitation_Rate_30min` (every 30 min, about 6 h behind) and `GHRSST_L4_MUR_Sea_Surface_Temperature_Anomalies` (daily, the last 12 months in monthly frames). The latest time of a live layer is read from the `Layer-Time-Actual` header of a `default` time request (`latestTime` in `gibs.ts`). The list and the date ranges are in `apps/web/src/infrastructure/gibs.ts`. |
 | Access and registration | None. |
 | Coverage | Global. Date ranges per layer in `gibs.ts`. |
 | Licence and citation | NASA open data policy (verify), per REFERENCES. The map credits "NASA GIBS". |
 | Fallback | Context only: the report does not depend on the tiles. |
-| Status | Verified 2026-11-15: one tile of each of the five layers over the pilot point, HTTP 200, `image/png` (`image/jpeg` for the Blue Marble). |
+| Status | Verified 2026-11-15: one tile of each of the five layers over the pilot point, HTTP 200, `image/png` (`image/jpeg` for the Blue Marble). The four live layers verified 2026-11-15 at 16:30 UTC: HTTP 200 and `Layer-Time-Actual` GOES-East 16:00, GOES-West 15:50, IMERG 30 min 10:30, GHRSST 2026-11-14. |
 
 ### S13. FCC Census Area API (in the code)
 
@@ -258,7 +258,7 @@ SoilGrids (S16) and the Oceanic Niño Index (S15) were listed here after the piv
 
 | Field | Value |
 |---|---|
-| Role | The ENSO phase chip on the verdict: the background of the season, not a forecast. |
+| Role | The ENSO phase chip on the verdict: the background of the season, not a forecast. Also the El Niño indicator on the globe (`GET /api/v1/enso`: the last season and the last three years) and the El Niño and La Niña year choices in the season film. |
 | Product and endpoint | `https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt`, four columns: season, year, total, anomaly (`infrastructure/enso/noaa_oni.py`). |
 | Access and registration | None. |
 | Coverage | One global index, seasons from DJF 1950. |
@@ -285,6 +285,7 @@ The browser calls these hosts directly. It sends them tile numbers and a typed p
 | Host | Use | Access | Status |
 |---|---|---|---|
 | `tiles.maps.eox.at`, layer `s2cloudless-2024_3857` | Satellite basemap: EOxCloudless 2024 by EOX IT Services GmbH, contains modified Copernicus Sentinel data 2024. The credit is shown on the map | None | Verified 2026-11-15: one tile, HTTP 200, `image/jpeg` |
+| `basemap.nationalmap.gov`, service `USGSImageryOnly` | Aerial photo of about 1 m over a field in the continental US, from zoom 13 (USGS The National Map, built from USDA NAIP). Outside the US the service answers 404 or a transparent tile from zoom 13, so Sentinel-2 shows. The credit is shown on the map | None; CORS open | Verified 2026-11-15: HTTP 200 `image/jpeg` over the pilot field at z12 to z16 (z17 404); 404 over Monterrey and an Ontario farm at z13 and z14 |
 | `tile.googleapis.com` (Google Map Tiles API, 2D satellite) | A sharper basemap, only when the web build has `PUBLIC_GOOGLE_MAPS_KEY`; the credit line comes from the viewport endpoint | A Google Maps Platform key, restricted by HTTP referrer | Not probed: no key |
 | `nominatim.openstreetmap.org` | The place search box: one request per search, five results at most | None. The Nominatim usage policy limits the request rate and asks for a credit line next to the results; the search box shows "© OpenStreetMap contributors" under its results, linked to openstreetmap.org/copyright | Verified 2026-11-15: one result for "Selden Kansas" |
 | No fonts host | Atkinson Hyperlegible Next and IBM Plex Mono are self-hosted with the app (Fontsource, OFL-1.1, see REFERENCES.md) | None | No third-party request |

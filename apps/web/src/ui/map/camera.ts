@@ -2,18 +2,19 @@ import type { LngLatBoundsLike, Map as MapLibreMap, PaddingOptions } from 'mapli
 import { useEffect, useRef } from 'react';
 
 import { motionAllowed } from '../common/displayPrefs';
+import { type FlightEnd, runFlight } from './flight';
+
+export { cancelFlight } from './flight';
 
 /** Movimiento reducido: lo pide el dispositivo o el modo calmado del menú Pantalla. */
 export const reducedMotion = () => typeof window !== 'undefined' && !motionAllowed();
 
-/** Vuelo animado del globo al campo (~4.5 s); con movimiento reducido, salto directo (RF-09). */
-export function flyToPlace(map: MapLibreMap, center: [number, number], zoom: number): Promise<void> {
-  return new Promise((resolve) => {
-    map.stop();
-    map.once('moveend', () => resolve());
-    if (reducedMotion()) map.jumpTo({ center, zoom, pitch: 0, bearing: 0 });
-    else map.flyTo({ center, zoom, pitch: 0, bearing: 0, duration: 4600, curve: 1.6, essential: true });
-  });
+/**
+ * Vuelo animado del globo al campo (~4.5 s); con movimiento reducido, salto directo (RF-09).
+ * Always ends, once: see flight.ts for what happens when the flight is cut short or never animates.
+ */
+export function flyToPlace(map: MapLibreMap, center: [number, number], zoom: number): Promise<FlightEnd> {
+  return runFlight(map, { center, zoom }, { animate: !reducedMotion(), durationMs: 4600 });
 }
 
 /** Imagen del mapa para el PDF: se toma justo después de dibujar un cuadro. */

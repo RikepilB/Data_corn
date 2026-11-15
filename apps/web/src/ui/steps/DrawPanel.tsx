@@ -1,6 +1,7 @@
 import { type LngLat, checkField } from '../../domain/geo';
 import { type UnitSystem, area, format } from '../../domain/units';
 import { type Locale, numberLocale, t } from '../../i18n';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 
 interface Props {
@@ -10,11 +11,14 @@ interface Props {
   onUndo: () => void;
   onClose: () => void;
   onBack: () => void;
+  backLabel: string;
   showError: boolean;
+  /** The map came here from an approximate position (Wi-Fi or IP), not from the field itself. */
+  coarse?: boolean;
 }
 
 /** Paso 2 · Dibujar el lote con puntos (RF-01). */
-export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, showError }: Props) {
+export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, backLabel, showError, coarse }: Props) {
   const { status, areaHa } = checkField(points);
   const canClose = status === 'ok';
   return (
@@ -24,12 +28,20 @@ export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, show
         <span>{t(locale, points.length >= 3 ? 'draw.hint_more' : 'draw.hint')}</span>
       </div>
       <section className="draw-bar glass" aria-label={t(locale, 'draw.hint')}>
+        <div className="stepnav">
+          <BackButton locale={locale} label={backLabel} onClick={onBack} />
+        </div>
         <div className="draw-bar__info">
           <span className="draw-bar__area">
             {points.length >= 3 ? format(area(areaHa, units), numberLocale(locale), 0) : '—'}
           </span>
           <span className="muted">{t(locale, 'draw.points', { n: points.length })}</span>
         </div>
+        {coarse && points.length === 0 && (
+          <p className="draw-bar__note" role="status">
+            <Icon name="info" size={16} /> {t(locale, 'draw.locate_coarse')}
+          </p>
+        )}
         {showError && status !== 'ok' && points.length > 0 && (
           <p className="draw-bar__error" role="alert">
             <Icon name="alert" size={16} /> {t(locale, `draw.error.${status}`)}
@@ -43,9 +55,6 @@ export function DrawPanel({ points, locale, units, onUndo, onClose, onBack, show
             <Icon name="check" size={20} /> {t(locale, 'draw.close')}
           </button>
         </div>
-        <button type="button" className="link link--small" onClick={onBack}>
-          <Icon name="globe" size={16} /> {t(locale, 'draw.back')}
-        </button>
       </section>
     </>
   );
