@@ -4,8 +4,8 @@
   "en": "Sample field · Iowa",
   "es": "Lote de ejemplo · Iowa"
  },
- "generated_at": "2026-11-15T15:32:59+00:00",
- "engine_commit": "3b66e434cc16f90b2b6ad627d5c9b296c56362e1",
+ "generated_at": "2026-11-15T15:47:29+00:00",
+ "engine_commit": "400996674c4428d171d3fb51c3c0e69817374c9f",
  "season": 2027,
  "describe": {
   "context": {
@@ -38,6 +38,11 @@
    },
    "crop_history": [
     {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2017,
      "crop": "soybean",
      "source": "USDA NASS CropScape CDL"
@@ -58,7 +63,27 @@
      "source": "USDA NASS CropScape CDL"
     },
     {
+     "year": 2021,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2022,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2023,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
     }
@@ -108,6 +133,11 @@
    },
    "crop_history": [
     {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2017,
      "crop": "soybean",
      "source": "USDA NASS CropScape CDL"
@@ -128,7 +158,27 @@
      "source": "USDA NASS CropScape CDL"
     },
     {
+     "year": 2021,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2022,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2023,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
     }
@@ -875,7 +925,9 @@
        "key": "rotation.note.residue",
        "params": {}
       }
-     ]
+     ],
+     "strategy": "continuous_corn",
+     "current": false
     },
     {
      "previous_crop": "soybean",
@@ -887,11 +939,27 @@
        "key": "rotation.note.residue",
        "params": {}
       }
-     ]
+     ],
+     "strategy": "corn_soybean",
+     "current": false
+    },
+    {
+     "previous_crop": "soybean",
+     "relative_yield": null,
+     "planting_soil_water_mm": null,
+     "residue_erosion_risk": "no_data",
+     "notes": [],
+     "strategy": "corn_soybean_rye",
+     "current": false
     }
    ],
    "recommended": "soybean",
    "field_history": [
+    {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
     {
      "year": 2017,
      "crop": "soybean",
@@ -913,7 +981,27 @@
      "source": "USDA NASS CropScape CDL"
     },
     {
+     "year": 2021,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2022,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2023,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
     }
@@ -921,8 +1009,8 @@
    "message": {
     "key": "rotation.soy_first",
     "params": {
-     "pattern": "S M M M M",
-     "after_soy": 1,
+     "pattern": "M M M S M M S M",
+     "after_soy": 3,
      "after_corn": 3
     }
    }

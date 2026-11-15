@@ -4,8 +4,8 @@
   "en": "Sample field · Nebraska",
   "es": "Lote de ejemplo · Nebraska"
  },
- "generated_at": "2026-11-15T15:32:59+00:00",
- "engine_commit": "3b66e434cc16f90b2b6ad627d5c9b296c56362e1",
+ "generated_at": "2026-11-15T15:47:29+00:00",
+ "engine_commit": "400996674c4428d171d3fb51c3c0e69817374c9f",
  "season": 2027,
  "describe": {
   "context": {
@@ -38,12 +38,52 @@
    },
    "crop_history": [
     {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2017,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2018,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2019,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2020,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2021,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2022,
      "crop": "soybean",
      "source": "USDA NASS CropScape CDL"
     },
     {
      "year": 2023,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
     }
@@ -93,12 +133,52 @@
    },
    "crop_history": [
     {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2017,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2018,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2019,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2020,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2021,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
      "year": 2022,
      "crop": "soybean",
      "source": "USDA NASS CropScape CDL"
     },
     {
      "year": 2023,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
     }
@@ -852,7 +932,9 @@
        "key": "rotation.note.residue",
        "params": {}
       }
-     ]
+     ],
+     "strategy": "continuous_corn",
+     "current": false
     },
     {
      "previous_crop": "soybean",
@@ -864,11 +946,52 @@
        "key": "rotation.note.residue",
        "params": {}
       }
-     ]
+     ],
+     "strategy": "corn_soybean",
+     "current": false
+    },
+    {
+     "previous_crop": "soybean",
+     "relative_yield": null,
+     "planting_soil_water_mm": null,
+     "residue_erosion_risk": "no_data",
+     "notes": [],
+     "strategy": "corn_soybean_rye",
+     "current": false
     }
    ],
    "recommended": "soybean",
    "field_history": [
+    {
+     "year": 2016,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2017,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2018,
+     "crop": "soybean",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2019,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2020,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2021,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
     {
      "year": 2022,
      "crop": "soybean",
@@ -878,14 +1001,24 @@
      "year": 2023,
      "crop": "maize",
      "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2024,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
+    },
+    {
+     "year": 2025,
+     "crop": "maize",
+     "source": "USDA NASS CropScape CDL"
     }
    ],
    "message": {
     "key": "rotation.soy_first",
     "params": {
-     "pattern": "S M",
-     "after_soy": 1,
-     "after_corn": 0
+     "pattern": "S M M M S M M M",
+     "after_soy": 2,
+     "after_corn": 5
     }
    }
   },
