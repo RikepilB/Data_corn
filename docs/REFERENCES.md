@@ -96,7 +96,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Asset | Source | Licence | Status |
 |---|---|---|---|
-| IBM Plex Sans and IBM Plex Mono (weights 400, 500, 600) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
+| Atkinson Hyperlegible Next by the Braille Institute (weights 400, 500, 600, 700) and IBM Plex Mono (weights 400, 500) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
 | Favicon (`apps/web/public/favicon.svg`) | Made in this repository; no outside artwork | Apache-2.0, as the repository | used |
 | Music | None | — | — |
 
