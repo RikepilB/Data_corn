@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
@@ -9,6 +9,7 @@ import { RiskBadge } from '../common/RiskBadge';
 import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
+import { warmPdf } from '../pdf/download';
 import { buildCards } from './cards';
 
 interface Props {
@@ -41,7 +42,7 @@ function Secondary({ calm, label, children }: { calm: boolean; label: string; ch
 }
 
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({
+export const ResultsPanel = memo(function ResultsPanel({
   report,
   film,
   ctx,
@@ -58,7 +59,6 @@ export function ResultsPanel({
 }: Props) {
   const { locale } = ctx;
   const calm = useDisplayPrefs().calm;
-  // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
   return (
@@ -156,7 +156,15 @@ export function ResultsPanel({
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary btn--xl" onClick={onPdf} disabled={pdfBusy}>
+      <button
+        type="button"
+        className="btn btn--primary btn--xl"
+        onClick={onPdf}
+        disabled={pdfBusy}
+        onPointerEnter={warmPdf}
+        onFocus={warmPdf}
+        onTouchStart={warmPdf}
+      >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
       </button>
@@ -176,4 +184,4 @@ export function ResultsPanel({
       <p className="sources">{t(locale, 'results.sources', { list: report.sources.join(' · ') })}</p>
     </aside>
   );
-}
+});

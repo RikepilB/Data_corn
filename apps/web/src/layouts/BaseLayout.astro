@@ -1,4 +1,10 @@
 ---
+// Fonts are self-hosted (Fontsource): no third-party request, no render-blocking stylesheet.
+// Mono only needs 400 and 500 (the legend and the zone figures), Latin subset.
+import '@fontsource-variable/atkinson-hyperlegible-next';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import atkinsonLatin from '@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2?url';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import '../styles/display.css';
@@ -8,6 +14,10 @@ interface Props {
 }
 
 const { title } = Astro.props;
+const description = 'Data Corn: decision support for corn growers built on NASA Earth observations.';
+// Absolute URLs: link previews do not resolve relative ones
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const image = new URL('/og-image.jpg', Astro.site).href;
 ---
 
 <!doctype html>
@@ -16,17 +26,18 @@ const { title } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Data Corn: decision support for corn growers built on NASA Earth observations."
-    />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={image} />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <!-- The first tile host: the TLS handshake overlaps with the island's JS download -->
+    <link rel="preconnect" href="https://gibs.earthdata.nasa.gov" crossorigin />
+    <!-- Only the latin Atkinson file; it is the one the first paint needs (fonts need crossorigin) -->
+    <link rel="preload" href={atkinsonLatin} as="font" type="font/woff2" crossorigin />
     <!-- Display preferences (text size, contrast, calm), applied before first paint so the page does not
          jump. Same key and shape as ui/common/displayPrefs.ts; the page works if storage is blocked. -->
     <script is:inline>
