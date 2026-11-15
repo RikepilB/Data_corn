@@ -6,7 +6,7 @@ Hoy sábado a las 12:00 PET quedan ~36 h. Todos los horarios de este documento e
 Borrador preparado con ayuda de SI (Claude Code) a partir de la propuesta del equipo. La idea
 y las decisiones son del equipo; lo marcado **DECIDIR** se cierra en el kickoff.
 
-> **ACTUALIZACIÓN (sáb 14 nov, ~22:00 PET; decidió Richard): la matriz sale.** Mandan §2 y §5. Donde §1 (decisión 2), §3, §4, §7 (diapositiva 6) y §9 (Producto) dicen "matriz", léase "las tres rotaciones explicadas".
+> **ACTUALIZACIÓN (sáb 14 nov, ~22:00 PET; decidió Richard): la matriz sale.** Mandan §2 y §5. Donde §3, §4, §7 (diapositiva 6) y §9 (Producto) dicen "matriz", léase "las tres rotaciones explicadas".
 
 > **PIVOT (sáb. tarde, tras la asesoría con el mentor).**
 > - **Foco:** maíz, productores grandes y medianos de **un estado de EE. UU.**; se recomienda el oeste de Kansas.
@@ -36,7 +36,7 @@ Seis decisiones, en este orden. Cada una tiene una recomendación; el equipo pue
 | # | Decisión | Recomendación | Por qué |
 |---|---|---|---|
 | 1 | **Campo piloto** (estado de EE. UU.) | Oeste de Kansas, GMD4 (condado Sheridan, zona del LEMA Sheridan-6) | Escasez real (Ogallala, visible con GRACE); OpenET se usa en Kansas; evidencia local del LEMA. Iowa ya tiene FACTS y Nebraska tiene NavePlant (salido de Space Apps 2024). Confirmar con el mentor (pregunta 1) |
-| 2 | **≥3 rotaciones, incluida la actual** (el reto lo exige) | Actual: maíz continuo con riego. Alternativas: maíz → soya; maíz → cobertura de centeno → soya; trigo → maíz → sorgo → barbecho en secano | Cubre fijación de N, ruptura del maíz sobre maíz, suelo cubierto en invierno y un cultivo tolerante a sequía. La rotación actual se lee de Crop Sequence Boundaries (USDA). Que la revise un mentor o extensionista |
+| 2 | **≥3 rotaciones, incluida la actual** (el reto lo exige) | Tres estrategias explicadas: maíz continuo (la actual), maíz → soya, maíz → soya con cobertura de centeno | Cubre la rotación actual, la ruptura del maíz sobre maíz y el suelo cubierto en invierno. La rotación actual se lee del historial del Cropland Data Layer del campo. Que la revise un mentor o extensionista |
 | 3 | **Nombre y tagline** | Ver §7 (3 opciones) | Hay que tenerlo antes de diseñar la UI y el guion |
 | 4 | **Formato del demo**: video ≤30 s **o** ≤7 diapositivas (solo uno) | **7 diapositivas en inglés** | Menos riesgo de producción. Un video exige subtítulos en inglés y marca de agua si usa SI |
 | 5 | **Quién abre Earthdata y envía el pedido AppEEARS** | Miguel, antes de las 14:00 | La cola de AppEEARS puede tardar horas; es la ruta crítica de SMAP + NDVI |
@@ -136,8 +136,8 @@ fusionar. Si alguien termina, ayuda al carril **Must** más atrasado.
 | Quién | Qué | Estimación |
 |---|---|---|
 | Richard | Revisa textos y fuentes; decide; coordina el enlace público | ~1 h más coordinación |
-| Hildemaro | Contrato en Python (`report.py`: `strategy` y `current`, ya propuestos en `report.ts` por el PR 80), tres opciones en `rotation.py`, pruebas; reportes reales precalculados | ~2 h más reportes |
-| Marcelo | Panel de rotaciones bajo el veredicto, PDF y textos: **PR 80 abierto el sáb 14 nov a las 22:19 PET**; faltan unas correcciones de texto y la revisión | ~1 h |
+| Hildemaro | Contrato en Python (`report.py`: `strategy` y `current`, que `report.ts` ya consume desde el PR 80, fusionado); motor en el PR #87; tres opciones en `rotation.py`, pruebas; reportes reales precalculados | ~2 h más reportes |
+| Marcelo | Panel de rotaciones bajo el veredicto: **fusionado con el PR 80 (dom 15 nov)**; falta el PDF, los textos finales y la revisión de Richard | ~1 h |
 | Camila | Historia, diapositiva 6 ("las tres rotaciones y lo que no sabemos") y página del proyecto | — |
 | SI (Claude Code) | Redacta los textos y las fuentes de las tres tarjetas; Richard los revisa | — |
 
