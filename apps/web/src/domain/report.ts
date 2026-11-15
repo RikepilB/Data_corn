@@ -70,14 +70,23 @@ export interface CropYear {
   source: string;
 }
 
+/** The three explained rotations (#42). The cover-crop option also follows soybean. */
+export type RotationStrategy = 'continuous_corn' | 'corn_soybean' | 'corn_soybean_rye';
+
+export interface RotationOption {
+  previous_crop: Crop;
+  /** Optional until the engine sends it; `domain/rotation.ts` derives it from `previous_crop`. */
+  strategy?: RotationStrategy;
+  /** True for the one strategy that matches the field's crop record (CDL). At most one. */
+  current?: boolean;
+  relative_yield: number | null;
+  planting_soil_water_mm: number | null;
+  residue_erosion_risk: RiskLevel;
+  notes: Message[];
+}
+
 export interface RotationComparison {
-  options: {
-    previous_crop: Crop;
-    relative_yield: number | null;
-    planting_soil_water_mm: number | null;
-    residue_erosion_risk: RiskLevel;
-    notes: Message[];
-  }[];
+  options: RotationOption[];
   recommended: Crop | null;
   field_history: CropYear[];
   message: Message;
