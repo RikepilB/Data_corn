@@ -216,8 +216,10 @@ export async function mockReport(
     indicators,
     rotation: {
       options: [
-        { previous_crop: 'maize', relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.rootworm', params: {} }, { key: 'rotation.note.residue', params: {} }] },
-        { previous_crop: 'soybean', relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.residue', params: {} }] },
+        { previous_crop: 'soybean', strategy: 'corn_soybean', current: true, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.residue', params: {} }] },
+        { previous_crop: 'maize', strategy: 'continuous_corn', current: false, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.rootworm', params: {} }, { key: 'rotation.note.residue', params: {} }] },
+        // Erosion with a rye cover crop has no documented rule yet (#42): shown as not verified.
+        { previous_crop: 'soybean', strategy: 'corn_soybean_rye', current: false, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'no_data', notes: [] },
       ],
       recommended: 'soybean',
       field_history: described.context.crop_history,
