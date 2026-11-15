@@ -315,9 +315,9 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [x] [#37](https://github.com/RikepilB/Data_corn/issues/37) Task 3 · FAO-56 reference evapotranspiration · Must · M1
   - [x] [#38](https://github.com/RikepilB/Data_corn/issues/38) Task 4 · SSURGO soil profile -> available water · Must · M2
   - [x] [#39](https://github.com/RikepilB/Data_corn/issues/39) Task 5 · Crop parameters and site config · Must · M2
-  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily balance per rotation: rainfed and full-irrigation runs (one season exists) · Must · M2
-  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet year types (the planting window exists) · Must · M1
-  - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Rotation x year-type matrix with confidence · Must · M2
+  - [x] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily balance per rotation: rainfed and full-irrigation runs (one season exists) · Must · M2
+  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet summary of the corn year (Should) · Should · M1
+  - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Three explained rotation strategies (contract field, engine options, web panel) · Must · M2
   - [x] [#43](https://github.com/RikepilB/Data_corn/issues/43) Task 9 · `build_site_ficha` use case and CLI (first real ficha) · Must · M2
   - [ ] [#44](https://github.com/RikepilB/Data_corn/issues/44) Task 10 · AppEEARS loader + SMAP consistency check · Should · M3
   - [ ] [#45](https://github.com/RikepilB/Data_corn/issues/45) Task 11 · NDVI harvest and bare-soil windows (green-up exists) · Should · M3
@@ -337,7 +337,7 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [ ] [#57](https://github.com/RikepilB/Data_corn/issues/57) UX copy in plain English · Must · M2
   - [ ] [#58](https://github.com/RikepilB/Data_corn/issues/58) Outsider usability test on a phone (2 minutes) · Must · M4
 - [ ] [#9](https://github.com/RikepilB/Data_corn/issues/9) **EPIC 9 · Storytelling and demo**
-  - [ ] [#59](https://github.com/RikepilB/Data_corn/issues/59) Story outline: the orbital observer · Must · M2
+  - [x] [#59](https://github.com/RikepilB/Data_corn/issues/59) Story outline: the orbital observer · Must · M2
   - [ ] [#60](https://github.com/RikepilB/Data_corn/issues/60) Story page `index.astro` in English · Must · M3
   - [ ] [#61](https://github.com/RikepilB/Data_corn/issues/61) Decide the demo format: 7 slides or 30-second video · Must · M1
   - [ ] [#62](https://github.com/RikepilB/Data_corn/issues/62) Demo deck (7 slides, public link) · Must · M4
