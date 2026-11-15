@@ -99,7 +99,7 @@ export const BLUE_MARBLE_TILES = `${GIBS}/BlueMarble_ShadedRelief_Bathymetry/def
 export const EOX_TILES =
   'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';
 export const EOX_ATTRIBUTION =
-  'Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)';
+  'EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)';
 export const GIBS_ATTRIBUTION = 'NASA GIBS · Blue Marble, SMAP, GPM IMERG, MODIS';
 
 const DAY = 86_400_000;

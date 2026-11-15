@@ -35,7 +35,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 | Dataset | Provider | Use | Licence / attribution | Status |
 |---|---|---|---|---|
 | Copernicus Sentinel-2 L2A (Earth Engine `COPERNICUS/S2_SR_HARMONIZED`) | ESA / Copernicus | In-field zones at 10 m: median peak-season NDVI of several seasons, each pixel against the field's own median. Adapter written 2026-11-15, runs only with Earth Engine enabled, not run yet | Copernicus licence; attribution "Contains modified Copernicus Sentinel data [year]" (verify) | planned |
-| Sentinel-2 cloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map: "Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; EOX terms not read yet (verify) | used |
+| EOxCloudless 2024 basemap (`tiles.maps.eox.at`, layer `s2cloudless-2024_3857`; product page `cloudless.eox.at`) | EOX IT Services GmbH, from Copernicus Sentinel data | Satellite basemap of the maps | Credit shown on the map, in the About panel and in the PDF, worded as on the EOX licence page (read 2026-11-15): "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"; licence terms (verify) | used |
 
 ## Other data and methods
 
@@ -100,7 +100,7 @@ metadata (2026-11-15); that is not the same as `verified`.
 
 | Asset | Source | Licence | Status |
 |---|---|---|---|
-| IBM Plex Sans and IBM Plex Mono (weights 400, 500, 600) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
+| Atkinson Hyperlegible Next by the Braille Institute (weights 400, 500, 600, 700) and IBM Plex Mono (weights 400, 500) | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), linked from `apps/web/src/layouts/BaseLayout.astro` | SIL Open Font License 1.1 (verify) | used |
 | Favicon (`apps/web/public/favicon.svg`) | Made in this repository; no outside artwork | Apache-2.0, as the repository | used |
 | Music | None | — | — |
 

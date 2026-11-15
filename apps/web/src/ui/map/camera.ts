@@ -1,8 +1,10 @@
 import type { LngLatBoundsLike, Map as MapLibreMap, PaddingOptions } from 'maplibre-gl';
 import { useEffect, useRef } from 'react';
 
-export const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+import { motionAllowed } from '../common/displayPrefs';
+
+/** Movimiento reducido: lo pide el dispositivo o el modo calmado del menú Pantalla. */
+export const reducedMotion = () => typeof window !== 'undefined' && !motionAllowed();
 
 /** Vuelo animado del globo al campo (~4.5 s); con movimiento reducido, salto directo (RF-09). */
 export function flyToPlace(map: MapLibreMap, center: [number, number], zoom: number): Promise<void> {
@@ -57,7 +59,7 @@ export function useGlobeSpin(map: MapLibreMap | null, active: boolean): () => vo
     }
     let stopped = false;
     const spin = () => {
-      if (stopped || map.getZoom() > 3.2) return;
+      if (stopped || reducedMotion() || map.getZoom() > 3.2) return;
       const c = map.getCenter();
       c.lng -= 7;
       map.easeTo({ center: c, duration: 2200, easing: (x) => x });

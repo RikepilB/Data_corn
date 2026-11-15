@@ -2,9 +2,11 @@ import { type KeyboardEvent, type PointerEvent, useMemo, useRef } from 'react';
 import type { Film } from '../../application/useFilm';
 import { shortDate } from '../../domain/format';
 import type { FieldReport, SeasonRun, Stage } from '../../domain/report';
-import { RISK_COLOR, SEVERITY, filmDate, hasPhase, positionOf, stageAt, waterColor } from '../../domain/season';
+import { SEVERITY, filmDate, hasPhase, positionOf, stageAt } from '../../domain/season';
 import { type Locale, t } from '../../i18n';
 import { Icon, type IconName } from '../common/Icon';
+import { motionAllowed } from '../common/displayPrefs';
+import { RISK_COLOR, waterColor } from '../common/palette';
 import { SoilGauge } from './SoilGauge';
 
 const STAGE_ICONS: Partial<Record<Stage, IconName>> = {
@@ -104,7 +106,7 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
               aria-checked={film.mode.kind === m.kind}
               disabled={!m.ok}
               className={`chip${film.mode.kind === m.kind ? ' is-on' : ''}`}
-              onClick={() => film.setMode({ kind: m.kind }, true)}
+              onClick={() => film.setMode({ kind: m.kind }, motionAllowed())}
             >
               {t(locale, m.key)}
             </button>
@@ -160,6 +162,10 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
                 <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                   <line x1="0" y1="0" x2="0" y2="6" stroke="#111113" strokeWidth="1.2" />
                 </pattern>
+                {/* no depender del color: el riesgo alto es más alto y lleva rayas, el medio es más bajo y liso */}
+                <pattern id="riskHigh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+                  <line x1="0" y1="0" x2="0" y2="5" stroke="#111113" strokeWidth="1.6" />
+                </pattern>
               </defs>
               <path d={waterPath(run)} fill="url(#waterGrad)" opacity="0.85" />
               <path d={waterLine(run)} fill="none" stroke="#111113" strokeWidth={2} vectorEffect="non-scaling-stroke" />
@@ -168,15 +174,13 @@ export function SeasonFilm({ film, report, locale }: { film: Film; report: Field
                 const x0 = positionOf(run, b.start) * W;
                 const x1 = positionOf(run, b.end) * W;
                 // Tramo de riesgo con el color de su estado (la leyenda lo nombra)
+                const h = b.risk === 'high' ? 14 : 8;
+                const w = Math.max(x1 - x0, 4);
                 return (
-                  <rect
-                    key={`${b.indicator}-${b.start}`}
-                    x={x0}
-                    y={0}
-                    width={Math.max(x1 - x0, 4)}
-                    height={8}
-                    fill={RISK_COLOR[b.risk]}
-                  />
+                  <g key={`${b.indicator}-${b.start}`}>
+                    <rect x={x0} y={0} width={w} height={h} fill={RISK_COLOR[b.risk]} />
+                    {b.risk === 'high' && <rect x={x0} y={0} width={w} height={h} fill="url(#riskHigh)" />}
+                  </g>
                 );
               })}
               {run.tmax_c.map((tc, i) =>

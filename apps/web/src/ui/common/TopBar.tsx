@@ -1,6 +1,7 @@
 import { STEPS, type Step } from '../../application/useDataCorn';
 import type { UnitSystem } from '../../domain/units';
 import { type Locale, t } from '../../i18n';
+import { DisplayMenu } from './DisplayMenu';
 
 interface Props {
   step: Step;
@@ -47,6 +48,9 @@ export function TopBar({ step, locale, units, onLocale, onUnits, onHome }: Props
       <button type="button" className="brand" onClick={onHome}>
         Data Corn
       </button>
+      <p className="stepname">
+        {t(locale, 'step.progress', { n: index + 1, name: t(locale, `step.${step}`) })}
+      </p>
       <ol
         className="stepdots"
         aria-label={t(locale, 'step.progress', { n: index + 1, name: t(locale, `step.${step}`) })}
@@ -74,6 +78,7 @@ export function TopBar({ step, locale, units, onLocale, onUnits, onHome }: Props
           ]}
           onChange={onUnits}
         />
+        <DisplayMenu locale={locale} />
       </div>
     </header>
   );

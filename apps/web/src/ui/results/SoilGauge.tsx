@@ -1,4 +1,4 @@
-import { waterColor } from '../../domain/season';
+import { waterColor } from '../common/palette';
 import { type Locale, t } from '../../i18n';
 
 /** Medidor circular del agua disponible en la zona de raíces. */

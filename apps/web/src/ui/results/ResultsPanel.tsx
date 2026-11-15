@@ -6,6 +6,7 @@ import type { FieldReport } from '../../domain/report';
 import { t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { RiskBadge } from '../common/RiskBadge';
+import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
 import { RotationPanel } from './RotationPanel';
 import { buildCards } from './cards';
@@ -26,9 +27,21 @@ interface Props {
   filmSlot?: ReactNode;
 }
 
+/** Calm mode folds the secondary detail behind a summary; otherwise it shows as usual. */
+function Secondary({ calm, label, children }: { calm: boolean; label: string; children: ReactNode }) {
+  if (!calm) return <>{children}</>;
+  return (
+    <details className="more">
+      <summary>{label}</summary>
+      {children}
+    </details>
+  );
+}
+
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
 export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, onAbout, filmSlot }: Props) {
   const { locale } = ctx;
+  const calm = useDisplayPrefs().calm;
   // La película re-renderiza el panel 10 veces por segundo: las tarjetas no cambian con ella
   const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
   const enso = report.enso;
@@ -40,7 +53,6 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
         {mock && <span className="tag tag--warn">{t(locale, 'results.mock')}</span>}
       </div>
-      {filmSlot}
 
       <section className={`verdict verdict--${report.summary.risk}`} aria-labelledby="verdict-title">
         <div className="verdict__top">
@@ -67,9 +79,13 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         )}
       </section>
 
+      {filmSlot}
+
       <RotationPanel rotation={report.rotation} locale={locale} />
 
-      <ClimateStripes report={report} film={film} locale={locale} />
+      <Secondary calm={calm} label={t(locale, 'display.more')}>
+        <ClimateStripes report={report} film={film} locale={locale} />
+      </Secondary>
 
       <div className="cards">
         {cards.map((c) => (
@@ -83,26 +99,30 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
             <RiskBadge risk={c.risk} locale={locale} />
             <p className="kcard__big">{c.big}</p>
             <p className="kcard__text">{c.sentence}</p>
-            {c.extra && <p className="kcard__extra">{c.extra}</p>}
-            {c.history && c.history.length > 0 && (
-              <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
-                {c.history.map((h) => (
-                  <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
-                    <i />
-                    <small>{String(h.year).slice(2)}</small>
-                  </span>
-                ))}
-              </div>
-            )}
-            {c.history && c.history.length > 0 && (
-              <p className="kcard__legend" aria-hidden="true">
-                <span>
-                  <i className="is-maize" /> {t(locale, 'crop.maize')}
-                </span>
-                <span>
-                  <i /> {t(locale, 'crop.soybean')}
-                </span>
-              </p>
+            {(c.extra || (c.history && c.history.length > 0)) && (
+              <Secondary calm={calm} label={t(locale, 'display.more')}>
+                {c.extra && <p className="kcard__extra">{c.extra}</p>}
+                {c.history && c.history.length > 0 && (
+                  <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
+                    {c.history.map((h) => (
+                      <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
+                        <i />
+                        <small>{String(h.year).slice(2)}</small>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {c.history && c.history.length > 0 && (
+                  <p className="kcard__legend" aria-hidden="true">
+                    <span>
+                      <i className="is-maize" /> {t(locale, 'crop.maize')}
+                    </span>
+                    <span>
+                      <i /> {t(locale, 'crop.soybean')}
+                    </span>
+                  </p>
+                )}
+              </Secondary>
             )}
           </article>
         ))}
