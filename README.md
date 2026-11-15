@@ -5,6 +5,8 @@
 
 Built by Team DataCorn for the NASA Space Apps Challenge 2026: [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/) (Trujillo local event).
 
+**Try it live (provisional, sample data only):** [field-shift-datacorn.vercel.app](https://field-shift-datacorn.vercel.app/?mock=1). There is no API behind this link, so every number on it is a sample.
+
 > **Scenarios from historical climate, not forecasts.** The tool supports a producer's judgment and local agronomic advice. It does not replace them.
 "Google Earth for corn":
 - Start on a 3D globe with NASA climate layers: soil moisture, rain, heat and vegetation, on a time slider.
@@ -60,7 +62,7 @@ Hackathon build in progress. Submission closes Sun 2026-11-15 23:59 PET (interna
 | Contract `contracts/ficha.schema.json` v0.2.0 and a synthetic example ficha | Exist on a team member's machine (the 9 contract tests passed there at 15:00 PET) but are **not in this repository yet**. They arrive in the next pull request ([#11](https://github.com/RikepilB/Data_corn/issues/11)). |
 | Engine (`apps/api/`) | Skeleton: ports, use-case skeletons, region and crop profiles, a cache, and a test of the dependency rule. `GET /api/v1/health`, `/regions` and `/demo-fields` work (the skeleton's own claim; we have not run it); field analysis returns `501`. **Every science function is still a stub**: 59 `NotImplementedError` in 29 files (counted on 2026-11-14). The plan's Tasks 1-12 and 15 fill them. |
 | Web app (`apps/web/`) | Skeleton: Astro 7, React 19, MapLibre GL, English and Spanish text. The Field Shift tool page (planting strip, matrix, rotation cards) is not built into it yet. |
-| Hosting | Firebase project `field-shift-datacorn` exists (Spark plan, no Auth, no Firestore). **Nothing is deployed.** The planned address `field-shift-datacorn.web.app` goes live with the first deploy, [#52](https://github.com/RikepilB/Data_corn/issues/52). |
+| Hosting | **Live, provisional:** [field-shift-datacorn.vercel.app](https://field-shift-datacorn.vercel.app/?mock=1), a static build of `main` (2026-11-14) on Vercel's free plan. It shows sample data only and is not redeployed automatically. Firebase project `field-shift-datacorn` exists (Spark plan, no Auth, no Firestore); its address `field-shift-datacorn.web.app` goes live with the first Firebase deploy, [#52](https://github.com/RikepilB/Data_corn/issues/52), and replaces the Vercel link. |
 | Results | None yet. No real ficha has been generated; the only ficha is the synthetic example, labelled as such. |
 
 ## Tech stack and architecture
@@ -313,9 +315,9 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [x] [#37](https://github.com/RikepilB/Data_corn/issues/37) Task 3 · FAO-56 reference evapotranspiration · Must · M1
   - [x] [#38](https://github.com/RikepilB/Data_corn/issues/38) Task 4 · SSURGO soil profile -> available water · Must · M2
   - [x] [#39](https://github.com/RikepilB/Data_corn/issues/39) Task 5 · Crop parameters and site config · Must · M2
-  - [ ] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily balance per rotation: rainfed and full-irrigation runs (one season exists) · Must · M2
-  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet year types (the planting window exists) · Must · M1
-  - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Rotation x year-type matrix with confidence · Must · M2
+  - [x] [#40](https://github.com/RikepilB/Data_corn/issues/40) Task 6 · Daily balance per rotation: rainfed and full-irrigation runs (one season exists) · Must · M2
+  - [ ] [#41](https://github.com/RikepilB/Data_corn/issues/41) Task 7 · Dry / normal / wet summary of the corn year (Should) · Should · M1
+  - [ ] [#42](https://github.com/RikepilB/Data_corn/issues/42) Task 8 · Three explained rotation strategies (contract field, engine options, web panel) · Must · M2
   - [x] [#43](https://github.com/RikepilB/Data_corn/issues/43) Task 9 · `build_site_ficha` use case and CLI (first real ficha) · Must · M2
   - [ ] [#44](https://github.com/RikepilB/Data_corn/issues/44) Task 10 · AppEEARS loader + SMAP consistency check · Should · M3
   - [ ] [#45](https://github.com/RikepilB/Data_corn/issues/45) Task 11 · NDVI harvest and bare-soil windows (green-up exists) · Should · M3
@@ -335,7 +337,7 @@ All work is tracked in [GitHub issues](https://github.com/RikepilB/Data_corn/iss
   - [ ] [#57](https://github.com/RikepilB/Data_corn/issues/57) UX copy in plain English · Must · M2
   - [ ] [#58](https://github.com/RikepilB/Data_corn/issues/58) Outsider usability test on a phone (2 minutes) · Must · M4
 - [ ] [#9](https://github.com/RikepilB/Data_corn/issues/9) **EPIC 9 · Storytelling and demo**
-  - [ ] [#59](https://github.com/RikepilB/Data_corn/issues/59) Story outline: the orbital observer · Must · M2
+  - [x] [#59](https://github.com/RikepilB/Data_corn/issues/59) Story outline: the orbital observer · Must · M2
   - [ ] [#60](https://github.com/RikepilB/Data_corn/issues/60) Story page `index.astro` in English · Must · M3
   - [ ] [#61](https://github.com/RikepilB/Data_corn/issues/61) Decide the demo format: 7 slides or 30-second video · Must · M1
   - [ ] [#62](https://github.com/RikepilB/Data_corn/issues/62) Demo deck (7 slides, public link) · Must · M4
