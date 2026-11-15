@@ -169,7 +169,7 @@ export function mockZones(ring: LngLat[]): ZonesGeoJSON | null {
     });
   return {
     type: 'FeatureCollection',
-    meta: { source: 'Copernicus Sentinel-2 SR (Earth Engine)', first_year: 2021, last_year: 2025, seasons: 5, resolution_m: 10 },
+    meta: { source: 'Invented sample zones / Zonas de ejemplo inventadas', first_year: 2021, last_year: 2025, seasons: 5, resolution_m: 10 },
     features: ZONE_PATCHES.map(({ zone, uv }) => ({
       type: 'Feature',
       geometry: { type: 'Polygon', coordinates: [[...uv, uv[0]!].map(at)] },
