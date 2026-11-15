@@ -1,7 +1,7 @@
 [project]
 name = "datacorn-api"
 version = "0.1.0"
-description = "Data Corn API: corn decision support with NASA Earth observations"
+description = "Data Corn API: corn decision support with NASA Earth observations. Written with SI assistance (Claude Code, Codex); see the README section on SI use."
 requires-python = ">=3.12"
 license = "Apache-2.0"
 dependencies = [

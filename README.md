@@ -380,7 +380,13 @@ Milestones (all times PET, UTC-5): M0 Setup, Sat 14:30 · M1 Checkpoint 1, Sat 1
 
 ## Use of Super Intelligence (SI)
 
-The 2026 rules say "SI" where earlier years said "AI". This repository was scaffolded with SI assistance: Claude Code (Anthropic) helped with the project structure, the contract draft, the planning documents and this README. The Data Corn skeleton (`apps/`, `infra/` and the Spanish documents in `docs/`) was also written with Claude Code; its commit credits Claude Opus 5.5 as co-author. The solution idea and the design decisions came from Team DataCorn. SI-assisted source files and documents say so in a header comment, with the name of the team member who reviewed them; the files added with the skeleton are still to be brought in line ([#66](https://github.com/RikepilB/Data_corn/issues/66)). Any SI-generated image or video in the demo carries a visible watermark. Other SI tools, if used, are listed here before submission ([#66](https://github.com/RikepilB/Data_corn/issues/66)).
+The 2026 rules say "SI" where earlier years said "AI". Team DataCorn used SI as a coding and writing assistant, under the team's direction and with human review.
+
+- **Tools.** Claude Code (Anthropic), credited as co-author in the commits it helped write (Claude Fable 5.2, Opus 5.5 and Sonnet 5.5). Codex (OpenAI) helped write the relative erosion index ([#46](https://github.com/RikepilB/Data_corn/issues/46)).
+- **What SI helped with.** Most of the code in `apps/` and `scripts/`, the tests, the planning documents, the GitHub issues, the summaries of the sources we read, and this README. Read every source file and document here as SI-assisted unless its header says otherwise. The header `SI-assisted (<tool>); reviewed by <name>` names a reviewer only after that person has read the file ([#66](https://github.com/RikepilB/Data_corn/issues/66)).
+- **What did not come from SI.** The solution idea, the choice of challenge and the design decisions came from Team DataCorn. Every number in a report is computed by the engine from public data (NASA POWER, SSURGO, CDL, MODIS, NOAA) with the methods cited in [REFERENCES.md](docs/REFERENCES.md). No SI model writes or estimates any value.
+- **No SI at run time.** The API and the web app call no SI model and have no SI dependency.
+- **Media.** The only image in the app is the favicon, a small SVG written as code with SI assistance. Any SI-generated image, video or audio in the demo or the slides carries a visible watermark and is listed here. No NASA logo or insignia appears anywhere.
 
 ## Licence
 
