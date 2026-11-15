@@ -195,7 +195,7 @@
   "stripes.la_nina": "La Niña",
   "stripes.bar": "{year}: relative yield {pct}%{phase}",
 
-  "verdict.enso": "{phase} · {strength} effect on this field",
+  "verdict.enso": "{phase} · {strength} difference in past seasons",
   "verdict.enso_value": "{index} {value}",
   "enso.strength.weak": "weak",
   "enso.strength.moderate": "moderate",

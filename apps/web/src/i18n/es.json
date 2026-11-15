@@ -195,7 +195,7 @@
   "stripes.la_nina": "La Niña",
   "stripes.bar": "{year}: rendimiento relativo {pct} %{phase}",
 
-  "verdict.enso": "{phase} · efecto {strength} en este lote",
+  "verdict.enso": "{phase} · cambio {strength} en campañas pasadas",
   "verdict.enso_value": "{index} {value}",
   "enso.strength.weak": "débil",
   "enso.strength.moderate": "moderado",
