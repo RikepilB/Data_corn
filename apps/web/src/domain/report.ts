@@ -113,6 +113,8 @@ export interface RotationOption {
   relative_yield: number | null;
   planting_soil_water_mm: number | null;
   residue_erosion_risk: RiskLevel;
+  /** Relative index 0-100 against the most exposed option on the same field; null = no data. */
+  erosion_index?: number | null;
   notes: Message[];
 }
 
