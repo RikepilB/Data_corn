@@ -380,6 +380,8 @@
   "rotation.no_carryover": "The model does not carry water between crops.",
   "rotation.current": "What this field does now",
   "rotation.erosion": "Erosion risk from residue",
+  "rotation.erosion_index": "Relative erosion index: {value} of 100",
+  "rotation.erosion_index_caveat": "An index to compare rotations on this field, not a forecast and not tonnes of soil. Based on plot measurements from Missouri.",
   "rotation.erosion_unverified": "Erosion: not verified yet",
   "rotation.h.why": "Why it is here",
   "rotation.h.evidence": "Evidence",
