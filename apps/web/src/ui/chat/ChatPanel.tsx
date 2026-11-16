@@ -10,6 +10,7 @@ import { type Locale, t } from '../../i18n';
 import { Icon } from '../common/Icon';
 import { prepareAttachment } from './attachment';
 import { type ChatMessage, buildChatRequest, errorKey, plainText, sendChat } from './chatClient';
+import { FeedbackRow } from './FeedbackRow';
 import './chat.css';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
@@ -188,6 +189,7 @@ export function ChatPanel({ open, onClose, locale, units, reportId, irrigation }
                 <span className="chat__file-tag">{t(locale, 'chat.attached', { name: m.attachmentName })}</span>
               )}
               {m.text && <p>{m.role === 'assistant' ? plainText(m.text) : m.text}</p>}
+              {m.role === 'assistant' && m.text && <FeedbackRow locale={locale} reportId={reportId} />}
             </div>
           ))}
           {answer !== null && (
