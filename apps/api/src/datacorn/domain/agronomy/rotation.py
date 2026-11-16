@@ -7,8 +7,11 @@ Sin rendimientos por lote, la comparación usa lo que sí se mide: el historial 
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import replace
 
 from datacorn.domain.agronomy._common import worst
+from datacorn.domain.agronomy.cover_factors import cover_factor
+from datacorn.domain.agronomy.erosion import erosion_index
 from datacorn.domain.agronomy.scenarios import ScenarioOutcome
 from datacorn.domain.models import Crop, CropYear, FieldContext, FieldInputs, Tillage
 from datacorn.domain.report import (
@@ -33,6 +36,36 @@ def _erosion(slope_pct: float, residue_high: bool, tillage: Tillage) -> RiskLeve
     if tillage is Tillage.NO_TILL:
         risk = LOWER.get(risk, risk)
     return risk
+
+
+def _with_erosion_index(
+    options: tuple[RotationOption, ...],
+    *,
+    slope: float | None,
+    tillage: Tillage,
+    outcomes: Sequence[ScenarioOutcome],
+) -> tuple[RotationOption, ...]:
+    """Fill `erosion_index` (0-100 vs the most exposed option). No slope or rain: no data."""
+    if slope is None or not outcomes:
+        return options
+    raw: dict[RotationStrategy | None, float] = {}
+    for opt in options:
+        c = cover_factor(opt.strategy, tillage)
+        if c is None:
+            continue
+        per_year = [
+            erosion_index([b.rain_mm for b in o.balance], c, slope_pct=slope).index for o in outcomes
+        ]
+        valid = [v for v in per_year if v is not None]
+        if valid:
+            raw[opt.strategy] = sum(valid) / len(valid)
+    top = max(raw.values(), default=0.0)
+    if top <= 0:
+        return options
+    return tuple(
+        replace(o, erosion_index=round(100 * raw[o.strategy] / top, 1)) if o.strategy in raw else o
+        for o in options
+    )
 
 
 def current_strategy(history: Sequence[CropYear]) -> RotationStrategy | None:
@@ -61,7 +94,8 @@ def compare(
     after_corn = sum(1 for a, b in pairs if b.crop is Crop.MAIZE and a.crop is Crop.MAIZE)
     pattern = " ".join(LETTER[c.crop] for c in history[-8:])
     # Sin pendiente conocida se asume terreno llano; el informe lo declara en sus fuentes.
-    slope = (context.terrain.mean_slope_pct if context.terrain else None) or 0.0
+    slope_known = context.terrain.mean_slope_pct if context.terrain else None
+    slope = slope_known or 0.0
     current = current_strategy(history)
 
     corn_corn = RotationOption(
@@ -100,8 +134,11 @@ def compare(
         and corn_corn.residue_erosion_risk is RiskLevel.LOW
         else Crop.SOYBEAN
     )
+    options = _with_erosion_index(
+        (corn_corn, soy_corn, corn_soy_rye), slope=slope_known, tillage=inputs.tillage, outcomes=outcomes
+    )
     return RotationComparison(
-        options=(corn_corn, soy_corn, corn_soy_rye),
+        options=options,
         recommended=recommended,
         field_history=history,
         message=Message(
