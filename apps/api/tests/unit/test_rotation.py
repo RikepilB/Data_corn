@@ -17,7 +17,12 @@ from datacorn.domain.models import (
     LonLat,
     Terrain,
 )
-from datacorn.domain.report import RiskLevel, RotationComparison, RotationStrategy
+from datacorn.domain.report import (
+    RiskLevel,
+    RotationComparison,
+    RotationOption,
+    RotationStrategy,
+)
 
 ORDER = [
     RotationStrategy.CONTINUOUS_CORN,
@@ -89,3 +94,32 @@ def test_previous_crop_data_kept_for_legacy_consumers() -> None:
     assert comparison.recommended is Crop.SOYBEAN
     assert comparison.field_history
     assert comparison.message.key == "rotation.soy_first"
+
+
+def test_cover_factors_are_cited_values_and_rye_has_none() -> None:
+    from datacorn.domain.agronomy.cover_factors import cover_factor
+    from datacorn.domain.models import Tillage
+
+    assert cover_factor(RotationStrategy.CONTINUOUS_CORN, Tillage.CONVENTIONAL) == 0.08
+    assert cover_factor(RotationStrategy.CORN_SOYBEAN, Tillage.NO_TILL) == pytest.approx(0.015)
+    assert cover_factor(RotationStrategy.CORN_SOYBEAN_RYE, Tillage.NO_TILL) is None
+
+
+def _rain_outcome(*rain: float):  # noqa: ANN202
+    from types import SimpleNamespace
+
+    return SimpleNamespace(balance=[SimpleNamespace(rain_mm=r) for r in rain])
+
+
+def test_erosion_index_scales_to_the_most_exposed_option_and_skips_rye() -> None:
+    from datacorn.domain.models import Tillage
+
+    options = rotation._with_erosion_index(
+        tuple(RotationOption(Crop.MAIZE, None, None, RiskLevel.LOW, strategy=s) for s in ORDER),
+        slope=4.0,
+        tillage=Tillage.CONVENTIONAL,
+        outcomes=[_rain_outcome(0.0, 30.0, 50.0)],
+    )
+    corn, rot, rye = (o.erosion_index for o in options)
+    assert rot == 100.0 and corn == pytest.approx(100 * 0.08 / 0.13, abs=0.1)
+    assert rot is not None and rye is None

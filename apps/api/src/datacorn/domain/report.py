@@ -121,6 +121,8 @@ class RotationOption:
     # Opcionales: los consumidores viejos siguen leyendo `previous_crop`.
     strategy: RotationStrategy | None = None
     current: bool | None = None  # True solo en la que coincide con el historial CDL
+    # Índice relativo 0-100 contra la opción más expuesta del mismo lote; None = sin dato.
+    erosion_index: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

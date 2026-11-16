@@ -54,10 +54,13 @@ def test_analyze_rotation_block_has_three_strategies(offline_client: TestClient)
     assert [o["current"] for o in options] == [False, True, False]  # el CDL falso alterna maíz y soya
     assert set(options[0]) == {
         "previous_crop", "relative_yield", "planting_soil_water_mm", "residue_erosion_risk",
-        "notes", "strategy", "current",
+        "notes", "strategy", "current", "erosion_index",
     }
     assert options[0]["relative_yield"] is None  # sin dato: null, nunca 0
     assert options[2]["residue_erosion_risk"] == "no_data"
+    assert options[2]["erosion_index"] is None  # el centeno no tiene factor C citado
+    # El clima sintético no tiene lluvia erosiva (>= 12.7 mm): sin dato, no 0.
+    assert options[0]["erosion_index"] is None
     assert rotation["recommended"] in {"soybean", "maize"}
     assert rotation["field_history"]
     assert rotation["message"]["key"]
