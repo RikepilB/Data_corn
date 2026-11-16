@@ -4,6 +4,7 @@
 // handleChat, and streams the Response back. Nothing about a request is logged.
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
+import { handleFeedback } from './chat/feedback';
 import { handleChat } from './chat/handler';
 import { withBudget } from './chat/budget';
 import { RATE_LIMIT_MAX, createRateLimiter } from './chat/limits';
@@ -35,6 +36,11 @@ const deps = {
   onModelError: (reason: string) => console.error(`Model call failed: ${reason}`),
 };
 
+const feedbackDeps = {
+  limiter: createRateLimiter(rateMax),
+  record: (entry: unknown) => console.log(`chat_feedback ${JSON.stringify(entry)}`),
+};
+
 const server = createServer(async (req, res) => {
   const controller = new AbortController();
   res.on('close', () => controller.abort());
@@ -55,10 +61,13 @@ const server = createServer(async (req, res) => {
       duplex: 'half',
     } as RequestInit);
 
+    const path = new URL(request.url).pathname;
     const response =
-      new URL(request.url).pathname === '/api/chat'
+      path === '/api/chat'
         ? await handleChat(request, deps)
-        : new Response(JSON.stringify({ code: 'not_found' }), { status: 404 });
+        : path === '/api/chat-feedback'
+          ? await handleFeedback(request, feedbackDeps)
+          : new Response(JSON.stringify({ code: 'not_found' }), { status: 404 });
 
     // A request refused before its body was read (too large, wrong method) is still read to the end
     // and thrown away, so the client gets the answer instead of a dropped connection.
