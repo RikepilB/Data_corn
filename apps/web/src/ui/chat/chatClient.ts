@@ -164,6 +164,29 @@ export function toBase64(bytes: Uint8Array): string {
  * Sends one question and calls `onText` with each piece of the answer. Resolves with how it ended.
  * The panel passes an AbortSignal so closing it stops the request.
  */
+export const FEEDBACK_ENDPOINT = '/api/chat-feedback';
+
+export interface FeedbackVote {
+  rating: 'up' | 'down';
+  reason?: 'wrong' | 'unclear' | 'not_useful';
+  reportId: string;
+  locale: Locale;
+}
+
+/** Sends one vote. It carries no question, answer or file. Returns whether the server took it. */
+export async function sendFeedback(vote: FeedbackVote, fetcher: typeof fetch = fetch): Promise<boolean> {
+  try {
+    const response = await fetcher(FEEDBACK_ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ rating: vote.rating, reason: vote.reason ?? null, reportId: vote.reportId, locale: vote.locale }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function sendChat(
   request: ChatRequest,
   onText: (delta: string) => void,
