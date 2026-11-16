@@ -6,7 +6,7 @@ import { ApiError, api } from '../infrastructure/apiClient';
 import { SAMPLE_FIELD_ID, type PrecomputedReport, loadPrecomputed } from '../infrastructure/precomputed';
 import { isMock, mockDescribe, mockReport } from './mock';
 
-// Pasos de la pantalla (docs/flujo.md §4)
+// Pasos de la pantalla (docs/app/flujo-y-pantalla.md §4)
 export type Step = 'globe' | 'draw' | 'calculating' | 'form' | 'results';
 
 /** True when the form holds the values a saved report was computed with. */

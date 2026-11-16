@@ -71,7 +71,7 @@ Qué ve el agricultor:
 
 | # | Rotación | Por qué está |
 |---|---|---|
-| 1 | Maíz continuo | Línea de base; es la actual si el historial CDL del campo termina en maíz |
+| 1 | Maíz continuo | Línea de base; es la actual solo si el historial CDL muestra maíz en las dos últimas campañas (secuencia maíz → maíz). Si el historial es corto o ambiguo, marcar "actual desconocida" y pedir confirmación al agricultor |
 | 2 | Maíz → soya | Rompe el ciclo del gusano de la raíz y deja nitrógeno; es la actual si el historial alterna |
 | 3 | Maíz → soya con centeno de cobertura | Cubre el suelo en invierno (erosión, infiltración); pide cuidar el agua en primavera |
 

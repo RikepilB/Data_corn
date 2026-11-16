@@ -72,7 +72,7 @@ Todos los indicadores se calculan siempre.
 | RF-40 | Cambiar entre español e inglés. | Debe |
 | RF-41 | Cambiar entre unidades imperiales (acres, bu/ac, in, °F) y métricas (ha, t/ha, mm, °C). | Debe |
 | RF-42 | Compartir un enlace que lleva el contorno y los datos en la URL, sin cuentas. | Debería |
-| RF-43 | Descargar el reporte completo en PDF, en el mismo idioma y las mismas unidades. Lleva un resumen con la imagen del lote, los 9 indicadores en detalle con gráfico, El Niño por fase, la rotación con el historial del lote, las zonas, las fuentes con su cita y el aviso (docs/pantalla.md). | Debe |
+| RF-43 | Descargar el reporte completo en PDF, en el mismo idioma y las mismas unidades. Lleva un resumen con la imagen del lote, los 9 indicadores en detalle con gráfico, El Niño por fase, la rotación con el historial del lote, las zonas, las fuentes con su cita y el aviso (docs/app/flujo-y-pantalla.md, sección «Reporte completo (PDF)»). | Debe |
 
 ### E. Regiones
 

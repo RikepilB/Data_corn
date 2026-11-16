@@ -1,7 +1,7 @@
 <!-- SI-assisted (Claude Code); reviewed by <name> -->
 # Planning documentation
 
-Index of the planning documents for Field Shift, Team DataCorn's entry to the NASA Space Apps Challenge 2026 ("Field Shift: Adapting Farms with NASA Data"). Start with the [project README](../../README.md) for the pitch, the status and the quickstart. Come here for the reasoning behind it.
+Index of the planning documents for Field Shift, Team DataCorn's entry to the NASA Space Apps Challenge 2026 ("Field Shift: Adapting Farms with NASA Data"). Start with the [project README](../../README.md) for the pitch, the status and the quickstart. Come here for the reasoning behind it. The map of every file in `docs/`, including the Spanish app spec and the archive, is in the [docs README](../README.md).
 
 These documents are drafts written on 2026-11-14 with SI assistance (see the header of each file). Facts come from this repository's own documents or from dated probes. Anything else is marked **to verify**.
 

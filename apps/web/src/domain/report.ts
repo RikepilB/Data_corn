@@ -149,7 +149,7 @@ export interface EnsoInsight {
   message: Message;
 }
 
-/** Una campaña simulada: película (día a día) y franja (RF-31, RF-38). Ver docs/contrato-api.md §5. */
+/** Una campaña simulada: película (día a día) y franja (RF-31, RF-38). Ver docs/app/arquitectura-y-api.md §B5. */
 export interface SeasonRun {
   year: number;
   observed_days: number;

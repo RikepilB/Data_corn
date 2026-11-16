@@ -85,7 +85,7 @@ function useIsDesktop(): boolean {
   return desktop;
 }
 
-/** Pantalla única por pasos (docs/pantalla.md): globo → dibujar → calcular → datos → resultados. */
+/** Pantalla única por pasos (docs/app/flujo-y-pantalla.md §5): globo → dibujar → calcular → datos → resultados. */
 export default function DataCornApp() {
   const [locale, setLocale] = useState<Locale>(() => (navigator.language?.startsWith('es') ? 'es' : 'en'));
   const [units, setUnits] = useState<UnitSystem>('imperial');

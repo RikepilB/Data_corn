@@ -28,11 +28,11 @@ domain or the screen.
 |---|---|
 | `apps/api/` | Python 3.12 + FastAPI backend (Cloud Run), clean architecture |
 | `apps/web/` | Astro + React frontend (single screen) |
-| `docs/` | Challenge text, flow, screen, requirements and architecture (team docs in Spanish) |
+| `docs/` | All documentation; start at the [docs map](../docs/README.md) |
 | `infra/` | Deployment notes: Cloud Run, Firebase Hosting, budget |
 
-See [docs/arquitectura.md](../docs/arquitectura.md) for the architecture and
-[docs/requerimientos.md](../docs/requerimientos.md) for functional and non-functional requirements.
+See [docs/app/arquitectura-y-api.md](../docs/app/arquitectura-y-api.md) for the architecture and the API contract,
+[docs/app/requerimientos.md](../docs/app/requerimientos.md) for functional and non-functional requirements.
 
 ## Status
 
@@ -48,7 +48,7 @@ The API runs the engine: `POST /api/v1/fields/analyze` returns a field report, a
 - [ ] Firebase project linked to the Google Cloud project, and a budget alert
 - [ ] Deployment steps: [infra/README.md](../infra/README.md)
 
-### Build steps (details in [docs/requerimientos.md](../docs/requerimientos.md))
+### Build steps (details in [docs/app/requerimientos.md](../docs/app/requerimientos.md))
 - [ ] **F0 Base:** deploy the API (`/health`) on Cloud Run and the web app with the globe on Firebase Hosting
 - [ ] **F1 Field:** fly to my location on the globe, draw the field point by point (Terra Draw), validate the polygon, detect region and county
 - [ ] **F2 Field data:** SSURGO soil, NASADEM terrain, CDL crop history, NASS county yields and typical planting date

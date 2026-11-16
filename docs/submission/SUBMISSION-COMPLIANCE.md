@@ -112,7 +112,7 @@ Character limits are **not stated in the guide**. Check them in the Edit form; t
 | Criterion | How Field Shift earns it |
 |---|---|
 | **Impact** | A rotation choice for corn producers on a declining aquifer (Ogallala). The real decision is which rotation holds up in a dry year and how much water it needs. The method extends to any US corn county. |
-| **Creativity** | Splitting results by dry / normal / wet years instead of averaging hides fewer failures. The planting window and tasseling–silking stress sit inside a rotation comparison, not as a stand-alone planting app (2024 prior art). Automatic bare-window detection and the alien-perspective storytelling add to this. |
+| **Creativity** | Splitting results by dry / normal / wet years instead of averaging hides fewer failures. The planting window and tasseling–silking stress sit inside a rotation comparison, not as a stand-alone planting app (2024 prior art). Similar tools exist (ZARC in Brazil, RotationARM in Australia, the K-State Crop Water Allocator), so the form text says "we found no public tool that…", never "first". Automatic bare-window detection and the alien-perspective storytelling add to this. |
 | **Validity** | The FAO-56 water balance is checked against SMAP anomalies, with stated limits on resolution and uncertainty (9 km pixel; scenarios, not forecasts). |
 | **Relevance** | NASA data is core to every module: POWER (climate, soil temperature), SMAP, MODIS NDVI and GRACE. It answers the challenge's question about rotations, soil health and resilience directly. |
 | **Presentation** | One clear demo flow: draw a plot → see the calendar → see the matrix. Use a farmer story; the official guide says to give it equal weight with the other four. |

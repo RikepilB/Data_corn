@@ -1,4 +1,4 @@
-// Película y franjas (docs/contrato-api.md §5): qué campaña mostrar, colores y fechas.
+// Película y franjas (docs/app/arquitectura-y-api.md §B5): qué campaña mostrar, colores y fechas.
 import { addDays, daysBetween } from './format';
 import type { FieldReport, RiskLevel, SeasonRun, Stage } from './report';
 

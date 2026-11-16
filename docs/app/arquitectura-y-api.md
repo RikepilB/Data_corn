@@ -1,6 +1,10 @@
-# Data Corn — Arquitectura
+# Data Corn — Arquitectura y contrato de la API
 
-## 1. Vista general
+Parte A: cómo está armado el sistema. Parte B: el contrato entre la API y la web. Las dos partes están en un solo archivo porque cambian juntas.
+
+## Parte A · Arquitectura
+
+### A1. Vista general
 
 ```mermaid
 flowchart LR
@@ -21,7 +25,7 @@ flowchart LR
 - **API:** FastAPI en Cloud Run, región `us-central1`. Arranca en 0 instancias y escala sola.
 - **Mismo dominio:** Firebase Hosting reenvía `/api/**` a Cloud Run, así que no hace falta CORS en producción.
 
-## 2. Clean architecture del backend
+### A2. Clean architecture del backend
 
 ```mermaid
 flowchart TB
@@ -63,7 +67,7 @@ flowchart TB
 | Interfaces | `apps/api/src/datacorn/interfaces/http/` | API REST, validación y serialización |
 | Recursos | `apps/api/src/datacorn/resources/` | Perfiles de región y parámetros de cultivos en YAML |
 
-## 3. Escalar a otros países: perfiles de región
+### A3. Escalar a otros países: perfiles de región
 
 Cada región es un archivo YAML. Para cada variable, el archivo indica qué fuente usar y en qué orden probar los respaldos. Sumar Perú, Brasil o Argentina consiste en escribir su perfil y, si una fuente es nueva, su adaptador. El dominio y la pantalla no cambian.
 
@@ -82,30 +86,12 @@ Cada región es un archivo YAML. Para cada variable, el archivo indica qué fuen
 
 El indicador de El Niño se calcula igual en todas las regiones, agrupando la historia del lote por fase. Si en un lugar la relación es débil, como en el Corn Belt, el sistema lo informa. Donde es fuerte, como en la costa del Perú, se ve en los datos. El sistema no supone el efecto: lo mide.
 
-## 4. Contrato de la API
-
-| Método y ruta | Entrada | Salida |
-|---|---|---|
-| `GET /api/v1/health` | — | Estado del servicio |
-| `GET /api/v1/regions` | — | Regiones con su estado (activa o planificada) y sus fuentes |
-| `GET /api/v1/demo-fields` | — | Lotes de ejemplo |
-| `GET /api/v1/layers` | — | Catálogo de capas: id, fuente (GIBS o Earth Engine), leyenda y rango de fechas |
-| `GET /api/v1/layers/drought/tiles?date=AAAA-MM` | Mes | Plantilla de teselas de Earth Engine con la anomalía de humedad SMAP L4 de ese mes (en caché por unas horas) |
-| `POST /api/v1/fields/describe` | Contorno GeoJSON | Contexto del lote (región, condado, área, suelo, relieve, cultivos por año, rendimiento del condado, ENSO actual) y valores por defecto. En la misma llamada descarga el clima y los datos satelitales del lote y los deja en caché. |
-| `POST /api/v1/fields/analyze` | Contorno, campaña y los datos del formulario | Reporte: veredicto, película de la campaña (serie diaria del año típico, de los años El Niño y de cada año), franjas por año, indicadores, rotación, ENSO, zonas, confianza y fuentes. Usa los datos en caché, así que es inmediato. |
-
-El PDF no pasa por la API: la web lo arma con el mismo reporte.
-
-- **Unidades:** toda la API trabaja en unidades métricas. La web convierte a imperiales solo al mostrar.
-- **Textos:** la API no devuelve frases armadas. Devuelve claves de texto con sus valores (por ejemplo `flowering_water.high` con `{years: 9, total: 20}`), y la web las traduce con `es.json` o `en.json`. Así el mismo reporte sirve para los dos idiomas.
-- **Pendientes:** mientras una función no esté construida, su ruta responde `501` con el paso que falta (por ejemplo `F4`).
-
-## 5. Estructura de carpetas
+### A4. Estructura de carpetas
 
 ```
 Nasa/                               raíz del repositorio
 ├─ README.md · LICENSE · .gitignore · .editorconfig · firebase.json
-├─ docs/                            reto, guías, flujo, pantalla, requerimientos, arquitectura
+├─ docs/                            mapa en docs/README.md (app/, challenge/, planning/, …)
 ├─ apps/
 │  ├─ api/                          backend Python (Cloud Run)
 │  │  ├─ pyproject.toml · Dockerfile · .env.example
@@ -131,7 +117,7 @@ Nasa/                               raíz del repositorio
 └─ infra/                           despliegue: Cloud Run, Firebase, presupuesto
 ```
 
-## 6. Decisiones técnicas
+### A5. Decisiones técnicas
 
 | Tema | Decisión | Motivo |
 |---|---|---|
@@ -148,7 +134,7 @@ Nasa/                               raíz del repositorio
 | Unidades internas | Métricas | Se convierten solo al mostrarlas |
 | Licencia | Apache-2.0 | La pide Space Apps por defecto |
 
-## 7. Accesos que faltan
+### A6. Accesos que faltan
 
 | Qué | Para qué |
 |---|---|
@@ -157,3 +143,99 @@ Nasa/                               raíz del repositorio
 | Clave de NASS QuickStats (gratis) | Rendimiento por condado y fechas de siembra |
 | Proyecto de Firebase vinculado al de Google Cloud | Publicar la web |
 | Repositorio en GitHub | Código abierto, enlace para la entrega |
+
+El estado real de cada cuenta está en [setup/ACCOUNTS.md](../setup/ACCOUNTS.md). Según ese archivo, la prueba de $300 de Google Cloud no está disponible en la cuenta del propietario del repositorio.
+
+## Parte B · Contrato entre la API y la web
+
+Los tipos exactos viven en `apps/api/src/datacorn/domain/report.py` (Python) y en `apps/web/src/domain/report.ts` (TypeScript). Este documento fija lo que los tipos no dicen: claves de texto, parámetros y qué significa cada número.
+
+### B1. Rutas
+
+| Método y ruta | Entrada | Salida | Cuándo la llama la web |
+|---|---|---|---|
+| `GET /api/v1/health` | — | Estado del servicio | Apoyo |
+| `GET /api/v1/regions` | — | Regiones con su estado (activa o planificada) y sus fuentes | Apoyo |
+| `GET /api/v1/demo-fields` | — | Lotes de ejemplo | Apoyo |
+| `GET /api/v1/layers` | — | Catálogo de capas: id, fuente (GIBS o Earth Engine), leyenda y rango de fechas | — |
+| `GET /api/v1/layers/drought/tiles?date=AAAA-MM` | Mes | Plantilla de teselas de Earth Engine con la anomalía de humedad SMAP L4 de ese mes (en caché por unas horas) | — |
+| `POST /api/v1/fields/describe` `{geometry, season}` | Contorno GeoJSON y campaña | Contexto del lote (región, condado, área, suelo, relieve, cultivos por año, rendimiento del condado, ENSO actual) y valores por defecto. En la misma llamada descarga el clima y los datos satelitales del lote y los deja en caché. | Al cerrar el lote, en el paso 3 «Calculando». Puede tardar de 10 a 40 s. |
+| `POST /api/v1/fields/analyze` `{geometry, season, planting_date, hybrid_rm_days, irrigation, irrigation_capacity_mm_day, tillage, yield_goal_t_ha, previous_crop}` | Contorno, campaña y los datos del formulario | Reporte: veredicto, película de la campaña (serie diaria del año típico, de los años El Niño y de cada año), franjas por año, indicadores, rotación, ENSO, zonas, confianza y fuentes. Usa los datos en caché, así que es inmediato. | Al pulsar «Ver resultados». Tarda menos de 2 s. |
+
+El PDF no pasa por la API: la web lo arma con el mismo reporte.
+
+Errores: `422 invalid_geometry {reason}`, `422 data_unavailable {source, reason}`, `501 not_implemented {detail}`. Mientras una función no esté construida, su ruta responde `501` con el paso que falta (por ejemplo `F4`).
+
+### B2. Unidades, textos y parámetros
+
+- **Unidades:** toda la API trabaja en unidades métricas (mm, °C, ha, t/ha, mm/día). La web convierte a imperiales solo al mostrar.
+- **Textos:** la API no devuelve frases armadas. Devuelve claves de texto con sus valores (por ejemplo `flowering_water.high` con `{years: 9, total: 20}`), y la web las traduce con `es.json` o `en.json`. Así el mismo reporte sirve para los dos idiomas.
+- **Parámetros de los mensajes:** cada `Message` tiene `key` y `params`. La web da formato a los parámetros según el sufijo de su nombre:
+
+| Sufijo | Se muestra como |
+|---|---|
+| `_mm` | lámina en mm o in, según las unidades |
+| `_c` | temperatura en °C o °F |
+| `_date` | fecha corta según el idioma (`2027-04-25` → «25 abr» / «Apr 25») |
+| `_pct` | porcentaje entero («12 %») |
+| `_indicator` | nombre del indicador traducido (`indicator.<valor>`) |
+| `_crop` | cultivo traducido (`crop.<valor>`) |
+| `_phase` | fase traducida (`enso.<valor>`) |
+| sin sufijo | tal cual |
+
+### B3. Indicadores: número clave y mensajes
+
+| `id` | `value` / `unit` | Claves de mensaje | Parámetros |
+|---|---|---|---|
+| `planting_window` | `null` | `planting_window.inside` · `.early` · `.late` | `start_date`, `end_date` |
+| `hybrid_fit` | años en que madura antes de la helada / `count` | `hybrid_fit.ok` · `.tight` · `.risky` | `years`, `total`, `rm` |
+| `frost` | probabilidad de helada tardía, 0-1 / `fraction` | `frost.low` · `.medium` · `.high` | `late_pct`, `early_pct` |
+| `flowering_water` | años con estrés en floración / `count` | `flowering_water.low` · `.medium` · `.high` | `years`, `total`, `loss_pct` |
+| `flowering_heat` | mediana de días calurosos en floración / `days` | `flowering_heat.low` · `.medium` · `.high` | `days`, `threshold_c` |
+| `irrigation` (solo con riego) | lámina de la semana pico / `mm_week` | `irrigation.ok` · `.tight` · `.short` | `peak_week_mm`, `capacity_week_mm`, `season_mm` |
+| `season_progress` | desfase en días (+ adelantado, − atrasado) / `days` | `season_progress.ahead` · `.normal` · `.behind` · `.not_started` · `.no_data` | `days`, `season` |
+| `waterlogging` | años con encharcamiento / `count` | `waterlogging.low` · `.medium` · `.high` | `years`, `total` |
+| `field_zones` | `null` | `field_zones.needs_ee` | — |
+
+Qué revisar en campo (`field_check.key`): `check.soil_probe`, `check.scout_silking`, `check.frost_low_spots`, `check.irrigation_schedule`, `check.drainage`, `check.scout_field`.
+
+### B4. Resumen, rotación y El Niño
+
+- `summary.recommendation`: `summary.good` o `summary.watch`, con los parámetros `start_date`, `end_date` y `main_indicator`.
+- `rotation.message`: `rotation.soy_first`, con `pattern` (por ejemplo `"M S M S M"`, del año más viejo al más nuevo), `after_soy` y `after_corn` (años de cada caso en el historial).
+- `rotation.options[].notes`: `rotation.note.rootworm` y `rotation.note.residue`.
+- `enso.message`: `enso.weak`, `enso.moderate` o `enso.strong`, con `now_phase`, `delta_pct` (diferencia de rendimiento relativo entre la fase actual y los años neutrales) y `years` (años de la historia en esa fase). Con menos de 5 años en la fase siempre sale `enso.weak`, porque no hay evidencia suficiente.
+- `rotation.message` también puede ser `rotation.corn_on_slopes`, con los mismos parámetros, cuando el lote tiene mucha pendiente y labranza convencional.
+
+### B5. Película y franjas
+
+- `runs[]` trae una campaña por año análogo, ordenadas por año. Si la campaña ya tiene días observados, `observed_days > 0` en todas: esos primeros días son los reales.
+- `typical_year` es el año de la campaña con el rendimiento relativo mediano. Es la que se muestra por defecto.
+- **Película:** el día `i` es `start + i`. Para el lote se usan `water_pct[i]` (0-100) y `tmax_c[i]`. Para el mapa de la zona, se usa la misma fecha de ese año en la capa SMAP de GIBS (hay datos desde 2015-03-31).
+- **Franjas:** cada `run` es una franja. Su color sale de `relative_yield` (1.0 = azul, ≤ 0.7 = rojo) y lleva una marca si `enso_phase` es `el_nino` o `la_nina`.
+- **«Años El Niño»:** en la película es la campaña con el rendimiento relativo mediano entre los años con El Niño.
+
+### B6. Las 6 tarjetas de la pantalla
+
+| # | Tarjeta | Fuente |
+|---|---|---|
+| 1 | Fecha de siembra · o · Avance del lote | `planting_window`; si la campaña ya empezó y `season_progress` tiene datos, `season_progress` |
+| 2 | Agua en floración | `flowering_water` |
+| 3 | Calor en floración | `flowering_heat` |
+| 4 | Híbrido y helada | `hybrid_fit` (número) + `frost` (en la frase) |
+| 5 | Riego · o · Encharcamiento | `irrigation` si el lote tiene riego; si no, `waterlogging` |
+| 6 | Rotación | `rotation` |
+
+### B7. Datos sin cuenta (estado actual)
+
+Funciona sin claves, con estas fuentes:
+- **Clima, humedad del suelo y altura:** NASA POWER (MERRA-2).
+- **Suelo y pendiente:** USDA SSURGO, vía Soil Data Access.
+- **Condado:** FCC Census Area API.
+- **Cultivo por año:** USDA NASS CropScape (CDL).
+- **NDVI:** MODIS MOD13Q1, vía ORNL DAAC.
+- **El Niño:** NOAA CPC ONI.
+- **Capas del globo:** NASA GIBS.
+- **Suelo fuera de EE. UU.:** ISRIC SoilGrids.
+
+Con cuentas se suman Earth Engine (PRISM, HLS/Sentinel-2, SMAP, zonas del lote, sequía) y NASS QuickStats (rendimiento por condado).

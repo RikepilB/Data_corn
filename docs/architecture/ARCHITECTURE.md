@@ -3,6 +3,8 @@
 SI-assisted evaluation (Claude Code) of the team's proposal. Decisions marked **TEAM** are the
 team's to make; everything else is a recommendation the team can overrule.
 
+> **Layout, 2026-11-14 evening (decision D8): the Data Corn layout is the trunk.** The engine lives in `apps/api/` (`domain/agronomy/` is the science, `infrastructure/` the data clients, `application/` the use cases) and there is no separate `pipeline/` directory; the web app is `apps/web/`. This document was written before the move: read `pipeline/` as `apps/api/` and `web/` as `apps/web/` (map in [docs/planning/README.md](../planning/README.md) section 6). The demo stays precompute-first: the engine writes one ficha per field offline from NASA POWER and USDA SSURGO, and the site is static on Firebase Hosting. The live API (Cloud Run, Earth Engine) is a stretch goal.
+
 > **Pivot, 2026-11-14 afternoon (decision D7).** After the mentor session the team narrowed the
 > scope to **corn, large and medium US producers, one state**. The decisions to support are
 > **when to plant** and **at which stage water runs short**. Prior art is in

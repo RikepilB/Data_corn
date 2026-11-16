@@ -1,5 +1,5 @@
 // Texto de los mensajes de la API: clave i18n + parámetros con formato según su sufijo
-// (docs/contrato-api.md §2).
+// (docs/app/arquitectura-y-api.md §B2).
 import { type Locale, numberLocale, t } from '../i18n';
 import type { Message } from './report';
 import { type UnitSystem, depth, format, temperature } from './units';

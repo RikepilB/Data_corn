@@ -1,3 +1,5 @@
+> **Archived 2026-11-14. Not current.** This is the pre-pivot design: Andean smallholder sites (Puno, Piura), El Niño / La Niña scenarios and a crop library for Peru. The team then narrowed the scope to corn in one US state (decision D7 in [ARCHITECTURE](../architecture/ARCHITECTURE.md)). Kept for its FAO-56, SCS-CN and RUSLE notes. Map of all documents: [docs README](../README.md).
+
 # Solución técnica — documento de trabajo del equipo
 
 Reto: Field Shift: Adapting Farms with NASA Data (NASA Space Apps 2026)

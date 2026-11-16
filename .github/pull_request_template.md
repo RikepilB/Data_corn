@@ -6,7 +6,7 @@
 ## Checklist
 
 - [ ] One branch per task (`feat/<slug>`), and this pull request goes into `main`. Nothing was pushed to `main` directly.
-- [ ] **Contract first.** If the report changed, `apps/api/src/datacorn/domain/report.py`, `apps/web/src/domain/report.ts` and `docs/contrato-api.md` changed together, engine first. Not touched: ☐
+- [ ] **Contract first.** If the report changed, `apps/api/src/datacorn/domain/report.py`, `apps/web/src/domain/report.ts` and `docs/app/arquitectura-y-api.md` changed together, engine first. Not touched: ☐
 - [ ] **Tests green.** API: `cd apps/api && uv run --extra dev ruff check src tests && uv run --extra dev pytest -q`. Web: `cd apps/web && npm run build && npm test`. If you touched the map or the flow, also `npx playwright test --workers=1` after the build.
 - [ ] Missing data is `null` or `not-available`, never 0. Results are scenarios, not forecasts.
 - [ ] Files written with SI assistance start with `SI-assisted (Claude Code); reviewed by <name>`.
