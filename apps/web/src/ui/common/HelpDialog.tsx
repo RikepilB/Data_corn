@@ -22,6 +22,9 @@ const METRICS: [title: string, method: string][] = [
   ['layer.zones', 'method.field_zones'],
 ];
 
+// The engine's formulas, in the order it applies them (apps/api/src/datacorn/domain/agronomy).
+const EQUATIONS = ['gdd', 'et0', 'etc', 'balance', 'yield'] as const;
+
 /** Button names and symbols quoted in the answers come from their own keys, so the two cannot drift apart. */
 function faqParams(locale: Locale): Record<string, string> {
   const keys = {
@@ -184,6 +187,15 @@ export function HelpDialog({ open, locale, onClose }: { open: boolean; locale: L
           </dl>
           <h3 className="help__h">{t(locale, 'help.method.level_title')}</h3>
           <p>{t(locale, 'help.method.level_text', params)}</p>
+          <h3 className="help__h">{t(locale, 'help.method.eq_title')}</h3>
+          <dl className="help__metrics">
+            {EQUATIONS.map((e) => (
+              <div key={e}>
+                <dt>{t(locale, `help.method.eq.${e}.t`)}</dt>
+                <dd>{t(locale, `help.method.eq.${e}.d`)}</dd>
+              </div>
+            ))}
+          </dl>
           <h3 className="help__h">{t(locale, 'help.method.support_title')}</h3>
           <p>{t(locale, 'help.method.support_text', params)}</p>
           <h3 className="help__h">{t(locale, 'help.method.limits_title')}</h3>
