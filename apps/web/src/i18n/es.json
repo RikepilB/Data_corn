@@ -379,6 +379,8 @@
   "rotation.no_carryover": "El modelo no traslada el agua de un cultivo al siguiente.",
   "rotation.current": "Lo que hace hoy este lote",
   "rotation.erosion": "Riesgo de erosión por rastrojo",
+  "rotation.erosion_index": "Índice relativo de erosión: {value} de 100",
+  "rotation.erosion_index_caveat": "Un índice para comparar rotaciones en este lote, no un pronóstico ni toneladas de suelo. Basado en mediciones de parcelas de Misuri.",
   "rotation.erosion_unverified": "Erosión: aún sin verificar",
   "rotation.h.why": "Por qué aparece",
   "rotation.h.evidence": "Evidencia",
