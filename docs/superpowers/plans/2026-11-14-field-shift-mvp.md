@@ -714,7 +714,7 @@ test("priority ranking keeps current first", () => expect(rankByPriorities(ex, [
   - no `input[type=password]` exists;
   - there are no console errors.
 
-  Run `pnpm build && pnpm test:e2e` → PASS.
+  Run `npm run build && npm run test:e2e` → PASS.
 - [ ] **Step 7: Commit.**
 
 ---
