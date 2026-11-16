@@ -151,7 +151,8 @@ export const LIVE_LAYERS: Record<LiveLayerId, LiveLayer> = {
   },
 };
 
-export const GLOBE_LAYERS: LayerId[] = ['clouds', 'rain_now', 'sea_temp', 'soil_moisture', 'heat', 'vegetation'];
+// The four layers the app always had come first and stay; the live ones are added after them.
+export const GLOBE_LAYERS: LayerId[] = [...LAYER_ORDER, 'clouds', 'rain_now', 'sea_temp'];
 export const isLive = (id: string | null): id is LiveLayerId => id != null && id in LIVE_LAYERS;
 
 /** URL de cada parte de una capa en vivo para un cuadro (GIBS ajusta la hora a la imagen más cercana). */
