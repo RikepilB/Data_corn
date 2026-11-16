@@ -97,6 +97,16 @@ The 2024 global Galactic Impact winner built planting-risk windows from SMAP and
 
 **The gap.** The research found no public tool that, for one field, compares three or four rotations (current included) on planting window, water shortage at flowering, irrigation demand and bare-soil days, with the evidence, gaps and risks of each, over historical dry, normal and wet years.
 
+**Beyond the US: three partial twins.** A global scan ([research note](../research/MERCADO-GLOBAL-soluciones-similares.es.md); about 35 further searches, mostly search summaries rather than primary pages) found no identical public tool. It found three that a judge could name:
+
+| Tool | What it does | What it lacks for this decision |
+|---|---|---|
+| [CropARM / RotationARM (UniSQ, Queensland DPI)](https://www.unisq.edu.au/research/sqnnsw-hub/blogs/croparm26) | APSIM-based comparison of multi-year cropping strategies, including between-crop effects; 24 sites in Queensland and New South Wales | Another region; no NASA data. We do not model between-crop effects, and every ficha says so |
+| [Crop Water Allocator (K-State)](https://eupdate.agronomy.ksu.edu/article/crop-water-allocator-designed-to-help-farmers-with-limited-water-519-2) | Chooses a crop or crop mix for limited irrigation water by net return, western Kansas | Economics first; as far as we found, no dry / normal / wet split, no planting window, no stage stress. **Access and scope to verify** |
+| [Fruchtfolge (University of Bonn)](https://ageconsearch.umn.edu/record/305287/files/Dispap_20_6.pdf) | Open-source crop-plan optimisation per plot, for profit under German fertiliser rules | No water balance and no climate by year |
+
+Planting-window services are common and mostly public (ZARC in Brazil since 1996, KATAM in Indonesia, a Google and Government of India monsoon-onset service, TAMSAT-ALERT in Africa). So are irrigation-timing tools (KanSched, Irré-LIS, CROPWAT). Rotation planners compare mainly money. The wording rule: say "we found no public tool that…", never "first".
+
 **What we add (draft; the team finalises the wording in [#29](https://github.com/RikepilB/Data_corn/issues/29)).** A public, zero-data-entry comparison of rotations for one field, built from decades of NASA POWER climate and split by dry, normal and wet years. The planting window and the flowering-stage stress are columns of that comparison. Uncertainty is shown as ranges and confidence levels, and each rotation carries its own evidence, gaps and risks.
 
 **Lessons that shape the design** (research note, section 3): one decision, one user, one field; no data entry; uncertainty always visible; mark where the human decides; US units. They are carried into [UI-UX-DESIGN](UI-UX-DESIGN.md). Several broad agtech platforms were wound down or taken private between 2024 and 2026 (press reports, research note, section 1.3); the tools that last are simple, tied to one decision and hosted by a stable institution.
@@ -108,6 +118,7 @@ The 2024 global Galactic Impact winner built planting-risk windows from SMAP and
 | State, field, rotations, year-type split and thresholds (mentor questions 1 to 4) | [#27](https://github.com/RikepilB/Data_corn/issues/27) |
 | Validation, erosion, uncertainty display, judging (questions 5 to 10) and the local schedule | [#28](https://github.com/RikepilB/Data_corn/issues/28) |
 | NVS-knot to NavePlant link; the 2024 "WaterWise" result (not used here); current state of the Planting Date Advisor | [#29](https://github.com/RikepilB/Data_corn/issues/29) |
+| Access and scope of the Crop Water Allocator and ARMonline; whether Fruchtfolge or the Crop Water Allocator model water by stage | [#29](https://github.com/RikepilB/Data_corn/issues/29) |
 | Weakness of the ENSO summer signal over the central US (why year types replace ENSO) | [#27](https://github.com/RikepilB/Data_corn/issues/27) |
 | Ogallala and LEMA figures; add the sources to REFERENCES | [#26](https://github.com/RikepilB/Data_corn/issues/26) |
 | Yield-loss ranges by stage and rotation benefits | [#24](https://github.com/RikepilB/Data_corn/issues/24) |

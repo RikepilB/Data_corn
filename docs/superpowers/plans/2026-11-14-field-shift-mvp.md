@@ -14,6 +14,8 @@
 
 **Pivot (2026-11-14, after the mentor session):** tasks 4, 5 and 7 were rewritten. Tasks 6, 8, 9 and 13 were edited for `year_type`, the new metrics and the crop year. Task 15 (GRACE context) is new. Rationale is in `docs/architecture/ARCHITECTURE.md` (D7) and `docs/research/ANTECEDENTES-maiz-EEUU.es.md`.
 
+**Global scan (2026-11-14, later the same day):** `docs/research/MERCADO-GLOBAL-soluciones-similares.es.md` found no identical public tool, but three partial twins: RotationARM (Australia), the K-State Crop Water Allocator (Kansas) and Fruchtfolge (Germany). Consequences in this plan: a prior-art wording rule (Global Constraints), an explicit "not modelled" gap on every rotation (Review Focus 7, Task 9), a ZARC-style readiness-by-window idea (Could, Task 7), and a "what already exists" block on the story page (Task 13).
+
 **Architecture:** An offline Python pipeline (`adapters → domain → usecases`) writes one JSON *ficha* per field that validates against `contracts/ficha.schema.json` **v0.2.0**. The Astro site in `web/` only reads and renders fichas, converting SI to US units for display. It's hosted on Firebase Hosting with no login and no database.
 
 **Tech Stack:** Python 3.12, uv, numpy, pandas, requests, jsonschema, pytest; Astro 7, TypeScript, MapLibre GL JS, Observable Plot, Vitest, Playwright; Firebase Hosting.
@@ -33,6 +35,7 @@
 - Crop year Y = 1 September Y−1 → 31 August Y, labelled by the summer season it contains (`campaign_start_month = 9`, configurable). A crop belongs to the crop year in which it is planted.
 - Stress metrics come from the **rainfed** run; irrigation demand from the **full-irrigation** run, for every rotation regardless of its `irrigated` flag.
 - UI text is English. No NASA logos, flags or mission patches. A disclaimer is visible on every page that shows results.
+- **Prior-art wording.** Never write "first" or "only" in the site, slides or project page. Write "we found no public tool that…" and name the tools we know: ZARC, RotationARM, the Crop Water Allocator and NavePlant. Most of that evidence is search summaries, not primary pages (research note §0).
 - Every SI-assisted source file starts with a header comment: `SI-assisted (Claude Code); reviewed by <name>`.
 - Every external source used is added to `docs/REFERENCES.md` in the same commit.
 - Git: one branch per task (`feat/<task-slug>`), PR into `main`, `uv run pytest` / `pnpm test` green before merge. Never push to `main` directly.
@@ -53,6 +56,7 @@
    - Pinned in Task 8.
 5. **NDVI gaps from clouds or snow**: the season detector must not invent a crop season across a long gap. Pinned in Task 11.
 6. **A field where SMAP has no valid data**, or a 9 km pixel mixing center pivots and dryland: the validation block says `not-available` (no data) or names the mixing in its note. It never reports a correlation of zeros. Pinned in Task 10.
+7. **What the engine does not model.** Soil water does carry over between crops (one continuous balance, limited by the root zone of the day). Nitrogen, residue cover and rotation effects on yield are not modelled. Every rotation's `information_gaps` says so, because RotationARM models between-crop effects and a judge may ask. Pinned in Task 9.
 
 ## Lanes and cut lines
 
@@ -69,6 +73,7 @@ Task 9 accepts missing Should-lane outputs, so the Must path ships alone if need
 **Could (out unless everything else is green):**
 - OpenET field ET; it needs an API key.
 - Planting-date scenarios: early / normal / late planting shifting the VT–R1 window. This is the best answer to "when to plant" beyond the 2024 winner, but it is not Must.
+- ZARC-style readiness by 10-day window: the share of years in which each window from 1 April to 30 June passes the planting rule, shown as risk bars. It needs `planting.windows[]` in the contract (v0.3.0, contract first), so it stays out of Must.
 - A GDD-based silking date.
 - A second state.
 
@@ -422,6 +427,7 @@ No network adapter: both use the POWER frame from Task 2.
   - **`all_years` is the actionable answer.** The farmer cannot know in April whether the summer will be dry, so this is what the UI leads with.
   - **`by_year_type`** is context, e.g. "wet springs plant later".
   - Bands are p10/p50/p90 over the valid years, rounded to whole days, or `null` when there are none.
+  - Not Must: Brazil's ZARC shows planting risk per 10-day window, the most proven way to present windows. The extension is the share of years in which each window passes the rule above. It needs `planting.windows[]`, so the contract changes first (v0.3.0). Until then the strip shows bands only.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -532,6 +538,7 @@ def test_year_without_type_is_ignored():
   - `validation.status = "not-available"`;
   - `calendar.status = "assumed"`, with seasons from the config's current rotation;
   - `erosion_index` omitted from every cell. The schema allows it; the UI shows "not computed".
+- Every rotation's `information_gaps` ends with the standard line `UNMODELLED_GAP`, defined in this module and added once: "Not modelled: nitrogen, residue cover and rotation effects on yield. Soil water does carry over between crops (one continuous balance)." The config's own gaps come first.
 - When Task 12 is merged but the config lacks `slope_pct` / `k_factor`: use the SSURGO map-unit slope class midpoint if available, else `slope_pct = 2` (Keith 1–3 %). Use `k_factor = 0.03`, and add an information gap naming the default.
 
 - [ ] **Step 1: Write the failing tests**
@@ -550,6 +557,10 @@ def test_planting_block_and_year_types(fixture_site_cfg, fixture_cache):
     doc = build_site_ficha(fixture_site_cfg, fixture_cache)
     assert doc["planting"]["status"] in {"computed", "not-available"}
     assert {c["year_type"] for c in doc["matrix"]} <= {"dry", "normal", "wet"}
+
+def test_every_rotation_declares_what_is_not_modelled(fixture_site_cfg, fixture_cache):
+    doc = build_site_ficha(fixture_site_cfg, fixture_cache)
+    assert all(r["information_gaps"].count(UNMODELLED_GAP) == 1 for r in doc["rotations"])
 
 def test_cli_writes_file(tmp_path, fixture_site_path, fixture_cache, monkeypatch):
     assert main(["build", "--site", str(fixture_site_path), "--out", str(tmp_path)]) == 0
@@ -692,13 +703,14 @@ test("priority ranking keeps current first", () => expect(rankByPriorities(ex, [
   - the validation note;
   - the disclaimer.
 
-  A red "SYNTHETIC EXAMPLE" banner shows whenever `isSynthetic`. `index.astro` holds the story (narrative from Camila). The year-type colour scale must be colour-blind-safe (dry orange `#D9822B` ↔ wet teal `#1F8A8A`, normal grey), not red/green.
+  A red "SYNTHETIC EXAMPLE" banner shows whenever `isSynthetic`. `index.astro` holds the story (narrative from Camila) and ends with a short "What already exists" block: ZARC (Brazil), RotationARM (Australia), the K-State Crop Water Allocator and NavePlant, one line each with a link and how we differ. The wording follows the prior-art rule in Global Constraints. The year-type colour scale must be colour-blind-safe (dry orange `#D9822B` ↔ wet teal `#1F8A8A`, normal grey), not red/green.
 - [ ] **Step 6: E2E smoke** (`tool.spec.ts`, Playwright Chromium). Check that:
   - `/tool` loads;
   - 12 matrix cells are present for the example;
   - the planting strip shows the all-years band and 3 year-type rows;
   - the dryland rotation row shows "Not irrigated";
   - the disclaimer is visible;
+  - `/` lists the four "What already exists" tools;
   - no `input[type=password]` exists;
   - there are no console errors.
 

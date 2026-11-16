@@ -55,7 +55,7 @@ This is the **product gate**: someone outside the team must be able to explain t
 
 ### 2.3 What a judge also sees
 
-- The demo: 7 slides in English (recommended) or a 30-second video, never both ([#61](https://github.com/RikepilB/Data_corn/issues/61), [#62](https://github.com/RikepilB/Data_corn/issues/62)). Slides: title and team; the problem in the observer's voice; what the tool does; how it works; NASA data used and partners; the matrix and what we don't know; impact and next steps.
+- The demo: 7 slides in English (recommended) or a 30-second video, never both ([#61](https://github.com/RikepilB/Data_corn/issues/61), [#62](https://github.com/RikepilB/Data_corn/issues/62)). Slides (proposal, Camila decides; the limit of 7 includes the title): 1) title and team; 2) the problem in the observer's voice; 3) what the tool does; 4) how it works and the NASA data behind it; 5) what already exists and how we differ (ZARC, RotationARM, Crop Water Allocator, NavePlant); 6) the matrix and what we don't know; 7) impact, scale and next steps. The data list moved into slide 4 to make room for slide 5.
 - The project page text, with the one-sentence difference from existing tools ([#63](https://github.com/RikepilB/Data_corn/issues/63), [#29](https://github.com/RikepilB/Data_corn/issues/29)).
 - This public repository: README, Apache-2.0 licence, [REFERENCES](../REFERENCES.md), [DATA-SOURCES](../DATA-SOURCES.md) and the SI disclosure ([#66](https://github.com/RikepilB/Data_corn/issues/66)).
 

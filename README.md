@@ -161,11 +161,11 @@ The models are the FAO-56 Penman-Monteith reference ET and daily root-zone water
 |---|---|
 | `apps/api/` | Python 3.12 + FastAPI backend (Cloud Run), clean architecture |
 | `apps/web/` | Astro + React frontend: globe, steps, film, stripes, cards, PDF |
-| `docs/` | Challenge text, flow, screen, requirements, architecture, API contract (team docs in Spanish) |
+| `docs/` | All documentation; start at the [docs map](docs/README.md) |
 | `infra/` | Deployment notes: Cloud Run, Firebase Hosting, budget |
 
-See [docs/arquitectura.md](docs/arquitectura.md), [docs/requerimientos.md](docs/requerimientos.md) and
-[docs/contrato-api.md](docs/contrato-api.md).
+See [docs/app/arquitectura-y-api.md](docs/app/arquitectura-y-api.md) (architecture and API contract), [docs/app/requerimientos.md](docs/app/requerimientos.md)
+and [docs/app/flujo-y-pantalla.md](docs/app/flujo-y-pantalla.md) (flow and screen).
 
 ## Run locally
 
@@ -234,7 +234,7 @@ The `apps/api` skeleton plans more sources, mostly through Google Earth Engine (
 
 ## Planning documentation
 
-Start at the index: [docs/planning/README.md](docs/planning/README.md).
+Start at the [docs map](docs/README.md), then the planning index: [docs/planning/README.md](docs/planning/README.md).
 
 | Document | What it answers |
 |---|---|
@@ -255,9 +255,9 @@ Team plan page (visual version of the Spanish team plan): https://claude.ai/arti
 
 ## Data Corn skeleton documents
 
-Spanish working documents from the skeleton: [arquitectura](docs/arquitectura.md), [flujo](docs/flujo.md), [pantalla](docs/pantalla.md), [requerimientos](docs/requerimientos.md), [reto-field-shift](docs/reto-field-shift.md), [guias-space-apps-2026](docs/guias-space-apps-2026.md) and [solucion-tecnica](docs/solucion-tecnica.md), plus [infra/README.md](infra/README.md) for the Google Cloud steps.
+The Spanish spec of the app in `apps/` (architecture, API contract, flow, screen, requirements) is in [docs/app/](docs/app/). The official challenge text and guides are in [docs/challenge/](docs/challenge/). The [docs map](docs/README.md) lists every file and says which are current. [infra/README.md](infra/README.md) has the Google Cloud steps.
 
-[solucion-tecnica.md](docs/solucion-tecnica.md) still describes an earlier design for Andean sites. The skeleton's scenario axis is El Niño / La Niña; the Field Shift core uses dry, normal and wet year types (decision D7 in [ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)), and El Niño / La Niña is not on the Must path.
+[docs/archive/solucion-tecnica.md](docs/archive/solucion-tecnica.md) is archived: it describes an earlier design for Andean sites. The skeleton's scenario axis is El Niño / La Niña; the Field Shift core uses dry, normal and wet year types (decision D7 in [ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)), and El Niño / La Niña is not on the Must path.
 
 ## Contributing
 

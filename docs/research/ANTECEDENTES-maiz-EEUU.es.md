@@ -4,6 +4,8 @@
 _2026-11-14, después de la asesoría con el mentor. Pivot: maíz, productores grandes y medianos, un estado de
 EE. UU.; decisiones de **cuándo sembrar** y **en qué etapa puede faltar agua o caer el rendimiento**._
 
+Ver también: [validación global](MERCADO-GLOBAL-soluciones-similares.es.md) (otras cinco regiones, gemelos y fracasos).
+
 Método: unas 25 búsquedas web públicas (no hay acceso a funciones privadas de productos comerciales). Lo que
 no pude confirmar está marcado **(sin verificar)**. Todas las fuentes están en §8.
 
@@ -67,13 +69,13 @@ No pude confirmar el cierre de IBM Watson Decision Platform for Agriculture ni e
 
 ## 2. Antecedentes en Space Apps
 
-| Año | Proyecto | Resultado | Qué hizo |
-|---|---|---|---|
-| 2024 | **NVS-knot** (Kyiv) | **Galactic Impact (ganador global)** | Riesgo de siembra con humedad SMAP + ET OpenET. La prensa lo asocia con Nave Analytics + VITech → NavePlant **(asociación sin verificar)** |
-| 2024 | Cuberts (U. Illinois) | Ganador local, Chicago | Herramienta para agricultores, mismo reto |
-| 2024 | Ometeotl: Crop Connect | Nominado global | Usó datos meteorológicos de Meteomatics |
-| 2024 | "WaterWise" (OpenET, riego) | Un resultado de búsqueda lo dio como Best Use of Data; **no lo pude confirmar** | — |
-| 2025 | — | No vi ganadores globales agrícolas; no leí la lista completa | Revisar `spaceappschallenge.org/2025/awards/global-winners/` |
+| Año  | Proyecto                    | Resultado                                                                       | Qué hizo                                                                                                                                   |
+| ---- | --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2024 | **NVS-knot** (Kyiv)         | **Galactic Impact (ganador global)**                                            | Riesgo de siembra con humedad SMAP + ET OpenET. La prensa lo asocia con Nave Analytics + VITech → NavePlant **(asociación sin verificar)** |
+| 2024 | Cuberts (U. Illinois)       | Ganador local, Chicago                                                          | Herramienta para agricultores, mismo reto                                                                                                  |
+| 2024 | Ometeotl: Crop Connect      | Nominado global                                                                 | Usó datos meteorológicos de Meteomatics                                                                                                    |
+| 2024 | "WaterWise" (OpenET, riego) | Un resultado de búsqueda lo dio como Best Use of Data; **no lo pude confirmar** | —                                                                                                                                          |
+| 2025 | —                           | No vi ganadores globales agrícolas; no leí la lista completa                    | Revisar `spaceappschallenge.org/2025/awards/global-winners/`                                                                               |
 
 **Consecuencia:** un juez puede recordar que "ventana de siembra con SMAP + OpenET" ganó en 2024. Hay que
 diferenciarse a la vista desde la primera diapositiva.
@@ -85,14 +87,12 @@ Lo que repite la literatura (sobre todo casos del Reino Unido y Europa):
 - Se diseñan sin consultar al usuario. Ignoran el conocimiento tácito del agricultor y las decisiones que realmente toma.
 - Hay 15 factores de adopción, entre ellos usabilidad, costo-beneficio, desempeño, **relevancia** y compatibilidad con normas.
 - Barreras: complejidad percibida, poca confianza, mala interfaz y **carga de datos tediosa**.
-- Los agricultores rechazan que una herramienta "salte" su propio criterio. Por eso funciona la regla del reto:
-  complementar, no reemplazar.
+- Los agricultores rechazan que una herramienta "salte" su propio criterio. Por eso funciona la regla del reto: complementar, no reemplazar.
 
 Reglas de diseño que salen de aquí:
 
 1. **Una decisión, un usuario, un campo.** No es una plataforma.
-2. **Cero carga de datos.** Clic en el campo; la rotación actual sale de CSB y el suelo de SSURGO. El usuario solo
-   ordena sus prioridades.
+2. **Cero carga de datos.** Clic en el campo; la rotación actual sale de CSB y el suelo de SSURGO. El usuario solo ordena sus prioridades.
 3. **Incertidumbre visible.** Bandas p10/p50/p90 y número de años, como ya hace el contrato.
 4. **Marcar dónde decide el humano.** Cada rotación trae "riesgos para revisión local" (el contrato ya lo exige).
 5. **Unidades de EE. UU.** en la interfaz: pulgadas, °F, bu/ac, acres.

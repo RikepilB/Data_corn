@@ -1,7 +1,7 @@
 import { type Locale, t } from '../../i18n';
 import type { ApiError } from '../../infrastructure/apiClient';
 
-/** Mensaje claro para cada error de la API (docs/contrato-api.md §1). */
+/** Mensaje claro para cada error de la API (docs/app/arquitectura-y-api.md §B1). */
 export function errorText(error: ApiError, locale: Locale): string {
   const body = error.body ?? {};
   if (error.status === 0 || body.error === 'network') return t(locale, 'error.network');

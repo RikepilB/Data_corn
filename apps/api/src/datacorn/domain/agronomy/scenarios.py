@@ -1,6 +1,6 @@
 """Escenarios de campaña: lo observado hasta hoy + cada año histórico para lo que falta.
 
-Un solo cálculo sirve para antes, durante y después de la campaña (docs/flujo.md §3).
+Un solo cálculo sirve para antes, durante y después de la campaña (docs/app/flujo-y-pantalla.md §3).
 """
 
 from __future__ import annotations

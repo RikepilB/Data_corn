@@ -5,7 +5,7 @@ import type { DescribeFieldResult, FieldReport, PolygonGeometry } from '../domai
 import { ApiError, api } from '../infrastructure/apiClient';
 import { isMock, mockDescribe, mockReport } from './mock';
 
-// Pasos de la pantalla (docs/flujo.md §4)
+// Pasos de la pantalla (docs/app/flujo-y-pantalla.md §4)
 export type Step = 'globe' | 'draw' | 'calculating' | 'form' | 'results';
 
 export const STEPS: Step[] = ['globe', 'draw', 'calculating', 'form', 'results'];

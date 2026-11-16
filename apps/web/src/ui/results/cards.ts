@@ -1,4 +1,4 @@
-// Las 6 tarjetas clave (docs/contrato-api.md §6): ícono, título, semáforo, número y frase.
+// Las 6 tarjetas clave (docs/app/arquitectura-y-api.md §B6): ícono, título, semáforo, número y frase.
 import { type FormatContext, formatParams, messageText, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, IndicatorId, RiskLevel } from '../../domain/report';
 import { worstRisk } from '../../domain/season';
