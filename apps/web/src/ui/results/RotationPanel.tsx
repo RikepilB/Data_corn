@@ -45,6 +45,12 @@ export function RotationPanel({ rotation, locale }: { rotation: RotationComparis
                 )}
               </p>
             )}
+            {option && option.erosion_index != null && (
+              <p className="rcard__erosion">
+                <span>{t(locale, 'rotation.erosion_index', { value: Math.round(option.erosion_index) })}</span>
+                <span className="muted"> {t(locale, 'rotation.erosion_index_caveat')}</span>
+              </p>
+            )}
             {HEADINGS.map((h) => (
               <div key={h} className="rcard__part">
                 <h3>{t(locale, `rotation.h.${h}`)}</h3>
