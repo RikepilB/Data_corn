@@ -18,8 +18,10 @@ def test_regions_lists_us(client: TestClient) -> None:
     assert "us" in {r["id"] for r in response.json()}
 
 
-def test_demo_fields_empty_until_f9(client: TestClient) -> None:
-    assert client.get("/api/v1/demo-fields").json() == []
+def test_demo_fields_lists_the_packaged_fields(client: TestClient) -> None:
+    fields = client.get("/api/v1/demo-fields").json()
+    assert [f["id"] for f in fields] == ["hamilton-ne", "thomas-ks", "story-ia"]
+    assert all(f["region_id"] == "us" and f["geometry"]["type"] == "Polygon" for f in fields)
 
 
 def test_describe_rejects_crossing_sides(client: TestClient) -> None:
@@ -35,3 +37,23 @@ def test_describe_rejects_crossing_sides(client: TestClient) -> None:
 def test_analyze_validates_form(client: TestClient) -> None:
     body = {"geometry": FIELD, "season": 2027, "planting_date": "2027-05-01", "hybrid_rm_days": 200}
     assert client.post("/api/v1/fields/analyze", json=body).status_code == 422
+
+
+def test_drought_tiles_need_earth_engine(client: TestClient) -> None:
+    response = client.get("/api/v1/layers/drought/tiles", params={"date": "2026-07"})
+    assert response.status_code == 422
+    assert response.json()["error"] == "data_unavailable"
+    assert response.json()["source"] == "earth_engine"
+
+
+def test_drought_tiles_reject_a_date_that_is_not_a_month(client: TestClient) -> None:
+    for bad in ("2026-13", "2026-07-01", "julio"):
+        response = client.get("/api/v1/layers/drought/tiles", params={"date": bad})
+        assert response.status_code == 422
+        assert "error" not in response.json()  # lo rechaza la validación, no el caso de uso
+
+
+def test_enso_now(client: TestClient) -> None:
+    body = client.get("/api/v1/enso").json()
+    assert body["current"]["phase"] == "el_nino"
+    assert body["recent"]

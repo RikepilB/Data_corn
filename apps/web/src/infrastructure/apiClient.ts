@@ -1,5 +1,5 @@
 import type { FieldFormValues } from '../domain/inputs';
-import type { DemoField, DescribeFieldResult, FieldReport, PolygonGeometry } from '../domain/report';
+import type { DemoField, DescribeFieldResult, EnsoOverview, FieldReport, PolygonGeometry } from '../domain/report';
 
 const BASE = '/api/v1';
 
@@ -37,6 +37,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   demoFields: () => request<DemoField[]>('/demo-fields'),
+  enso: () => request<EnsoOverview>('/enso'),
   describe: (geometry: PolygonGeometry, season: number) =>
     request<DescribeFieldResult>('/fields/describe', {
       method: 'POST',

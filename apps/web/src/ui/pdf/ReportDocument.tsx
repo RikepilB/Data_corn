@@ -2,11 +2,15 @@
 // Se carga solo al pulsar «Descargar» (ver download.ts).
 import { Circle, Document, G, Image, Line, Page, Polyline, Rect, StyleSheet, Svg, Text, View } from '@react-pdf/renderer';
 import type { ReactNode } from 'react';
-import { type FormatContext, longDate, messageText, patternText, shortDate } from '../../domain/format';
+import { type FormatContext, formatParams, longDate, messageText, num, patternText, shortDate } from '../../domain/format';
 import type { FieldReport, Indicator, RiskLevel, SeasonRun } from '../../domain/report';
-import { RISK_COLOR, pickRun, yieldColor } from '../../domain/season';
+import { strategyViews } from '../../domain/rotation';
+import { SEVERITY, pickRun } from '../../domain/season';
+import { RISK_COLOR, RISK_INK, yieldColor } from '../common/palette';
 import { area, cornYield, dailyRate, depth, format, temperature } from '../../domain/units';
+import { ZONE_COLOR, zoneShares, zonesOf } from '../../domain/zones';
 import { numberLocale, t } from '../../i18n';
+import { EOX_ATTRIBUTION } from '../../infrastructure/gibs';
 import type { CardModel } from '../results/cards';
 
 export interface ReportArgs {
@@ -29,16 +33,16 @@ const SAFE: [RegExp, string][] = [
 ];
 const s = (text: string) => SAFE.reduce((acc, [re, to]) => acc.replace(re, to), text);
 
-const ENSO_COLOR = { el_nino: '#e0702a', la_nina: '#127a9a' } as const;
+const ENSO_COLOR = { el_nino: '#111113', la_nina: '#7c7c82' } as const;
 
 const C = {
-  ink: '#0f1b2d',
-  muted: '#5b6678',
-  line: '#d9dee7',
-  gold: '#d99a00',
-  goldSoft: '#fff4d6',
-  teal: '#127a6a',
-  bg: '#f6f7fa',
+  ink: '#111113',
+  muted: '#5c5c62',
+  line: '#d4d4d8',
+  gold: '#111113',
+  goldSoft: '#f1f1f2',
+  teal: '#111113',
+  bg: '#f4f4f5',
 };
 
 const st = StyleSheet.create({
@@ -72,11 +76,11 @@ const st = StyleSheet.create({
   td: { flex: 1, padding: 4 },
   footer: { position: 'absolute', bottom: 22, left: 36, right: 36, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7.5, color: C.muted },
   map: { width: '100%', height: 190, objectFit: 'cover', borderRadius: 6, marginBottom: 8 },
-  mock: { backgroundColor: '#fde8e8', color: '#9b1c1c', padding: 6, borderRadius: 4, marginBottom: 8, fontFamily: 'Helvetica-Bold' },
+  mock: { backgroundColor: '#111113', color: '#ffffff', padding: 6, borderRadius: 4, marginBottom: 8, fontFamily: 'Helvetica-Bold' },
 });
 
 function Badge({ risk, ctx }: { risk: RiskLevel; ctx: FormatContext }) {
-  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk] }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
+  return <Text style={[st.badge, { backgroundColor: RISK_COLOR[risk], color: RISK_INK[risk], borderRadius: 2 }]}>{s(t(ctx.locale, `risk.${risk}`).toUpperCase())}</Text>;
 }
 
 function KV({ k, v }: { k: string; v: string }) {
@@ -127,8 +131,8 @@ function SeasonStrip({ report, ctx }: { report: FieldReport; ctx: FormatContext 
   return (
     <View style={st.box} wrap={false}>
       <Svg width={520} height={46} viewBox="0 0 520 46">
-        <Rect x={10} y={18} width={500} height={8} fill="#e6eaf0" />
-        {report.timeline.risk_bands.map((b) => (
+        <Rect x={10} y={18} width={500} height={8} fill="#ececee" />
+        {[...report.timeline.risk_bands].sort((x, y) => SEVERITY[x.risk] - SEVERITY[y.risk]).map((b) => (
           <Rect key={`${b.indicator}${b.start}`} x={x(b.start)} y={18} width={Math.max(4, x(b.end) - x(b.start))} height={8} fill={RISK_COLOR[b.risk]} />
         ))}
         {stages
@@ -158,7 +162,7 @@ function lineChart(values: number[], max: number, color: string, threshold?: num
   return (
     <Svg width={w} height={h + 2} viewBox={`0 0 ${w} ${h + 2}`}>
       <Rect x={0} y={0} width={w} height={h} fill={C.bg} />
-      {threshold != null && <Line x1={0} x2={w} y1={h - (threshold / max) * h} y2={h - (threshold / max) * h} stroke="#e5484d" strokeWidth={0.8} />}
+      {threshold != null && <Line x1={0} x2={w} y1={h - (threshold / max) * h} y2={h - (threshold / max) * h} stroke="#111113" strokeWidth={0.8} strokeDasharray="3 2" />}
       <Polyline points={pts} stroke={color} strokeWidth={1.4} fill="none" />
     </Svg>
   );
@@ -166,11 +170,11 @@ function lineChart(values: number[], max: number, color: string, threshold?: num
 
 function chartFor(ind: Indicator, typical: SeasonRun | null, ctx: FormatContext): { chart: ReactNode; caption: string } | null {
   if (typical && (ind.id === 'flowering_water' || ind.id === 'planting_window' || ind.id === 'irrigation' || ind.id === 'waterlogging')) {
-    return { chart: lineChart(typical.water_pct, 100, '#2f80ed'), caption: t(ctx.locale, 'pdf.chart_water') };
+    return { chart: lineChart(typical.water_pct, 100, '#2b6cb0'), caption: t(ctx.locale, 'pdf.chart_water') };
   }
   if (typical && (ind.id === 'flowering_heat' || ind.id === 'frost' || ind.id === 'hybrid_fit')) {
     return {
-      chart: lineChart(typical.tmax_c, 45, '#e0702a', 35),
+      chart: lineChart(typical.tmax_c, 45, '#b42318', 35),
       caption: `${t(ctx.locale, 'pdf.chart_heat')} (${format(temperature(35, ctx.units), numberLocale(ctx.locale), 0)})`,
     };
   }
@@ -227,6 +231,7 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
   const runs = [...(report.runs ?? [])].sort((a, b) => a.year - b.year);
   const history = [...c.crop_history].sort((a, b) => a.year - b.year);
   const place = [c.admin.county, c.admin.state, c.admin.country].filter(Boolean).join(', ');
+  const zones = zonesOf(report);
 
   return (
     <Document title={`Data Corn · ${t(locale, 'pdf.title')}`} author="Data Corn" language={locale}>
@@ -331,8 +336,8 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
             <View style={[st.row, { flexWrap: 'wrap' }]}>
               {(
                 [
-                  ['#2f80ed', 'stripes.good', 'rect'],
-                  ['#d64545', 'stripes.bad', 'rect'],
+                  [yieldColor(1), 'stripes.good', 'rect'],
+                  [yieldColor(0.7), 'stripes.bad', 'rect'],
                   [ENSO_COLOR.el_nino, 'stripes.el_nino', 'dot'],
                   [ENSO_COLOR.la_nina, 'stripes.la_nina', 'dot'],
                 ] as const
@@ -371,13 +376,17 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
 
         <Text style={st.h2}>{s(t(locale, 'card.rotation'))}</Text>
         <Text style={{ marginBottom: 4 }}>{s(messageText(report.rotation.message, ctx))}</Text>
-        {report.rotation.options.map((o) => (
-          <View key={o.previous_crop} style={[st.row, { marginBottom: 3, alignItems: 'center' }]}>
-            <Text style={{ width: 140 }}>{s(`${t(locale, `crop.${o.previous_crop}`)} -> ${t(locale, 'crop.maize')}`)}</Text>
-            <Badge risk={o.residue_erosion_risk} ctx={ctx} />
-            <Text style={[st.small, st.muted, { marginLeft: 6, flex: 1 }]}>{s(o.notes.map((n) => messageText(n, ctx)).join(' '))}</Text>
+        {strategyViews(report.rotation).map(({ strategy, current, option: o }) => (
+          <View key={strategy} style={[st.row, { marginBottom: 3, alignItems: 'center' }]}>
+            <Text style={{ width: 150 }}>
+              {s(`${t(locale, `rotation.strategy.${strategy}`)}${current ? ` (${t(locale, 'rotation.current')})` : ''}`)}
+            </Text>
+            {o && o.residue_erosion_risk !== 'no_data' && <Badge risk={o.residue_erosion_risk} ctx={ctx} />}
+            {o && o.residue_erosion_risk === 'no_data' && <Text style={[st.small, st.muted]}>{s(t(locale, 'rotation.erosion_unverified'))}</Text>}
+            <Text style={[st.small, st.muted, { marginLeft: 6, flex: 1 }]}>{s((o?.notes ?? []).map((n) => messageText(n, ctx)).join(' '))}</Text>
           </View>
         ))}
+        <Text style={[st.small, st.muted, { marginBottom: 4 }]}>{s(t(locale, 'rotation.no_carryover'))}</Text>
         {history.length > 0 && (
           <>
             <Text style={[st.cardTitle, { marginTop: 6 }]}>{s(t(locale, 'pdf.crop_history'))}</Text>
@@ -393,7 +402,29 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
         )}
 
         <Text style={st.h2}>{s(t(locale, 'pdf.zones'))}</Text>
-        <Text style={st.muted}>{s(t(locale, 'pdf.zones_none'))}</Text>
+        {zones ? (
+          <View wrap={false}>
+            {zoneShares(zones).map((z) => (
+              <View key={z.zone} style={[st.row, { alignItems: 'center', marginBottom: 3 }]}>
+                <Svg width={10} height={10} viewBox="0 0 10 10">
+                  <Rect x={0} y={0} width={10} height={10} fill={ZONE_COLOR[z.zone]} />
+                </Svg>
+                <Text style={{ marginLeft: 5 }}>
+                  {s(
+                    t(locale, z.ndvi == null ? 'pdf.zones_row_no_ndvi' : 'pdf.zones_row', {
+                      name: t(locale, `legend.zones.${z.zone}`),
+                      area_pct: formatParams({ area_pct: z.area_pct }, ctx).area_pct ?? '',
+                      ndvi: z.ndvi == null ? '' : num(z.ndvi, locale, 2),
+                    }),
+                  )}
+                </Text>
+              </View>
+            ))}
+            <Text style={[st.small, st.muted, { marginTop: 2 }]}>{s(t(locale, 'pdf.zones_source', zones.meta))}</Text>
+          </View>
+        ) : (
+          <Text style={st.muted}>{s(t(locale, 'pdf.zones_none'))}</Text>
+        )}
         <Footer ctx={ctx} mock={mock} />
       </Page>
 
@@ -407,7 +438,7 @@ export function buildReportDocument({ report, ctx, cards, mapImage, isSample, mo
           </Text>
         ))}
         <Text style={{ marginBottom: 2 }}>{s('- NASA GIBS (Blue Marble, SMAP L4, GPM IMERG, MODIS Terra)')}</Text>
-        <Text style={{ marginBottom: 2 }}>{s('- Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)')}</Text>
+        <Text style={{ marginBottom: 2 }}>{s(`- ${EOX_ATTRIBUTION}`)}</Text>
         <Text style={st.h2}>{s(t(locale, 'pdf.assumptions'))}</Text>
         {[1, 2, 3, 4].map((n) => (
           <Text key={n} style={{ marginBottom: 3 }}>

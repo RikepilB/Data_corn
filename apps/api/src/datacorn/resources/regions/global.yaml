@@ -1,16 +1,17 @@
 # Respaldo para cualquier lugar sin perfil propio (RF-51). Solo fuentes mundiales; confianza baja.
-# Con Earth Engine se suman: climate: power_imerg, era5_land · elevation: nasadem · vegetation: hls_sentinel2
+# Las fuentes de Earth Engine (nasadem, hls_sentinel2, smap_l4, era5_land) se saltan si está apagado.
+# power_imerg queda fuera: IMERG viene cada media hora en Earth Engine (ver earthengine/climate.py).
 id: global
 name: { es: "Global (fuentes mundiales)", en: "Global (worldwide sources)" }
 status: active
 countries: []
 providers:
   admin: [point_admin]
-  climate: [power]
+  climate: [power, era5_land]
   soil: [soilgrids_rest]
-  elevation: [power_terrain]
-  vegetation: [ornl_modis]
-  soil_moisture: [power_soil_wetness]
+  elevation: [nasadem, power_terrain]
+  vegetation: [hls_sentinel2, ornl_modis]
+  soil_moisture: [smap_l4, power_soil_wetness]
   evapotranspiration: [no_et]
   enso: [oni]
   crop_history: []

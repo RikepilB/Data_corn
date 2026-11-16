@@ -19,6 +19,7 @@ import {
 } from '../../domain/units';
 import { type Locale, numberLocale, t } from '../../i18n';
 import type { ApiError } from '../../infrastructure/apiClient';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 import { errorText } from './errors';
 
@@ -33,6 +34,11 @@ interface Props {
   onChange: (v: FieldFormValues) => void;
   onSubmit: () => void;
   onRedraw: () => void;
+  /** Back, one step: the drawn field (to adjust it) or, for the example, the globe. */
+  onBack: () => void;
+  backLabel: string;
+  /** → back to the results, only when they still match the form. */
+  onForward?: () => void;
 }
 
 /** Una línea con lo detectado del lote. */
@@ -54,7 +60,21 @@ const signed = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
 const optionalNumber = (raw: string): number | null => (raw === '' ? null : Number(raw));
 
 /** Paso 4 · Sus datos (RF-06): 4 ya llenos y 3 opcionales. */
-export function FieldForm({ context, values, locale, units, busy, error, isSample, onChange, onSubmit, onRedraw }: Props) {
+export function FieldForm({
+  context,
+  values,
+  locale,
+  units,
+  busy,
+  error,
+  isSample,
+  onChange,
+  onSubmit,
+  onRedraw,
+  onBack,
+  backLabel,
+  onForward,
+}: Props) {
   const [optOpen, setOptOpen] = useState(false);
   const set = (patch: Partial<FieldFormValues>) => onChange({ ...values, ...patch });
   const next = defaultSeason();
@@ -65,6 +85,25 @@ export function FieldForm({ context, values, locale, units, busy, error, isSampl
   return (
     <section className="sheet glass" aria-labelledby="form-title">
       <div className="sheet__grip" aria-hidden="true" />
+      <nav className="stepnav" aria-label={t(locale, 'nav.steps')}>
+        <BackButton locale={locale} label={backLabel} onClick={onBack} />
+        <div className="stepnav__more">
+          <button type="button" className="link" onClick={onRedraw}>
+            {t(locale, 'results.new')}
+          </button>
+          {onForward && (
+            <button
+              type="button"
+              className="iconbtn"
+              onClick={onForward}
+              aria-label={t(locale, 'nav.to_results')}
+              title={t(locale, 'nav.to_results')}
+            >
+              <Icon name="forward" size={20} />
+            </button>
+          )}
+        </div>
+      </nav>
       <header className="sheet__head">
         <h2 id="form-title">{t(locale, 'form.title')}</h2>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
@@ -225,9 +264,6 @@ export function FieldForm({ context, values, locale, units, busy, error, isSampl
         <button type="submit" className="btn btn--primary btn--xl" disabled={busy}>
           {busy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="check" />}
           {t(locale, busy ? 'form.analyzing' : 'form.submit')}
-        </button>
-        <button type="button" className="link link--small center" onClick={onRedraw}>
-          {t(locale, 'form.back')}
         </button>
       </form>
     </section>

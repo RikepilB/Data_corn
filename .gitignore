@@ -56,3 +56,10 @@ data/raw/
 
 # Firebase CLI log rotations
 firebase-debug.log*
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Chat stress test output
+apps/web/stress-results.json

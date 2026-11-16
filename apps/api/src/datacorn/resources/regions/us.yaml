@@ -1,20 +1,20 @@
 # Estados Unidos. Demo en Nebraska; también Iowa, Illinois y Kansas.
 # Cada lista es la cadena de respaldo: si la primera fuente no tiene datos, se usa la siguiente.
-# Todo lo activo funciona sin cuentas. Con Earth Engine se suman (al inicio de cada lista):
-#   climate: prism_power · elevation: nasadem · crop_history: cdl
-#   vegetation: hls_sentinel2 · soil_moisture: smap_l4 · evapotranspiration: openet
+# Las fuentes de Earth Engine van primero (prism_power, hls_sentinel2, smap_l4, openet, cdl),
+# salvo el relieve. Con DATACORN_EARTH_ENGINE_ENABLED=false, o si Earth Engine falla, se saltan y responde la
+# fuente sin cuenta que sigue: sin Earth Engine nada cambia.
 id: us
 name: { es: "Estados Unidos", en: "United States" }
 status: active
 countries: [US]
 providers:
   admin: [fcc, point_admin]
-  climate: [power]
+  climate: [prism_power, power]
   soil: [ssurgo, soilgrids_rest]
-  elevation: [ssurgo_power_terrain, power_terrain]
-  vegetation: [ornl_modis]
-  soil_moisture: [power_soil_wetness]
-  evapotranspiration: [no_et]
+  elevation: [ssurgo_power_terrain, nasadem, power_terrain]  # SSURGO mide la pendiente; NASADEM es respaldo
+  vegetation: [hls_sentinel2, ornl_modis]
+  soil_moisture: [smap_l4, power_soil_wetness]
+  evapotranspiration: [openet, no_et]
   enso: [oni]
-  crop_history: [cropscape]
+  crop_history: [cdl, cropscape]
   yield_stats: [nass]  # necesita DATACORN_NASS_API_KEY; sin clave se omite

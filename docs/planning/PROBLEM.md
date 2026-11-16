@@ -3,6 +3,8 @@
 
 Who Field Shift is for, the decision it supports, why that decision is hard, what we do not claim, how it fits the challenge, and what already exists. Index: [planning README](README.md).
 
+**Status (2026-11-15).** This file was written before the build, and the app differs from it. The main differences: the app serves US corn producers in general, and its example field is run as rainfed corn in Hamilton County, Nebraska. Seasons are grouped by El Niño, La Niña and neutral years, not into dry, normal and wet columns. The app shows three rotations, without the dryland wheat, sorghum and fallow option. It does not run the water model for each rotation: it rates erosion risk for two of them and cites extension trials. It reads the crop history from the Cropland Data Layer, not from Crop Sequence Boundaries, and it has no priority toggles. For what the app does, read the [project page](../submission/PROJECT-PAGE.md).
+
 **How to read the citations.** Sources are named as they appear in [REFERENCES](../REFERENCES.md). Sources that appear only in the [prior-art research note](../research/ANTECEDENTES-maiz-EEUU.es.md) (Spanish) are marked "research note" and are to be added to REFERENCES ([#26](https://github.com/RikepilB/Data_corn/issues/26), [#22](https://github.com/RikepilB/Data_corn/issues/22)). Anything not yet checked against its source is marked **to verify**.
 
 ## 1. In short
@@ -27,14 +29,14 @@ The profile above is a working assumption from the team documents, not a survey.
 Three linked questions, asked about one field:
 
 1. **Which rotation?** Compare the current rotation with at least two alternatives. The four proposed (to be reviewed by a mentor or agronomist): continuous corn with irrigation (current); corn then soybean; corn then cereal rye cover then soybean; dryland wheat then corn then sorghum then fallow.
-2. **When to plant corn?** The planting window: soil warm enough and the last spring frost passed.
+2. **When to plant corn?** The planting window: the dates whose replayed seasons give the best median yield with the least frost risk, from a late spring frost to a killing frost before the hybrid matures.
 3. **At which growth stage does water run short?** For corn, the sensitive window is around tasseling and silking (VT-R1).
 
 What "better" means depends on the producer's priorities: water use, forage, nitrogen fixing, erosion, organic matter, market. The tool lets the producer rank them and shows fit by level (better, similar, worse, unknown), not by score, to avoid false precision.
 
 ## 4. Why it is hard
 
-- **The aquifer is declining.** The southern Ogallala is being depleted, and GRACE satellite data show it (research note, section 5.2, citing a NASA Earth Observatory article and Circle of Blue; to add to REFERENCES, [#26](https://github.com/RikepilB/Data_corn/issues/26)). Western Kansas has local evidence on cutting water use: the Sheridan-6 local enhanced management area (LEMA) used 23.1% less groundwater, with corn yield 218 against 220.6 bu/ac (about 1.2% lower). The data are self-reported by producers; a NASA Harvest study (Deines et al.) is said to estimate savings about 4.5 times the yield loss (research note, section 5.1; **to verify**). The model uses no LEMA number.
+- **The aquifer is declining.** NASA Earth Observatory ("Satellites Investigate Irrigation in a Stressed Aquifer", 2018-07-09; see `docs/REFERENCES.md`) describes the Ogallala aquifer as under stress: about 30 percent of the water once stored beneath Kansas is gone, and 40 percent more could go within 50 years if trends continue. Western Kansas has local evidence on cutting water use: the Sheridan-6 local enhanced management area (LEMA) used 23.1% less groundwater, with corn yield 218 against 220.6 bu/ac (about 1.2% lower). The data are self-reported by producers; a NASA Harvest study (Deines et al.) is said to estimate savings about 4.5 times the yield loss (research note, section 5.1; **to verify**). The model uses no LEMA number.
 - **Dry and wet years differ, and averages hide the bad ones.** Field Shift therefore shows three columns (dry, normal, wet) built from terciles of April-September rainfall, instead of one average ([ARCHITECTURE](../architecture/ARCHITECTURE.md), section 4). Because the year type is unknown in April, the planting answer leads with all years and shows the year types as context only.
 - **Corn is most sensitive at flowering.** Extension sources report yield loss per day of stress that is much larger at pollination and silking than before or after (Iowa State and UW, from Claassen and Shaw 1970 and Shaw 1988; research note, section 5.1: with 4 or more days of stress, up to 9% per day at pollination and silking, 1 to 5% per day before, up to 6% per day after). Those studies are 30 to 50 years old, so we show them only as cited ranges, never as a predicted loss. **To verify** in [#24](https://github.com/RikepilB/Data_corn/issues/24).
 - **Evidence on rotations comes from elsewhere.** The figures in the research note come from Iowa and the wider Midwest (for example, continuous corn yielding 11 to 28% less than rotated corn in Iowa State trials), not from the Ogallala. Each rotation card must say what is local and what is borrowed, and what needs local review ([#24](https://github.com/RikepilB/Data_corn/issues/24)). **To verify.**
@@ -48,7 +50,7 @@ What "better" means depends on the producer's priorities: water use, forage, nit
 - **No replacement for local advice.** Every rotation lists risks that someone local must review, and information gaps.
 - **No validation of the alternatives.** The SMAP comparison is a consistency check of the simulated moisture of the current rotation (rainfed run, monthly anomalies, 9 km pixel). It never validates the other rotations. GRACE is regional context only.
 - **Generic crop parameters.** Crop coefficients, root depths and stage lengths come from FAO-56 tables until a local agronomist corrects them. Cereal rye has no FAO-56 row, so winter-wheat values stand in, and the card says so.
-- **A proxy for soil temperature.** The planting window uses the NASA POWER `TSOIL1` value, a model top-layer temperature on a grid of about half a degree, not a 2-inch probe reading.
+- **Simulated planting dates.** The engine replays each candidate planting date through the FAO-56 water balance and growing degree days on NASA POWER weather, and scores it by median yield and frost risk. It reads no soil temperature and no soil moisture, so it is not a probe reading.
 - **A relative erosion index, not tonnes per hectare.** (Should.)
 - **One precomputed field.** The method could be applied to other counties; this submission does not demonstrate that.
 

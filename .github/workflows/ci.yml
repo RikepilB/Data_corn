@@ -1,0 +1,62 @@
+# SI-assisted (Claude Code); reviewed by <name>
+#
+# Tests and build on every pull request, so "green before merge" is checked by a machine (#34).
+# Offline only: the API tests run on fakes and recorded fixtures, the web build needs no API.
+# No secrets are used. The Playwright smoke test is not run here yet: it needs a browser
+# install and, on a shared runner, one worker (see README, Contributing).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (ruff, pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: apps/api/pyproject.toml
+      - name: Lint
+        run: uv run --extra dev ruff check src tests
+      - name: Tests
+        run: uv run --extra dev pytest -q
+
+  web:
+    name: Web (build, typecheck, unit tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Build (astro check and astro build)
+        run: npm run build
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test

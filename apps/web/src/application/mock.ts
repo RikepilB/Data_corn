@@ -5,6 +5,7 @@ import { type LngLat, areaHa, centroid, ringOf } from '../domain/geo';
 import type { FieldFormValues } from '../domain/inputs';
 import type {
   DescribeFieldResult,
+  EnsoOverview,
   EnsoPhase,
   FieldReport,
   Indicator,
@@ -13,6 +14,8 @@ import type {
   RiskLevel,
   SeasonRun,
   StageWindow,
+  ZoneClass,
+  ZonesGeoJSON,
 } from '../domain/report';
 
 const EL_NINO = new Set([2002, 2004, 2006, 2009, 2015, 2018, 2023]);
@@ -66,6 +69,7 @@ export async function mockDescribe(geometry: PolygonGeometry, season: number): P
 
 const LENGTH = 152;
 const FLOWER = [70, 90] as const;
+const STRESS = 45;
 
 function stagesFor(start: string): StageWindow[] {
   return [
@@ -84,19 +88,40 @@ function makeRun(year: number, start: string, irrigated: boolean): SeasonRun {
   const dryness = irrigated ? 0 : DRY.get(year) ?? rand() * 0.2;
   const water: number[] = [];
   const tmax: number[] = [];
+  const rain: number[] = [];
+  const irrigation: number[] = [];
   let w = 72 + rand() * 10;
   for (let i = 0; i < LENGTH; i++) {
     const summer = Math.sin((Math.PI * i) / LENGTH);
     w -= 0.6 + 1.1 * summer * (1 + dryness);
-    if (rand() < 0.14) w += 6 + rand() * 18 * (1 - dryness);
-    if (irrigated && w < 55) w += 14;
+    let r = 0;
+    if (rand() < 0.14) {
+      r = 6 + rand() * 18 * (1 - dryness);
+      if (rand() < 0.12) r += 22;
+      w += r * 0.8;
+    }
+    let irr = 0;
+    if (irrigated && w < 55) {
+      irr = 25;
+      w += 14;
+    }
     w = Math.max(4, Math.min(100, w));
     water.push(Math.round(w));
+    rain.push(Math.round(r * 10) / 10);
+    irrigation.push(irr);
     tmax.push(Math.round((20 + 11 * summer + dryness * 5 + (rand() - 0.5) * 6) * 10) / 10);
   }
   const flowerWater = water.slice(FLOWER[0], FLOWER[1] + 1);
   const minW = Math.min(...flowerWater);
   const rel = Math.min(1, Math.max(0.58, 0.6 + (0.4 * minW) / 55));
+  // Rendimiento acumulado: la pérdida total se reparte en los días con estrés (la floración pesa 3×)
+  const weight = water.map((v, i) => Math.max(0, STRESS - v) * (i >= FLOWER[0] && i <= FLOWER[1] ? 3 : 1));
+  const total = weight.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const yieldPct = weight.map((v) => {
+    acc += total > 0 ? v / total : 0;
+    return Math.round((100 - 100 * (1 - rel) * acc) * 10) / 10;
+  });
   const heatDays = tmax.slice(FLOWER[0], FLOWER[1] + 1).filter((t) => t >= 35).length;
   const phase: EnsoPhase = EL_NINO.has(year) ? 'el_nino' : LA_NINA.has(year) ? 'la_nina' : 'neutral';
   return {
@@ -110,7 +135,26 @@ function makeRun(year: number, start: string, irrigated: boolean): SeasonRun {
     flowering_deficit_mm: Math.round((1 - rel) * 180),
     flowering_heat_days: heatDays,
     relative_yield: Math.round(rel * 1000) / 1000,
+    rain_mm: rain,
+    irrigation_mm: irrigation,
+    yield_pct: yieldPct,
+    stress_pct: STRESS,
   };
+}
+
+/** GET /enso de ejemplo: El Niño fuerte en curso (valores tipo ONI). */
+export async function mockEnso(): Promise<EnsoOverview> {
+  await sleep(300);
+  const values = [-0.6, -0.4, -0.2, 0.1, 0.4, 0.7, 1.0, 1.3, 1.5, 1.7, 1.8, 1.7, 1.4, 1.0, 0.6, 0.2, -0.1, -0.3,
+    -0.4, -0.3, -0.1, 0.2, 0.5, 0.8, 1.1, 1.4, 1.7, 2.0, 2.2, 2.4, 2.5, 2.5];
+  const seasons = ['DJF', 'JFM', 'FMA', 'MAM', 'AMJ', 'MJJ', 'JJA', 'JAS', 'ASO', 'SON', 'OND', 'NDJ'];
+  const recent = values.map((value, i) => {
+    const k = i + 1; // JFM 2024 … ASO 2026
+    const year = 2024 + Math.floor(k / 12);
+    const phase: EnsoPhase = value >= 0.5 ? 'el_nino' : value <= -0.5 ? 'la_nina' : 'neutral';
+    return { index: 'ONI', value, phase, period: `${seasons[k % 12]} ${year}` };
+  });
+  return { current: recent[recent.length - 1]!, recent };
 }
 
 function indicator(
@@ -139,8 +183,57 @@ function indicator(
 const byFraction = (f: number, medium: number, high: number): RiskLevel =>
   f >= high ? 'high' : f >= medium ? 'medium' : 'low';
 
+// Zonas de ejemplo. Los parches van en coordenadas del propio lote (u: de la esquina 1 a la 2,
+// v: hacia las esquinas 4 y 3; de 0 a 1), así siempre caen dentro del contorno.
+const ZONE_PATCHES: { zone: ZoneClass; uv: [number, number][] }[] = [
+  { zone: 'low', uv: [[0, 0], [0.3, 0], [0.24, 0.45], [0, 0.45]] },
+  { zone: 'high', uv: [[0, 0.45], [0.24, 0.45], [0.28, 1], [0, 1]] },
+  { zone: 'medium', uv: [[0.3, 0], [0.7, 0], [0.78, 0.6], [0.74, 1], [0.28, 1], [0.24, 0.45]] },
+  { zone: 'high', uv: [[0.7, 0], [1, 0], [1, 0.6], [0.78, 0.6]] },
+  { zone: 'low', uv: [[0.78, 0.6], [1, 0.6], [1, 1], [0.74, 1]] },
+];
+// Como la API: cada parche repite los números de su clase (el área es la de los parches de arriba)
+const ZONE_STATS: Record<ZoneClass, { ndvi: number; area_pct: number }> = {
+  low: { ndvi: 0.64, area_pct: 22 },
+  medium: { ndvi: 0.71, area_pct: 48 },
+  high: { ndvi: 0.78, area_pct: 30 },
+};
+
+/** Mapa de zonas para un lote de 4 esquinas (el de ejemplo); con otra forma no hay mapa. */
+export function mockZones(ring: LngLat[]): ZonesGeoJSON | null {
+  const [a, b, c, d] = ring;
+  if (ring.length !== 4 || !a || !b || !c || !d) return null;
+  const at = ([u, v]: [number, number]): number[] =>
+    [0, 1].map((k) => {
+      const south = a[k]! + (b[k]! - a[k]!) * u;
+      const north = d[k]! + (c[k]! - d[k]!) * u;
+      return Math.round((south + (north - south) * v) * 1e6) / 1e6;
+    });
+  return {
+    type: 'FeatureCollection',
+    meta: { source: 'Sample zones (invented; Earth Engine has not run)', first_year: 2021, last_year: 2025, seasons: 5, resolution_m: 10 },
+    features: ZONE_PATCHES.map(({ zone, uv }) => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [[...uv, uv[0]!].map(at)] },
+      properties: { zone, ...ZONE_STATS[zone] },
+    })),
+  };
+}
+
+function zonesIndicator(zones: ZonesGeoJSON | null): Indicator {
+  if (!zones) return indicator('field_zones', 'no_data', 'field_zones.needs_ee', {}, null, null, null, []);
+  const { meta } = zones;
+  const spread = Math.round((ZONE_STATS.high.ndvi - ZONE_STATS.low.ndvi) * 100) / 100;
+  const params = { low_pct: ZONE_STATS.low.area_pct, high_pct: ZONE_STATS.high.area_pct, seasons: meta.seasons, spread };
+  return {
+    ...indicator('field_zones', 'medium', 'field_zones.medium', params, spread, 'ndvi', 'check.scout_field', [meta.source]),
+    evidence: { sources: [meta.source], years: [meta.first_year, meta.last_year], method: 'method.field_zones_sample' },
+    confidence: 'high',
+  };
+}
+
 export async function mockReport(
-  _geometry: PolygonGeometry,
+  geometry: PolygonGeometry,
   values: FieldFormValues,
   described: DescribeFieldResult,
 ): Promise<FieldReport> {
@@ -151,10 +244,10 @@ export async function mockReport(
   const sorted = [...runs].sort((a, b) => a.relative_yield - b.relative_yield);
   const typical = sorted[12]!;
   const total = runs.length;
-  const stressed = runs.filter((r) => r.relative_yield < 0.9).length;
+  const stressed = runs.filter((r) => 1 - r.relative_yield >= 0.15 || r.flowering_deficit_mm >= 30).length;
   const loss = Math.round(100 * (1 - typical.relative_yield));
   const heat = [...runs.map((r) => r.flowering_heat_days)].sort((a, b) => a - b)[12] ?? 0;
-  const waterRisk = byFraction(stressed / total, 0.2, 0.4);
+  const waterRisk = byFraction(stressed / total, 0.2, 0.45);
   const heatRisk: RiskLevel = heat > 4 ? 'high' : heat > 1 ? 'medium' : 'low';
   const rm = values.hybrid_rm_days;
   const matureOk = Math.max(10, total - Math.max(0, Math.round((rm - 105) / 3)));
@@ -166,6 +259,7 @@ export async function mockReport(
     'NASA MODIS MOD13Q1 (ORNL DAAC)',
     'NOAA CPC ONI',
   ];
+  const zones = mockZones(ringOf(geometry));
   const windowStart = addDays(start, -4);
   const windowEnd = addDays(start, 12);
   const indicators: Indicator[] = [
@@ -178,7 +272,7 @@ export async function mockReport(
       ? indicator('irrigation', 'low', 'irrigation.ok', { peak_week_mm: 44, capacity_week_mm: 38 * 1.2, season_mm: 260 }, 44, 'mm_week', 'check.irrigation_schedule', sources.slice(0, 1))
       : indicator('waterlogging', 'low', 'waterlogging.low', { years: 2, total }, 2, 'count', 'check.drainage', sources.slice(0, 2)),
     indicator('season_progress', 'no_data', 'season_progress.not_started', { season: values.season }, null, 'days', 'check.scout_field', sources.slice(3, 4)),
-    indicator('field_zones', 'no_data', 'field_zones.needs_ee', {}, null, null, null, []),
+    zonesIndicator(zones),
   ];
   const summaryRisk: RiskLevel =
     [waterRisk, heatRisk, hybridRisk].includes('high')
@@ -216,8 +310,10 @@ export async function mockReport(
     indicators,
     rotation: {
       options: [
-        { previous_crop: 'maize', relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.rootworm', params: {} }, { key: 'rotation.note.residue', params: {} }] },
-        { previous_crop: 'soybean', relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.residue', params: {} }] },
+        { previous_crop: 'soybean', strategy: 'corn_soybean', current: true, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.residue', params: {} }] },
+        { previous_crop: 'maize', strategy: 'continuous_corn', current: false, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'low', notes: [{ key: 'rotation.note.rootworm', params: {} }, { key: 'rotation.note.residue', params: {} }] },
+        // Erosion with a rye cover crop has no documented rule yet (#42): shown as not verified.
+        { previous_crop: 'soybean', strategy: 'corn_soybean_rye', current: false, relative_yield: null, planting_soil_water_mm: null, residue_erosion_risk: 'no_data', notes: [] },
       ],
       recommended: 'soybean',
       field_history: described.context.crop_history,
@@ -237,10 +333,10 @@ export async function mockReport(
         };
       }),
       signal_strength: 'weak',
-      message: { key: 'enso.weak', params: { now_phase: 'el_nino', delta_pct: -1 } },
+      message: { key: 'enso.weak', params: { now_phase: 'el_nino', delta_pct: -1, years: runs.filter((r) => r.enso_phase === 'el_nino').length } },
     },
-    zones_geojson: null,
-    sources,
+    zones_geojson: zones,
+    sources: zones ? [...sources, zones.meta.source] : sources,
     observed_until: null,
     runs,
     typical_year: typical.year,

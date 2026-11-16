@@ -17,7 +17,9 @@ from datacorn.domain.agronomy.water_balance import (
     WaterBalanceDay,
     flowering_deficit_mm,
     relative_yield_loss,
+    running_yield,
     simulate,
+    stress_threshold_pct,
 )
 from datacorn.domain.crops import CropParameters
 from datacorn.domain.models import (
@@ -72,6 +74,7 @@ class ScenarioOutcome:
     relative_yield_loss: float
     irrigation_mm: float
     peak_week_etc_mm: float
+    yield_curve: tuple[float, ...] = ()  # rendimiento relativo acumulado por día (película)
 
 
 def build(
@@ -193,6 +196,7 @@ def run(
         relative_yield_loss=relative_yield_loss(balance, phen, params.ky),
         irrigation_mm=sum(b.irrigation_mm for b in balance),
         peak_week_etc_mm=peak_week,
+        yield_curve=running_yield(balance, phen, params.ky),
     )
 
 
@@ -217,4 +221,8 @@ def to_run(outcome: ScenarioOutcome) -> SeasonRun:
         flowering_deficit_mm=round(outcome.flowering_deficit_mm, 1),
         flowering_heat_days=outcome.flowering_heat_days,
         relative_yield=round(1 - outcome.relative_yield_loss, 3),
+        rain_mm=tuple(round(b.rain_mm, 1) for b in outcome.balance),
+        irrigation_mm=tuple(round(b.irrigation_mm, 1) for b in outcome.balance),
+        yield_pct=tuple(round(100 * y, 1) for y in outcome.yield_curve),
+        stress_pct=round(stress_threshold_pct(outcome.balance)),
     )

@@ -1,9 +1,91 @@
 ---
+// SI-assisted (Claude Code); reviewed by <name>
 import BaseLayout from '../layouts/BaseLayout.astro';
 import DataCornApp from '../app/DataCornApp';
 ---
 
-<!-- Pantalla única (docs/app/flujo-y-pantalla.md §5). El mapa necesita el navegador: isla solo cliente. -->
+<!-- Pantalla única (docs/pantalla.md). El mapa necesita el navegador: isla solo cliente.
+     El slot "fallback" se pinta con el HTML, antes de que corra el JS de la isla, y React lo
+     reemplaza al montar. Copia las cajas de la primera pantalla (barra de arriba y tarjeta del globo)
+     para que nada salte. -->
 <BaseLayout title="Data Corn">
-  <DataCornApp client:only="react" />
+  <DataCornApp client:only="react">
+    <div slot="fallback" class="boot">
+      <div class="topbar">
+        <span class="brand">Data Corn</span>
+      </div>
+      <div class="boot__dock">
+        <div class="globe-panel">
+          <div class="globe-panel__hero">
+            <h1>Your field, seen from space</h1>
+            <p>Explore the world's climate with NASA data, or go straight to your field.</p>
+          </div>
+          <p class="boot__status" role="status">Loading the globe…</p>
+          <div class="boot__links"></div>
+        </div>
+      </div>
+    </div>
+  </DataCornApp>
 </BaseLayout>
+
+<style>
+  .boot {
+    position: fixed;
+    inset: 0;
+    background: var(--space);
+  }
+  /* Same box as .globe-dock, without its entrance animation */
+  .boot__dock {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+  }
+  /* Stands in for the 56px primary button */
+  .boot__status {
+    display: grid;
+    place-items: center;
+    min-height: 56px;
+    max-width: none;
+    border: 2px dashed var(--line);
+    border-radius: var(--r);
+    background: var(--paper-2);
+    color: var(--ink-2);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    animation: boot-pulse 1.6s ease-in-out infinite;
+  }
+  /* Stands in for the search / sample links row */
+  .boot__links {
+    min-height: var(--target);
+  }
+  /* Desktop: the card sits to the left, as .globe-dock does at this width */
+  @media (min-width: 900px) {
+    .boot__dock {
+      left: 40px;
+      right: auto;
+      top: 50%;
+      bottom: auto;
+      width: 420px;
+      max-width: none;
+      margin: 0;
+      transform: translateY(-50%);
+      padding: 28px;
+    }
+    .boot :global(.globe-panel__hero h1) {
+      font-size: var(--fs-2xl);
+      line-height: 1.08;
+    }
+  }
+  @keyframes boot-pulse {
+    50% {
+      opacity: 0.6;
+    }
+  }
+</style>

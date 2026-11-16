@@ -10,7 +10,7 @@ from datacorn import __version__
 from datacorn.application.errors import DataUnavailable
 from datacorn.bootstrap import Container
 from datacorn.domain.errors import InvalidFieldGeometry
-from datacorn.interfaces.http.routes import demo, fields, health, regions
+from datacorn.interfaces.http.routes import demo, enso, fields, health, layers, regions
 
 API_PREFIX = "/api/v1"
 
@@ -29,7 +29,7 @@ def create_app(container: Container) -> FastAPI:
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type"],
     )
-    for module in (health, regions, demo, fields):
+    for module in (health, regions, demo, layers, fields, enso):
         app.include_router(module.router, prefix=API_PREFIX)
 
     @app.exception_handler(NotImplementedError)

@@ -7,6 +7,7 @@ from datacorn.bootstrap import build_container
 from datacorn.config import Settings
 from datacorn.domain.models import LonLat
 from datacorn.interfaces.http.app import create_app
+from tests.fakes import FakeEnso
 
 
 class FakeCountries:
@@ -25,4 +26,4 @@ def settings() -> Settings:
 
 @pytest.fixture
 def client(settings: Settings) -> TestClient:
-    return TestClient(create_app(build_container(settings, countries=FakeCountries())))
+    return TestClient(create_app(build_container(settings, countries=FakeCountries(), enso=FakeEnso())))

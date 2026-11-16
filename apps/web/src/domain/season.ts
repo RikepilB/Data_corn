@@ -87,31 +87,38 @@ function ramp(stops: [number, string][], v: number): string {
   return last[1];
 }
 
+// La interfaz es en blanco y negro; el color queda solo para lo que significa algo.
+// Agua y rendimiento: escala divergente, óxido (seco/malo) → neutro → azul (con agua/bien).
+export const DRY = '#b4532a';
+export const NEUTRAL = '#e7e3dc';
+export const WET = '#2b6cb0';
+
 export const WATER_STOPS: [number, string][] = [
-  [0, '#d64545'],
-  [50, '#f2b632'],
-  [100, '#2f80ed'],
+  [0, DRY],
+  [50, NEUTRAL],
+  [100, WET],
 ];
 
-/** Agua disponible 0-100 % → rojo, ámbar, azul. */
+/** Agua disponible 0-100 % → óxido (seco), neutro, azul (con agua). */
 export const waterColor = (pct: number) => ramp(WATER_STOPS, pct);
 
-/** Rendimiento relativo: 1.0 azul, 0.85 ámbar, ≤ 0.7 rojo. */
+/** Rendimiento relativo: 1.0 azul, 0.85 neutro, ≤ 0.7 óxido. */
 export const yieldColor = (rel: number) =>
   ramp(
     [
-      [0.7, '#d64545'],
-      [0.85, '#f2b632'],
-      [1.0, '#2f80ed'],
+      [0.7, DRY],
+      [0.85, NEUTRAL],
+      [1.0, WET],
     ],
     rel,
   );
 
+/** Estados (bajo / medio / alto): pasan el validador de dataviz; siempre van con ícono y palabra. */
 export const RISK_COLOR: Record<RiskLevel, string> = {
-  low: '#2fa86a',
-  medium: '#e0a020',
-  high: '#e5484d',
-  no_data: '#8a94a6',
+  low: '#1f7a4d',
+  medium: '#c9900e',
+  high: '#b42318',
+  no_data: '#8a8a8f',
 };
 
 export const SEVERITY: Record<RiskLevel, number> = { no_data: 0, low: 1, medium: 2, high: 3 };

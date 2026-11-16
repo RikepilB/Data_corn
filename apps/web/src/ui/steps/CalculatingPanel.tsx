@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { type Locale, t } from '../../i18n';
 import type { ApiError } from '../../infrastructure/apiClient';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 import { errorText } from './errors';
 
@@ -14,10 +15,12 @@ interface Props {
   error: ApiError | null;
   onRetry: () => void;
   onRedraw: () => void;
+  onBack: () => void;
+  backLabel: string;
 }
 
 /** Paso 3 · Calculando: lista de avance (RF-05). */
-export function CalculatingPanel({ locale, done, error, onRetry, onRedraw }: Props) {
+export function CalculatingPanel({ locale, done, error, onRetry, onRedraw, onBack, backLabel }: Props) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (error) return;
@@ -29,10 +32,16 @@ export function CalculatingPanel({ locale, done, error, onRetry, onRedraw }: Pro
 
   const completed = done ? ITEMS.length : TICKS.filter((s) => elapsed >= s).length;
   const progress = done ? 100 : Math.min(92, (completed / ITEMS.length) * 100 + (elapsed % 3) * 2);
+  const nav = (
+    <div className="stepnav">
+      <BackButton locale={locale} label={backLabel} onClick={onBack} />
+    </div>
+  );
 
   if (error) {
     return (
       <section className="calc glass" role="alert">
+        {nav}
         <h2>
           <Icon name="alert" /> {t(locale, 'calc.error_title')}
         </h2>
@@ -41,7 +50,7 @@ export function CalculatingPanel({ locale, done, error, onRetry, onRedraw }: Pro
           <button type="button" className="btn btn--primary" onClick={onRetry}>
             {t(locale, 'calc.retry')}
           </button>
-          <button type="button" className="btn btn--ghost" onClick={onRedraw}>
+          <button type="button" className="btn btn--secondary" onClick={onRedraw}>
             {t(locale, 'calc.redraw')}
           </button>
         </div>
@@ -51,6 +60,7 @@ export function CalculatingPanel({ locale, done, error, onRetry, onRedraw }: Pro
 
   return (
     <section className="calc glass" aria-live="polite" aria-busy={!done}>
+      {nav}
       <h2>{t(locale, 'calc.title')}</h2>
       <p className="muted">{t(locale, 'calc.subtitle')}</p>
       <div className="progress" aria-hidden="true">

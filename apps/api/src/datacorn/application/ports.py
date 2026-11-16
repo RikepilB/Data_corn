@@ -154,3 +154,24 @@ class DemoField:
 
 class DemoFieldsPort(Protocol):
     def list(self) -> tuple[DemoField, ...]: ...
+
+
+# --- Capas del mapa -----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class TileLayer:
+    """Capa de teselas XYZ lista para el mapa, con lo necesario para su leyenda."""
+
+    id: str
+    month: str  # AAAA-MM
+    url_template: str  # .../{z}/{x}/{y}
+    min: float
+    max: float
+    unit: str
+    palette: tuple[str, ...]  # de `min` a `max`
+    source: str
+
+
+class DroughtLayerPort(Protocol):
+    def tiles(self, month: date) -> TileLayer: ...

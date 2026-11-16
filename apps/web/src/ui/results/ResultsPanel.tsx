@@ -1,12 +1,17 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 import type { Film } from '../../application/useFilm';
 import type { FormatContext } from '../../domain/format';
 import { messageText } from '../../domain/format';
 import type { FieldReport } from '../../domain/report';
 import { t } from '../../i18n';
+import { BackButton } from '../common/BackButton';
 import { Icon } from '../common/Icon';
 import { RiskBadge } from '../common/RiskBadge';
+import { useDisplayPrefs } from '../common/displayPrefs';
 import { ClimateStripes } from './ClimateStripes';
+import { RotationPanel } from './RotationPanel';
+import { type PdfFile, warmPdf } from '../pdf/download';
+import { isInAppBrowser } from '../pdf/inApp';
 import { buildCards } from './cards';
 
 interface Props {
@@ -17,27 +22,79 @@ interface Props {
   mock: boolean;
   pdfBusy: boolean;
   pdfError: boolean;
+  /** The PDF built for this report, to open by a tap when the browser ignored the download. */
+  pdfFile: PdfFile | null;
   onPdf: () => void;
-  onChange: () => void;
+  /** Back, one step: the details, as they were entered. */
+  onBack: () => void;
+  backLabel: string;
   onNew: () => void;
+  /** Back to the globe, where the layers, the search and the example are. */
+  onRestart: () => void;
+  onAbout: () => void;
+  onHelp: () => void;
+  /** Opens the chat assistant. Only passed when the chat is on and the report is the real example. */
+  onChat?: () => void;
   /** En celular la película va dentro del panel, justo debajo del mapa. */
   filmSlot?: ReactNode;
 }
 
+/** Calm mode folds the secondary detail behind a summary; otherwise it shows as usual. */
+function Secondary({ calm, label, children }: { calm: boolean; label: string; children: ReactNode }) {
+  if (!calm) return <>{children}</>;
+  return (
+    <details className="more">
+      <summary>{label}</summary>
+      {children}
+    </details>
+  );
+}
+
 /** Paso 5 · Resultados: veredicto, franjas, 6 tarjetas y PDF. */
-export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfError, onPdf, onChange, onNew, filmSlot }: Props) {
+export const ResultsPanel = memo(function ResultsPanel({
+  report,
+  film,
+  ctx,
+  isSample,
+  mock,
+  pdfBusy,
+  pdfError,
+  pdfFile,
+  onPdf,
+  onBack,
+  backLabel,
+  onNew,
+  onRestart,
+  onAbout,
+  onHelp,
+  onChat,
+  filmSlot,
+}: Props) {
   const { locale } = ctx;
-  const cards = buildCards(report, ctx);
+  const calm = useDisplayPrefs().calm;
+  const cards = useMemo(() => buildCards(report, ctx), [report, ctx]);
+  const inApp = useMemo(() => isInAppBrowser(navigator.userAgent), []);
   const enso = report.enso;
   return (
     <aside className="results glass" aria-label={t(locale, 'results.panel')}>
       <div className="sheet__grip" aria-hidden="true" />
+      {/* Siempre a la vista al desplazarse: atrás (los datos) y, en segundo plano, otro lote o el globo */}
+      <nav className="results__nav stepnav" aria-label={t(locale, 'nav.steps')}>
+        <BackButton locale={locale} label={backLabel} onClick={onBack} />
+        <div className="stepnav__more">
+          <button type="button" className="link" onClick={onNew}>
+            {t(locale, 'results.new')}
+          </button>
+          <button type="button" className="link" onClick={onRestart}>
+            {t(locale, 'results.restart')}
+          </button>
+        </div>
+      </nav>
       <div className="results__tags">
         <span className="tag tag--plain">{t(locale, 'results.campaign', { season: report.inputs?.season ?? '' })}</span>
         {isSample && <span className="tag">{t(locale, 'sample.name')}</span>}
         {mock && <span className="tag tag--warn">{t(locale, 'results.mock')}</span>}
       </div>
-      {filmSlot}
 
       <section className={`verdict verdict--${report.summary.risk}`} aria-labelledby="verdict-title">
         <div className="verdict__top">
@@ -64,7 +121,13 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
         )}
       </section>
 
-      <ClimateStripes report={report} film={film} locale={locale} />
+      {filmSlot}
+
+      <RotationPanel rotation={report.rotation} locale={locale} />
+
+      <Secondary calm={calm} label={t(locale, 'display.more')}>
+        <ClimateStripes report={report} film={film} locale={locale} />
+      </Secondary>
 
       <div className="cards">
         {cards.map((c) => (
@@ -78,12 +141,44 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
             <RiskBadge risk={c.risk} locale={locale} />
             <p className="kcard__big">{c.big}</p>
             <p className="kcard__text">{c.sentence}</p>
-            {c.extra && <p className="kcard__extra">{c.extra}</p>}
+            {(c.extra || (c.history && c.history.length > 0)) && (
+              <Secondary calm={calm} label={t(locale, 'display.more')}>
+                {c.extra && <p className="kcard__extra">{c.extra}</p>}
+                {c.history && c.history.length > 0 && (
+                  <div className="kcard__history" role="img" aria-label={t(locale, 'rotation.history')}>
+                    {c.history.map((h) => (
+                      <span key={h.year} className={`yr is-${h.crop}`} title={`${h.year}: ${t(locale, `crop.${h.crop}`)}`}>
+                        <i />
+                        <small>{String(h.year).slice(2)}</small>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {c.history && c.history.length > 0 && (
+                  <p className="kcard__legend" aria-hidden="true">
+                    <span>
+                      <i className="is-maize" /> {t(locale, 'crop.maize')}
+                    </span>
+                    <span>
+                      <i /> {t(locale, 'crop.soybean')}
+                    </span>
+                  </p>
+                )}
+              </Secondary>
+            )}
           </article>
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary btn--xl" onClick={onPdf} disabled={pdfBusy}>
+      <button
+        type="button"
+        className="btn btn--primary btn--xl"
+        onClick={onPdf}
+        disabled={pdfBusy}
+        onPointerEnter={warmPdf}
+        onFocus={warmPdf}
+        onTouchStart={warmPdf}
+      >
         {pdfBusy ? <span className="spinner spinner--dark" aria-hidden="true" /> : <Icon name="download" />}
         {t(locale, pdfBusy ? 'results.pdf_busy' : 'results.pdf')}
       </button>
@@ -92,13 +187,26 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
           {t(locale, 'results.pdf_error')}
         </p>
       )}
-      <div className="results__links">
-        <button type="button" className="link" onClick={onChange}>
-          {t(locale, 'results.change')}
+      {pdfFile && !pdfBusy && (
+        <p className="pdf-ready" role="status">
+          {t(locale, 'results.pdf_ready')}{' '}
+          <a className="link" href={pdfFile.url} download={pdfFile.name} target="_blank" rel="noopener">
+            {t(locale, 'results.pdf_open')}
+          </a>
+        </p>
+      )}
+      {inApp && <p className="pdf-ready">{t(locale, 'results.pdf_inapp')}</p>}
+      {onChat && (
+        <button type="button" className="btn btn--secondary results__chat" onClick={onChat}>
+          {t(locale, 'chat.open')}
         </button>
-        <span aria-hidden="true">·</span>
-        <button type="button" className="link" onClick={onNew}>
-          {t(locale, 'results.new')}
+      )}
+      <div className="results__links">
+        <button type="button" className="link" onClick={onAbout}>
+          {t(locale, 'about.link')}
+        </button>
+        <button type="button" className="link" onClick={onHelp}>
+          {t(locale, 'help.link')}
         </button>
       </div>
       <p className="disclaimer">
@@ -107,4 +215,4 @@ export function ResultsPanel({ report, film, ctx, isSample, mock, pdfBusy, pdfEr
       <p className="sources">{t(locale, 'results.sources', { list: report.sources.join(' · ') })}</p>
     </aside>
   );
-}
+});
