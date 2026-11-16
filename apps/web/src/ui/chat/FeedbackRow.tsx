@@ -2,7 +2,11 @@
 // "Was this answer useful?" under one assistant answer. The vote goes to /api/chat-feedback
 // with only the rating, an optional reason from a fixed list, the report id and the language.
 // The question, the answer and any file are never sent.
-import { useState } from 'react';
+//
+// Accessibility: each step replaces the buttons the person just used, so focus is moved to the
+// next thing to act on or read (first reason, the thank-you line, the retry button). Without
+// that, focus would fall to the page behind the modal. Every control is a real <button>.
+import { useEffect, useRef, useState } from 'react';
 import { type Locale, t } from '../../i18n';
 import { type FeedbackVote, sendFeedback } from './chatClient';
 
@@ -19,15 +23,34 @@ interface Props {
 
 export function FeedbackRow({ locale, reportId, send = sendFeedback }: Props) {
   const [stage, setStage] = useState<Stage>('idle');
+  const firstReason = useRef<HTMLButtonElement>(null);
+  const thanks = useRef<HTMLParagraphElement>(null);
+  const retry = useRef<HTMLButtonElement>(null);
+  const up = useRef<HTMLButtonElement>(null);
+  // Focus moves only after a person's action, never when the row first appears.
+  const moveFocus = useRef(false);
+
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    if (stage === 'reason') firstReason.current?.focus();
+    else if (stage === 'sent') thanks.current?.focus();
+    else if (stage === 'failed') retry.current?.focus();
+    else if (stage === 'idle') up.current?.focus();
+  }, [stage]);
+
+  const go = (next: Stage) => {
+    moveFocus.current = true;
+    setStage(next);
+  };
 
   const submit = async (vote: Omit<FeedbackVote, 'reportId' | 'locale'>) => {
-    setStage('sending');
-    setStage((await send({ ...vote, reportId, locale })) ? 'sent' : 'failed');
+    go('sending');
+    go((await send({ ...vote, reportId, locale })) ? 'sent' : 'failed');
   };
 
   if (stage === 'sent') {
     return (
-      <p className="chat__feedback chat__feedback--done" role="status">
+      <p ref={thanks} tabIndex={-1} className="chat__feedback chat__feedback--done" role="status">
         {t(locale, 'chat.feedback.thanks')}
       </p>
     );
@@ -35,8 +58,8 @@ export function FeedbackRow({ locale, reportId, send = sendFeedback }: Props) {
   if (stage === 'failed') {
     return (
       <p className="chat__feedback" role="alert">
-        {t(locale, 'chat.feedback.failed')}{' '}
-        <button type="button" className="btn btn--ghost" onClick={() => setStage('idle')}>
+        {t(locale, 'chat.feedback.failed')}
+        <button ref={retry} type="button" className="btn btn--ghost" onClick={() => go('idle')}>
           {t(locale, 'chat.feedback.retry')}
         </button>
       </p>
@@ -45,10 +68,11 @@ export function FeedbackRow({ locale, reportId, send = sendFeedback }: Props) {
   if (stage === 'reason') {
     return (
       <div className="chat__feedback" role="group" aria-label={t(locale, 'chat.feedback.why')}>
-        <span>{t(locale, 'chat.feedback.why')}</span>
-        {REASONS.map((reason) => (
+        <span aria-hidden="true">{t(locale, 'chat.feedback.why')}</span>
+        {REASONS.map((reason, i) => (
           <button
             key={reason}
+            ref={i === 0 ? firstReason : undefined}
             type="button"
             className="btn btn--secondary"
             onClick={() => void submit({ rating: 'down', reason })}
@@ -63,9 +87,10 @@ export function FeedbackRow({ locale, reportId, send = sendFeedback }: Props) {
     );
   }
   return (
-    <div className="chat__feedback" role="group" aria-label={t(locale, 'chat.feedback.label')}>
-      <span>{t(locale, 'chat.feedback.label')}</span>
+    <div className="chat__feedback" role="group" aria-label={t(locale, 'chat.feedback.label')} aria-busy={stage === 'sending'}>
+      <span aria-hidden="true">{t(locale, 'chat.feedback.label')}</span>
       <button
+        ref={up}
         type="button"
         className="btn btn--ghost"
         disabled={stage === 'sending'}
@@ -73,12 +98,7 @@ export function FeedbackRow({ locale, reportId, send = sendFeedback }: Props) {
       >
         {t(locale, 'chat.feedback.up')}
       </button>
-      <button
-        type="button"
-        className="btn btn--ghost"
-        disabled={stage === 'sending'}
-        onClick={() => setStage('reason')}
-      >
+      <button type="button" className="btn btn--ghost" disabled={stage === 'sending'} onClick={() => go('reason')}>
         {t(locale, 'chat.feedback.down')}
       </button>
     </div>
